@@ -1,5 +1,6 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
+import ScrollTracker from '../components/ScrollTracker.astro';
 
 type Props = {
   title?: string;
@@ -18,5 +19,6 @@ export const { title, description } = Astro?.props ?? {};
   <body
     class="bg-sage-50 text-sage-950 dark:bg-sage-950 dark:text-sage-50 h-dvh w-screen">
     <slot />
+    <ScrollTracker />
   </body>
 </html>
