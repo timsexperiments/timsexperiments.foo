@@ -1,10 +1,13 @@
 ---
-import logoLight from '../assets/tim_s_experiments_logo.svg';
-import logoDark from '../assets/tim_s_experiments_logo_dark.svg';
+import logoLight from '@/assets/tim_s_experiments_logo.svg';
+import logoDark from '@/assets/tim_s_experiments_logo_dark.svg';
+import ButtonLink from '@/components/ButtonLink.astro';
+import { Button } from '@/components/ui/button';
+import { Moon, Sun } from 'lucide-react';
 ---
 
 <header>
-  <nav>
+  <nav class="flex items-center justify-between">
     <a href="/" class="h-8 no-underline">
       <img
         class="block h-full dark:hidden"
@@ -17,5 +20,17 @@ import logoDark from '../assets/tim_s_experiments_logo_dark.svg';
         alt="Tim's Experiments"
       />
     </a>
+    <div class="flex items-center justify-between gap-2">
+      <ButtonLink variant="outline" href="/lab">The Lab</ButtonLink>
+      <Button
+        id="color-swap-btn"
+        className="h-10 w-10 rounded-full p-2 text-rhino-950 dark:text-rhino-50"
+        variant="ghost">
+        <Moon className="block h-5 w-5 dark:hidden" />
+        <Sun className="hidden h-5 w-5 dark:block" />
+      </Button>
+    </div>
   </nav>
 </header>
+
+<script src="../scripts/color_preference.ts"></script>

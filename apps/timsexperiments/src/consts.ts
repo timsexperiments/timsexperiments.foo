@@ -3,3 +3,4 @@
 
 export const SITE_TITLE = 'Astro Blog';
 export const SITE_DESCRIPTION = 'Welcome to my website!';
+export const COLOR_PREFERENCE_KEY = 'timsexperiments:color_preference';
