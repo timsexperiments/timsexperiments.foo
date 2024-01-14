@@ -1,28 +1,65 @@
 ---
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '@/components/Footer.astro';
+import Header from '@/components/Header.astro';
+import Contact from '@/components/home/Contact.astro';
+import Hero from '@/components/home/Hero.astro';
+import Join from '@/components/home/Join.astro';
+import MyJourney from '@/components/home/MyJourney.astro';
+import TheLabPreview from '@/components/home/TheLabPreview.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/consts';
+import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
-  <div class="h-full w-full scroll-smooth">
-    <div class="h-screen w-full snap-start snap-always"></div>
-    <div class="h-screen w-full snap-start snap-always"></div>
-    <div class="h-screen w-full snap-start snap-always"></div>
-    <div class="h-screen w-full snap-start snap-always"></div>
-    <div class="h-screen w-full snap-start snap-always"></div>
-    <div
-      class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between py-2 md:px-4 lg:px-12 xl:px-16">
+  <div class="h-screen w-full snap-start snap-always"></div>
+  <div class="h-screen w-full snap-start snap-always"></div>
+  <div class="h-screen w-full snap-start snap-always"></div>
+  <div class="h-screen w-full snap-start snap-always"></div>
+  <div class="h-screen w-full snap-start snap-always"></div>
+  <div
+    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between py-2">
+    <header class="w-full md:px-4 lg:px-12 xl:px-16">
       <Header title={SITE_TITLE} />
-      <main class="max-h-full w-full overflow-hidden"></main>
+    </header>
+    <main class="max-h-full whitespace-nowrap">
+      <section
+        id="home"
+        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+        <Hero />
+      </section>
+      <section
+        id="my-journey"
+        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+        <MyJourney />
+      </section>
+      <section
+        id="the-lab"
+        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+        <TheLabPreview />
+      </section>
+      <section
+        id="contact"
+        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+        <Contact />
+      </section>
+      <section
+        id="join"
+        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+        <Join />
+      </section>
+    </main>
+    <footer class="w-full md:px-4 lg:px-12 xl:px-16">
       <Footer />
-    </div>
+    </footer>
   </div>
 </BaseLayout>
 
 <style>
   html {
     @apply snap-y snap-mandatory;
+  }
+
+  main {
+    transform: translateX(calc((var(--scroll) * -1%)));
   }
 </style>
