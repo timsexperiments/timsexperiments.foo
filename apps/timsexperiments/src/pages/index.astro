@@ -6,45 +6,56 @@ import Hero from '@/components/home/Hero.astro';
 import Join from '@/components/home/Join.astro';
 import MyJourney from '@/components/home/MyJourney.astro';
 import TheLabPreview from '@/components/home/TheLabPreview.astro';
+import Nav from '@/components/nav/Nav.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
-  <div class="h-screen w-full snap-start snap-always"></div>
-  <div class="h-screen w-full snap-start snap-always"></div>
-  <div class="h-screen w-full snap-start snap-always"></div>
-  <div class="h-screen w-full snap-start snap-always"></div>
-  <div class="h-screen w-full snap-start snap-always"></div>
   <div
-    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between py-2">
+    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    <div id="hero" class="h-1 w-1 rounded-full bg-blue-500"></div>
+  </div>
+  <div
+    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    <div id="my-journey" class="h-1 w-1 rounded-full bg-red-500"></div>
+  </div>
+  <div
+    id="the-lab"
+    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    <div id="the-lab" class="h-1 w-1 rounded-full bg-green-500"></div>
+  </div>
+  <div
+    id="contact"
+    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    <div id="contact" class="h-1 w-1 rounded-full bg-yellow-500"></div>
+  </div>
+  <div
+    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    <div id="join" class="h-1 w-1 rounded-full bg-pink-500"></div>
+  </div>
+  <div
+    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-inherit py-2">
+    <div class="fixed bottom-0 mb-16 place-self-center self-center">
+      <Nav />
+    </div>
     <header class="w-full md:px-4 lg:px-12 xl:px-16">
       <Header title={SITE_TITLE} />
     </header>
     <main class="max-h-full whitespace-nowrap">
-      <section
-        id="home"
-        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
         <Hero />
       </section>
-      <section
-        id="my-journey"
-        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
         <MyJourney />
       </section>
-      <section
-        id="the-lab"
-        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
         <TheLabPreview />
       </section>
-      <section
-        id="contact"
-        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
         <Contact />
       </section>
-      <section
-        id="join"
-        class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
         <Join />
       </section>
     </main>
