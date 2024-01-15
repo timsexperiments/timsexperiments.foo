@@ -2,18 +2,23 @@
 import BaseHead from '../components/BaseHead.astro';
 import ScrollTracker from '../components/ScrollTracker.astro';
 
-type Props = {
-  title?: string;
-  description?: string;
+export type Props = {
+  title: string;
+  description: string;
 };
 
-export const { title, description } = Astro?.props ?? {};
+const { title, description } = Astro?.props ?? {};
 ---
 
 <!doctype html>
 <html class="dark" lang="en">
   <head>
-    <BaseHead title={title ?? ''} description={description ?? ''} />
+    <BaseHead title={title} description={description} />
+    <!-- Urbanist font. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
   <body
