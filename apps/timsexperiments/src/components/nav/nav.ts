@@ -17,7 +17,6 @@ function getNavigatorSection(navigator: Element) {
 function setUpNavigator(navigator: Element) {
   const section = getNavigatorSection(navigator);
   navigator.addEventListener('click', () => {
-    console.log('clicked', section.id);
     section.scrollIntoView({ behavior: 'smooth' });
   });
   return navigator;
@@ -31,25 +30,27 @@ function sectionNavigator(section: Element) {
 
 const observer = new IntersectionObserver(
   (entries, observer) => {
-    console.log('AN OBSERVER EVENT HAPPENED...');
     let anyIntersecting = false;
     entries.forEach((entry) => {
       const navigator = sectionNavigator(entry.target);
       if (entry.isIntersecting && !anyIntersecting) {
         anyIntersecting = true;
         navigator.classList.add('active');
-        console.log(entry.target.id, 'is in view');
+        console.log(
+          'scrolling the navigator for',
+          entry.target.id,
+          'into view'
+        );
+        navigator.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         navigator.classList.remove('active');
-        console.log(entry.target.id, 'is out of view');
       }
-      console.log();
     });
   },
   { rootMargin: '-40% 0% -40% 0%', threshold: 0 }
 );
 
-const sections = getNavigators()
+getNavigators()
   .map(setUpNavigator)
   .map(getNavigatorSection)
   .forEach((element) => observer.observe(element));
