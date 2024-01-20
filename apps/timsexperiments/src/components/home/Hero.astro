@@ -1,5 +1,54 @@
 ---
-
+import { Image } from 'astro:assets';
+import { Brain, Hammer, Lightbulb } from 'lucide-react';
+import ButtonLink from '../ButtonLink.astro';
 ---
 
-This is Home.
+<div
+  class="flex w-screen flex-col-reverse items-center gap-10 md:flex-row md:justify-between">
+  <div class="w-full max-w-lg space-y-4 xl:max-w-xl">
+    <div class="space-y-2">
+      <h2 class="text-xl font-medium">Discover | Imagine | Build</h2>
+      <h1
+        class="font-display text-4xl font-bold sm:text-5xl md:text-6xl xl:text-7xl">
+        Tim's Experiments
+      </h1>
+    </div>
+    <p
+      class="w-full whitespace-normal text-sm text-rhino-700 dark:text-rhino-300 sm:text-base md:text-lg">
+      Get ready to discover a digital playground where software's boundaries are
+      pushed, explored, and redefined. Dive into professional insights, in-depth
+      topics, practical code snippets, <br class="hidden xl:block" />toy
+      projects, and fresh takes on emerging tech.
+    </p>
+    <ButtonLink href="/lab" variant="default">Explore The Lab</ButtonLink>
+    <div class="flex items-center text-rhino-700 dark:text-rhino-200">
+      <div class="flex items-center justify-center px-8 py-6">
+        <Lightbulb className=" h-10 w-10 md:h-16 md:w-16" />
+      </div>
+      <div
+        class="mx-2 h-12 w-0 border-l-2 border-rhino-700 dark:border-rhino-400 md:mx-4 md:h-20">
+        &nbsp;
+      </div>
+      <div class="flex items-center justify-center px-8 py-6">
+        <Brain className="h-10 w-10 md:h-16 md:w-16" />
+      </div>
+      <div
+        class="mx-2 h-12 w-0 border-l-2 border-rhino-700 dark:border-rhino-400 md:mx-4 md:h-20">
+        &nbsp;
+      </div>
+      <div class="flex items-center justify-center px-8 py-6">
+        <Hammer className="h-10 w-10 md:h-16 md:w-16" />
+      </div>
+    </div>
+  </div>
+  <div class="hidden lg:block">
+    <Image
+      class="object-center"
+      src="/placeholder.svg"
+      width="440"
+      height="612"
+      alt="side photo"
+    />
+  </div>
+</div>
