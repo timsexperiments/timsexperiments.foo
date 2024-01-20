@@ -34,35 +34,42 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     class="flex h-screen w-full snap-start snap-always items-center justify-center">
     <div id="join" class="h-1 w-1 rounded-full bg-pink-500"></div>
   </div>
+  <header
+    class="fixed left-0 top-0 z-10 w-full bg-inherit px-2 py-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+    <Header title={SITE_TITLE} />
+  </header>
   <div
-    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-inherit py-2">
-    <div class="fixed bottom-0 mb-16 place-self-center self-center">
+    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-inherit">
+    <div class="fixed bottom-0 z-10 mb-16 place-self-center self-center py-2">
       <Nav />
     </div>
-    <header class="w-full md:px-4 lg:px-12 xl:px-16">
-      <Header title={SITE_TITLE} />
-    </header>
-    <main class="max-h-full whitespace-nowrap">
-      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+    <main class="h-dvh whitespace-nowrap md:pb-28 md:pt-16">
+      <section
+        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:px-8 lg:px-12 xl:px-16">
         <Hero />
       </section>
-      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section
+        class="flex h-full w-screen items-center justify-center px-2 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
         <MyJourney />
       </section>
-      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section
+        class="flex h-full w-screen items-center justify-center px-2 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
         <TheLabPreview />
       </section>
-      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section
+        class="flex h-full w-screen items-center justify-center px-2 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
         <Contact />
       </section>
-      <section class="inline-block w-screen md:px-4 lg:px-12 xl:px-16">
+      <section
+        class="flex h-full w-screen items-center justify-center px-2 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
         <Join />
       </section>
     </main>
-    <footer class="w-full md:px-4 lg:px-12 xl:px-16">
-      <Footer />
-    </footer>
   </div>
+  <footer
+    class="fixed bottom-0 left-0 w-full bg-inherit p-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+    <Footer />
+  </footer>
 </BaseLayout>
 
 <style>
@@ -71,6 +78,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   }
 
   main {
-    transform: translateX(calc((var(--scroll) * -1%)));
+    transform: translateX(0) translateY(calc((var(--scroll) * -1%)));
+  }
+
+  @media (min-width: 768px) {
+    main {
+      transform: translateX(calc((var(--scroll) * -1%))) translateY(0);
+    }
   }
 </style>
