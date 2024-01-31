@@ -39,32 +39,36 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <Header title={SITE_TITLE} />
   </header>
   <div
-    class="fixed bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-inherit">
-    <div class="fixed bottom-0 z-10 mb-16 place-self-center self-center py-2">
+    class="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-rhino-950">
+  </div>
+  <main
+    class="fixed left-0 top-0 flex h-dvh whitespace-nowrap md:pb-28 md:pt-16">
+    <section
+      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:px-8 lg:px-12 xl:px-16">
+      <Hero />
+    </section>
+    <section
+      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      <MyJourney />
+    </section>
+    <section
+      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      <TheLabPreview />
+    </section>
+    <section
+      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      <Contact />
+    </section>
+    <section
+      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      <Join />
+    </section>
+  </main>
+  <div class="flex w-full justify-center">
+    <div
+      class="fixed bottom-0 z-50 m-auto mb-16 place-self-center self-center py-2">
       <Nav />
     </div>
-    <main class="h-dvh whitespace-nowrap md:pb-28 md:pt-16">
-      <section
-        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:px-8 lg:px-12 xl:px-16">
-        <Hero />
-      </section>
-      <section
-        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
-        <MyJourney />
-      </section>
-      <section
-        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
-        <TheLabPreview />
-      </section>
-      <section
-        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
-        <Contact />
-      </section>
-      <section
-        class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
-        <Join />
-      </section>
-    </main>
   </div>
   <footer
     class="fixed bottom-0 left-0 w-full bg-inherit p-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
@@ -78,12 +82,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   }
 
   main {
-    transform: translateX(0) translateY(calc((var(--scroll) * -1%)));
+    transform: translateX(0) translateY(calc((var(--scroll) * (-1 / 5) * 1%)));
   }
 
   @media (min-width: 768px) {
     main {
-      transform: translateX(calc((var(--scroll) * -1%))) translateY(0);
+      transform: translateX(calc((var(--scroll) * (-1 / 5) * 1%))) translateY(0);
     }
   }
 </style>
