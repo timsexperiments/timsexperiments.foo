@@ -1,5 +1,19 @@
 ---
-
+import { Image } from 'astro:assets';
+import MyJourneyCarousel from './my-journey/carousel';
 ---
 
-This is My Journey.
+<div
+  class="flex w-full flex-col items-center gap-4 lg:flex-row lg:justify-center lg:gap-24">
+  <Image
+    class="h-80 w-80 rounded-full object-cover"
+    src="/placeholder.svg"
+    width="352"
+    height="352"
+    alt="Tim"
+  />
+  <div class="flex flex-col px-12 lg:pr-14">
+    <h1 class="mb-2 text-4xl font-bold">My Journey</h1>
+    <MyJourneyCarousel client:load />
+  </div>
+</div>
