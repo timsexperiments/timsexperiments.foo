@@ -4,6 +4,7 @@ export class ScrollTracker {
   constructor() {
     window.addEventListener('scroll', this.setPageScroll);
     window.addEventListener('resize', this.setPageScroll);
+    window.addEventListener('load', this.setPageScroll);
   }
 
   get currentScroll() {
