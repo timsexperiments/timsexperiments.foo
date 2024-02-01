@@ -1,11 +1,11 @@
 ---
 import { Image } from 'astro:assets';
-import { Brain, Hammer, Lightbulb } from 'lucide-react';
+import { Brain, Hammer, Microscope } from 'lucide-react';
 import ButtonLink from '../ButtonLink.astro';
 ---
 
 <div
-  class="flex w-screen flex-col-reverse items-center gap-10 md:flex-row md:justify-between">
+  class="flex w-screen flex-col-reverse items-center gap-10 px-2 sm:px-4 md:inline-flex md:flex-row md:justify-between md:px-8 md:pb-28 md:pt-16 lg:px-12 xl:px-16">
   <div class="w-full max-w-lg space-y-4 xl:max-w-xl">
     <div class="space-y-2">
       <h2 class="text-xl font-medium">Discover | Imagine | Build</h2>
@@ -24,7 +24,7 @@ import ButtonLink from '../ButtonLink.astro';
     <ButtonLink href="/lab" variant="default">Explore The Lab</ButtonLink>
     <div class="flex items-center text-rhino-700 dark:text-rhino-200">
       <div class="flex items-center justify-center px-8 py-6">
-        <Lightbulb className=" h-10 w-10 md:h-16 md:w-16" />
+        <Microscope className=" h-10 w-10 md:h-16 md:w-16" />
       </div>
       <div
         class="mx-2 h-12 w-0 border-l-2 border-rhino-700 dark:border-rhino-400 md:mx-4 md:h-20">
@@ -42,13 +42,13 @@ import ButtonLink from '../ButtonLink.astro';
       </div>
     </div>
   </div>
-  <div class="hidden lg:block">
-    <Image
-      class="object-center"
-      src="/placeholder.svg"
-      width="440"
-      height="612"
-      alt="side photo"
-    />
-  </div>
+</div>
+<div class="relative hidden h-full w-full lg:block">
+  <Image
+    class="absolute h-full w-full object-cover object-left-top"
+    src="/tims_experiments_newspaper.jpg"
+    alt="Tim's Experiments :)"
+    width="1000"
+    height="1000"
+  />
 </div>

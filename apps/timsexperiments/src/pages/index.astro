@@ -35,31 +35,32 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <div id="join" class="h-1 w-1 rounded-full bg-pink-500"></div>
   </div>
   <header
-    class="fixed left-0 top-0 z-10 w-full bg-inherit px-2 py-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+    class="fixed left-0 top-0 z-10 w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
     <Header title={SITE_TITLE} />
   </header>
   <div
     class="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-rhino-50 dark:bg-rhino-950">
   </div>
   <main
-    class="fixed left-0 top-0 flex h-dvh whitespace-nowrap md:pb-28 md:pt-16">
-    <section class="flex h-full w-screen items-center justify-center">
+    class="fixed left-0 top-0 flex flex-col whitespace-nowrap md:h-dvh md:flex-row">
+    <section
+      class="relative flex h-dvh w-screen items-center justify-center overflow-hidden md:h-full">
       <Hero />
     </section>
     <section
-      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      class="flex h-dvh w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
       <MyJourney />
     </section>
     <section
-      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      class="flex h-dvh w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
       <TheLabPreview />
     </section>
     <section
-      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      class="flex h-dvh w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
       <Contact />
     </section>
     <section
-      class="flex h-full w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-auto md:px-4 lg:px-12 xl:px-16">
+      class="flex h-dvh w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
       <Join />
     </section>
   </main>
@@ -70,7 +71,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     </div>
   </div>
   <footer
-    class="fixed bottom-0 left-0 w-full bg-inherit p-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+    class="fixed bottom-0 left-0 w-full bg-inherit p-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
     <Footer />
   </footer>
 </BaseLayout>
