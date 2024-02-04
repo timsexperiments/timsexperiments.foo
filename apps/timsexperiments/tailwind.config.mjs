@@ -1,3 +1,22 @@
+/**
+ * Sets up keyframes for the slide animation.
+ *
+ * @param {'forwards' | 'backwards'} direction
+ */
+const slideAnimationKeyframes = (direction = 'forwards') => ({
+  '30%, 100%': {
+    opacity: 0,
+    transform: `translateX(calc(${direction === 'forwards' ? 1 : -1}% * var(--slide-percent)))`,
+  },
+  '0%': {
+    opacity: 0,
+    transform: `translateX(calc(${direction === 'forwards' ? -1 : 1}% * var(--slide-percent)))`,
+  },
+  '10%': {
+    opacity: 1,
+  },
+});
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ['class'],
@@ -77,24 +96,14 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-        slide: {
-          '30%, 100%': {
-            opacity: 0,
-            transform: 'translateX(calc(1% * var(--slide-percent)))',
-          },
-          '0%': {
-            opacity: 0,
-            transform: 'translateX(calc(-1% * var(--slide-percent)))',
-          },
-          '10%': {
-            opacity: 1,
-          },
-        },
+        slide: slideAnimationKeyframes(),
+        'slide-reverse': slideAnimationKeyframes('backwards'),
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         slide: 'slide 3s ease-in-out',
+        'slide-reverse': 'slide-reverse 3s ease-in-out',
       },
     },
   },
