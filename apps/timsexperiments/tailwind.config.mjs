@@ -6,11 +6,11 @@
 const slideAnimationKeyframes = (direction = 'forwards') => ({
   '30%, 100%': {
     opacity: 0,
-    transform: `translateX(calc(${direction === 'forwards' ? 1 : -1}% * var(--slide-percent)))`,
+    transform: `translateX(calc(${direction === 'forwards' ? 1 : -1}% * var(--animate-slide-start)))`,
   },
   '0%': {
     opacity: 0,
-    transform: `translateX(calc(${direction === 'forwards' ? -1 : 1}% * var(--slide-percent)))`,
+    transform: `translateX(calc(${direction === 'forwards' ? -1 : 1}% * var(--animate-slide-end)))`,
   },
   '10%': {
     opacity: 1,

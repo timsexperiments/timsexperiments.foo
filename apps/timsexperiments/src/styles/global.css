@@ -5,6 +5,8 @@
 @layer base {
   :root {
     --scroll: 0;
-    --slide-percent: 200;
+    --animate-slide-percent: 200;
+    --animate-slide-start: var(--animate-slide-percent);
+    --animate-slide-end: var(--animate-slide-percent);
   }
 }
