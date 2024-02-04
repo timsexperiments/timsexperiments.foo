@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { Pointer } from 'lucide-react';
 import MyJourneyCarousel from './my-journey/carousel';
 ---
 
@@ -18,5 +19,10 @@ import MyJourneyCarousel from './my-journey/carousel';
   <div class="flex flex-col px-12 lg:pr-14">
     <h1 class="mb-2 text-4xl font-bold">My Journey</h1>
     <MyJourneyCarousel client:load />
+    <div class="center flex w-full justify-center py-2 lg:hidden">
+      <Pointer
+        className="animate-slide text-rhino-400 opacity-0 delay-1000 repeat-infinite [--slide-percent:_300]"
+      />
+    </div>
   </div>
 </div>
