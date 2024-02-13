@@ -1,4 +1,5 @@
 ---
+import { Toaster } from '@/components/ui/toaster';
 import BaseHead from '../components/BaseHead.astro';
 import ScrollTracker from '../components/ScrollTracker.astro';
 
@@ -24,6 +25,7 @@ const { title, description } = Astro?.props ?? {};
   <body
     class="h-dvh w-screen bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
     <slot />
+    <Toaster client:load />
     <ScrollTracker />
     <script src="../scripts/animate.ts"></script>
   </body>
