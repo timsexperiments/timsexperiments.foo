@@ -16,7 +16,7 @@ const buttonVariants = cva(
         outline:
           'border border-rhino-200 hover:bg-rhino-100 hover:text-rhino-900 dark:border-rhino-800 dark:hover:bg-rhino-900 dark:hover:text-rhino-50',
         secondary:
-          'bg-rhino-100 text-rhino-900 hover:bg-rhino-100/80 dark:bg-rhino-800 dark:text-rhino-50 dark:hover:bg-rhino-800/80',
+          'dark:bg-rhino-200 dark:text-rhino-900 dark:hover:bg-rhino-200/80 bg-rhino-800 text-rhino-50 hover:bg-rhino-800/80',
         ghost:
           'hover:bg-rhino-100 hover:text-rhino-900 dark:hover:bg-rhino-800 dark:hover:text-rhino-50',
         link: 'text-rhino-900 underline-offset-4 hover:underline dark:text-rhino-50',
