@@ -1,5 +1,39 @@
 ---
-
+import ButtonLink from '@/components/ButtonLink.astro';
+import { EmailButton } from '@/components/home/contact/email-button';
+import { CONTACT_EMAIL } from '@/consts';
+import { Github, Linkedin } from 'lucide-react';
 ---
 
-This is Contact.
+<div
+  class="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:items-start sm:gap-8 md:justify-start">
+  <h1
+    class="text-wrap text-center text-2xl font-bold sm:w-1/2 sm:text-start sm:text-3xl md:text-4xl lg:text-5xl">
+    Have an exciting opportunity?
+  </h1>
+  <div class="flex flex-col gap-4 text-center sm:w-1/2 sm:text-start">
+    <p class="text-wrap text-rhino-600 dark:text-rhino-400">
+      I'm always interested in hearing about exciting projects. If you're
+      working on a project that could benefit from my expertise or requires a
+      unique perspective and skill set, I'd love to hear about it. Interested in
+      collaborating? I'm just an email away.
+    </p>
+    <div class="flex justify-center gap-4 sm:justify-start">
+      <EmailButton email={CONTACT_EMAIL} client:load />
+      <ButtonLink
+        size="sm"
+        variant="secondary"
+        href="https://www.linkedin.com/in/timothyaltemus"
+        target="_blank">
+        <Linkedin />
+      </ButtonLink>
+      <ButtonLink
+        variant="secondary"
+        size="sm"
+        href="https://github.com/timsexperiments"
+        target="_blank">
+        <Github />
+      </ButtonLink>
+    </div>
+  </div>
+</div>

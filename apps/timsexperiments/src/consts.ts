@@ -5,3 +5,4 @@ export const SITE_TITLE = "Tim's Experiments";
 export const SITE_DESCRIPTION =
   'Check out some cool experiments about all things software engineering!';
 export const COLOR_PREFERENCE_KEY = 'timsexperiments:color_preference';
+export const CONTACT_EMAIL = 'hello@timsexperiments.foo';
