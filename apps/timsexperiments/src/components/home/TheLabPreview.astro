@@ -1,5 +1,38 @@
 ---
+import { getCollection } from 'astro:content';
+import ButtonLink from '../ButtonLink.astro';
+import Article from './the-lab-preview/article.astro';
 
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.status === 'published';
+});
+
+const last3Articles = publishedBlogEntries
+  .sort((first, second) => +first.data.pubDate - +second.data.pubDate)
+  .slice(-3)
+  .reverse();
 ---
 
-This is The Lab Preview.
+<div class="flex w-full flex-col gap-4 px-2">
+  <div class="display flex w-full flex-col items-center justify-start gap-2">
+    <h1
+      class="text-wrap text-center text-3xl font-bold sm:text-4xl md:text-5xl">
+      Discover the Lab
+    </h1>
+    <p
+      class="w-full max-w-lg text-wrap text-center text-rhino-600 dark:text-rhino-400">
+      Delve into a world where technology meets creativity. In 'The Lab', I
+      share in-depth insights, innovative ideas, and practical solutions.
+    </p>
+    <ButtonLink size="sm" href="/lab" variant="default">
+      Explore The Lab
+    </ButtonLink>
+  </div>
+  <div class="hidden w-full items-start justify-center gap-8 md:flex">
+    {
+      last3Articles.map(({ data: { pubDate, title, summary } }) => (
+        <Article title={title} publishDate={pubDate} summary={summary} />
+      ))
+    }
+  </div>
+</div>
