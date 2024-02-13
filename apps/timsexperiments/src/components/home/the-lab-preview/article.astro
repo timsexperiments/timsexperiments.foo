@@ -1,0 +1,25 @@
+---
+type Props = {
+  title: string;
+  publishDate: Date;
+  summary: string;
+};
+
+const { title, publishDate, summary } = Astro.props;
+
+const formattedDate = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'full',
+}).format(publishDate);
+---
+
+<div class="w-1/3">
+  <h2 class="text-xl font-semibold">{title}</h2>
+  <p class="mt-2 text-sm text-rhino-500">
+    {formattedDate}
+  </p>
+  <p
+    class="my-4 h-full max-h-44 min-w-0 overflow-hidden overflow-ellipsis whitespace-nowrap text-wrap">
+    {summary}
+  </p>
+  <a class="text-primary-600 underline dark:text-primary-500">Read more</a>
+</div>
