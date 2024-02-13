@@ -13,25 +13,25 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <div
-    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    class="flex h-dvh w-full snap-start snap-always items-center justify-center">
     <div id="hero" class="h-1 w-1 rounded-full bg-blue-500"></div>
   </div>
   <div
-    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    class="flex h-dvh w-full snap-start snap-always items-center justify-center">
     <div id="my-journey" class="h-1 w-1 rounded-full bg-red-500"></div>
   </div>
   <div
     id="the-lab"
-    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    class="flex h-dvh w-full snap-start snap-always items-center justify-center">
     <div id="the-lab" class="h-1 w-1 rounded-full bg-green-500"></div>
   </div>
   <div
     id="contact"
-    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    class="flex h-dvh w-full snap-start snap-always items-center justify-center">
     <div id="contact" class="h-1 w-1 rounded-full bg-yellow-500"></div>
   </div>
   <div
-    class="flex h-screen w-full snap-start snap-always items-center justify-center">
+    class="flex h-dvh w-full snap-start snap-always items-center justify-center">
     <div id="join" class="h-1 w-1 rounded-full bg-pink-500"></div>
   </div>
   <header
@@ -48,7 +48,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <Hero />
     </section>
     <section
-      class="flex h-dvh w-screen items-center justify-center px-2 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
+      class="flex h-dvh w-screen items-center justify-center px-2 py-16 sm:px-4 md:inline-flex md:h-full md:px-4 lg:px-12 xl:px-16">
       <MyJourney />
     </section>
     <section
@@ -66,7 +66,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   </main>
   <div class="flex w-full justify-center">
     <div
-      class="fixed bottom-0 z-50 m-auto mb-16 place-self-center self-center py-2">
+      class="fixed bottom-0 z-50 m-auto mb-12 place-self-center self-center py-2">
       <Nav />
     </div>
   </div>
