@@ -1,32 +1,54 @@
 ---
 import logoLight from '@/assets/tim_s_experiments_logo.svg';
 import logoDark from '@/assets/tim_s_experiments_logo_dark.svg';
-import ButtonLink from '@/components/ButtonLink.astro';
+import theLabLogo from '@/assets/the_lab_logo.svg';
+import theLabLogoDark from '@/assets/the_lab_logo_dark.svg';
 import { Button } from '@/components/ui/button';
 import { Image } from 'astro:assets';
 import { Moon, Sun } from 'lucide-react';
 ---
 
 <nav class="flex items-center justify-between">
-  <a href="/" class="h-8 no-underline">
-    <Image
-      format="svg"
-      class="block dark:hidden"
-      src={logoLight}
-      alt="Tim's Experiments"
-      height="32"
-    />
-    <Image
-      format="webp"
-      class="hidden dark:block"
-      src={logoDark}
-      alt="Tim's Experiments"
-      height="32"
-    />
-    <span class="sr-only">Home</span>
-  </a>
+  <div class="flex items-center justify-between gap-4">
+    <a href="/" class="h-8 no-underline">
+      <Image
+        format="webp"
+        class="block dark:hidden"
+        src={logoLight}
+        alt="Tim's Experiments"
+        height="32"
+      />
+      <Image
+        format="webp"
+        class="hidden dark:block"
+        src={logoDark}
+        alt="Tim's Experiments"
+        height="32"
+      />
+      <span class="sr-only">Home</span>
+    </a>
+    <span
+      class="h-6 w-2 border-r-2 border-solid border-rhino-950 dark:border-rhino-50">
+    </span>
+    <a href="/lab" class="p-0 no-underline">
+      <Image
+        format="webp"
+        class="block h-4 w-fit dark:hidden"
+        src={theLabLogo}
+        alt="Tim's Experiments"
+        height="32"
+      />
+      <Image
+        format="webp"
+        class="hidden h-4 w-fit dark:block"
+        src={theLabLogoDark}
+        alt="Tim's Experiments"
+        height="32"
+      />
+      <span class="sr-only">The lab</span>
+    </a>
+  </div>
   <div class="flex items-center justify-between gap-2">
-    <ButtonLink variant="outline" href="/lab">The Lab</ButtonLink>
     <Button
       id="color-swap-btn"
       className="h-10 w-10 rounded-full p-2 text-rhino-950 dark:text-rhino-50"
