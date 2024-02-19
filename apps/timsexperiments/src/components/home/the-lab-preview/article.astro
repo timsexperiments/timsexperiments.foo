@@ -1,25 +1,22 @@
 ---
-type Props = {
-  title: string;
-  publishDate: Date;
-  summary: string;
-};
+import { type CollectionEntry } from 'astro:content';
 
-const { title, publishDate, summary } = Astro.props;
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, pubDate, tldr } = Astro.props;
 
 const formattedDate = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'full',
-}).format(publishDate);
+}).format(pubDate);
 ---
 
-<div class="w-1/3">
+<div class="max-w-[33%]">
   <h2 class="text-xl font-semibold">{title}</h2>
   <p class="mt-2 text-sm text-rhino-500">
     {formattedDate}
   </p>
-  <p
-    class="my-4 h-full max-h-44 min-w-0 overflow-hidden overflow-ellipsis whitespace-nowrap text-wrap">
-    {summary}
+  <p class="my-4 h-full min-w-0 text-wrap">
+    {tldr}
   </p>
   <a class="text-primary-600 underline dark:text-primary-500">Read more</a>
 </div>
