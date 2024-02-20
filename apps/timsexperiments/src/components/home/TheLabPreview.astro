@@ -30,6 +30,6 @@ const last3Articles = publishedBlogEntries
   </div>
   <div
     class="m-auto hidden w-full items-start justify-start gap-8 md:flex md:max-w-5xl lg:max-w-6xl">
-    {last3Articles.map(({ data }) => <Article {...data} />)}
+    {last3Articles.map(({ data, slug }) => <Article slug={slug} {...data} />)}
   </div>
 </div>

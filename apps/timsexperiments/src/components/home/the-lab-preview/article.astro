@@ -1,13 +1,17 @@
 ---
 import { type CollectionEntry } from 'astro:content';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+  slug: CollectionEntry<'blog'>['slug'];
+};
 
-const { title, pubDate, tldr } = Astro.props;
+const { title, pubDate, tldr, slug } = Astro.props;
 
 const formattedDate = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'full',
 }).format(pubDate);
+
+const absoluteLink = `/lab/${slug}`;
 ---
 
 <div class="max-w-[33%]">
@@ -18,5 +22,9 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
   <p class="my-4 h-full min-w-0 text-wrap">
     {tldr}
   </p>
-  <a class="text-primary-600 underline dark:text-primary-500">Read more</a>
+  <a
+    href={absoluteLink}
+    class="text-primary-600 underline dark:text-primary-500">
+    Read more
+  </a>
 </div>
