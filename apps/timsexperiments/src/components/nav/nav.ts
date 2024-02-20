@@ -29,7 +29,7 @@ function sectionNavigator(section: Element) {
 }
 
 const observer = new IntersectionObserver(
-  (entries, observer) => {
+  (entries, _) => {
     let anyIntersecting = false;
     entries.forEach((entry) => {
       const navigator = sectionNavigator(entry.target);
