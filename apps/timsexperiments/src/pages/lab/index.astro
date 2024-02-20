@@ -1,116 +1,74 @@
 ---
+import BaseHead from '@/components/BaseHead.astro';
+import ButtonLink from '@/components/ButtonLink.astro';
+import Footer from '@/components/Footer.astro';
+import Header from '@/components/Header.astro';
+import Article from '@/components/home/the-lab-preview/article.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/consts';
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
-import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { ArrowRight } from 'lucide-react';
 
 const posts = (await getCollection('blog')).sort(
   (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
 );
+const previewArticle = posts[0];
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-    <style>
-      main {
-        width: 960px;
-      }
-      ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 2rem;
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-      ul li {
-        width: calc(50% - 1rem);
-      }
-      ul li * {
-        text-decoration: none;
-        transition: 0.2s ease;
-      }
-      ul li:first-child {
-        width: 100%;
-        margin-bottom: 1rem;
-        text-align: center;
-      }
-      ul li:first-child img {
-        width: 100%;
-      }
-      ul li:first-child .title {
-        font-size: 2.369rem;
-      }
-      ul li img {
-        margin-bottom: 0.5rem;
-        border-radius: 12px;
-      }
-      ul li a {
-        display: block;
-      }
-      .title {
-        margin: 0;
-        color: rgb(var(--black));
-        line-height: 1;
-      }
-      .date {
-        margin: 0;
-        color: rgb(var(--gray));
-      }
-      ul li a:hover h4,
-      ul li a:hover .date {
-        color: rgb(var(--accent));
-      }
-      ul a:hover img {
-        box-shadow: var(--box-shadow);
-      }
-      @media (max-width: 720px) {
-        ul {
-          gap: 0.5em;
-        }
-        ul li {
-          width: 100%;
-          text-align: center;
-        }
-        ul li:first-child {
-          margin-bottom: 0;
-        }
-        ul li:first-child .title {
-          font-size: 1.563em;
-        }
-      }
-    </style>
   </head>
-  <body>
-    <Header />
-    <main>
-      <section class="prose">
-        <ul>
-          {
-            posts.map((post) => (
-              <li>
-                <a href={`/lab/${post.slug}/`}>
-                  <img
-                    width={720}
-                    height={360}
-                    src={post.data.heroImage}
-                    alt=""
-                  />
-                  <h4 class="title">{post.data.title}</h4>
-                  <p class="date">
-                    <FormattedDate date={post.data.pubDate} />
-                  </p>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
-    </main>
-    <Footer />
+  <body class="bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
+    <div class="flex min-h-dvh flex-col justify-between">
+      <div>
+        <header
+          class="w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
+          <Header title={SITE_TITLE} />
+        </header>
+        <main class="my-4">
+          <section
+            class="flex w-full gap-4 bg-gray-300 px-2 py-8 dark:bg-primary-950 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+            <div class="w-full space-y-4 md:w-1/2">
+              <h1 class="text-4xl">
+                {previewArticle.data.title}
+              </h1>
+              <p>
+                {previewArticle.data.tldr}
+              </p>
+              <ButtonLink
+                class="text-primary-950"
+                href={`/lab/${previewArticle.slug}`}>
+                Read more <ArrowRight className="h-5 w-5 pl-1 font-bold" />
+              </ButtonLink>
+            </div>
+            <div class="max-h-full w-1/2">
+              <Image
+                src={`/images/${previewArticle.slug}.webp`}
+                alt=""
+                height="1024"
+                width="1792"
+              />
+            </div>
+          </section>
+          <section class="w-full px-2 py-8 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+            <ul>
+              {
+                posts.map((post) => (
+                  <li>
+                    <Article slug={post.slug} {...post.data} />
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+        </main>
+      </div>
+      <footer
+        class="w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
+        <Footer />
+      </footer>
+    </div>
   </body>
 </html>
