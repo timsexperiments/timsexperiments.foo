@@ -26,6 +26,24 @@ export function notFoundResponse(options?: Partial<NotFoundResponseOptions>) {
   return errorResponse({ message, status: HttpStatuses.STATUS_NOT_FOUND });
 }
 
+/** Options for creating a not found error response. */
+export interface BadRequestResponseOptions {
+  /** Message for the error response. */
+  message?: string;
+}
+
+/**
+ * Generates a response for a bad found error.
+ *
+ * @param options - The options for the not found response.
+ * @param options.message - The error message.
+ * @returns The response object.
+ */
+export function badRequestResponse(options?: Partial<NotFoundResponseOptions>) {
+  const { message } = options ?? {};
+  return errorResponse({ message, status: HttpStatuses.STATUS_BAD_REQUEST });
+}
+
 /**
  * Generates an error response with the given message and status.
  *
