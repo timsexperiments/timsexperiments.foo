@@ -30,8 +30,14 @@ export class ViewsHandler implements RouteHandler {
 		if (!page) {
 			return badRequestResponse({ message: 'Page is required.' });
 		}
-		this.db.pageViews(page);
-		return responseJson({});
+
+		try {
+			new URL(page);
+		} catch {
+			return badRequestResponse({ message: 'Page must be a valid fully qualified URL.' });
+		}
+		const views = await this.db.pageViews(page);
+		return responseJson(views);
 	}
 
 	private async POST(): Promise<Response> {
