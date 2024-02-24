@@ -4,12 +4,15 @@ import { RouteHandler, type Env } from '../index';
 
 export class ViewsHandler implements RouteHandler {
 	private readonly db: ViewsStorage;
+	private readonly url: URL;
 
 	constructor(
 		private readonly request: Request,
 		private readonly env: Env,
 	) {
-		this.db = createDb({ host: env.DATABASE_HOST, username: env.DATABASE_USERNAME, password: env.DATABASE_PASSWORD });
+		const db = createDb({ host: env.DATABASE_HOST, username: env.DATABASE_USERNAME, password: env.DATABASE_PASSWORD });
+		this.db = new ViewsStorage(db);
+		this.url = new URL(request.url);
 	}
 
 	async handle() {
@@ -23,7 +26,7 @@ export class ViewsHandler implements RouteHandler {
 	}
 
 	private async GET(): Promise<Response> {
-		const { page } = (await this.request.json()) as { page: string };
+		const page = this.url.searchParams.get('page');
 		if (!page) {
 			return badRequestResponse({ message: 'Page is required.' });
 		}

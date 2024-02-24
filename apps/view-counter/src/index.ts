@@ -37,6 +37,7 @@ export default {
 		let response: Response | undefined;
 		switch (requestUrl.pathname) {
 			case '/views':
+			case '/views/':
 				response = await new ViewsHandler(request, env).handle();
 				break;
 		}

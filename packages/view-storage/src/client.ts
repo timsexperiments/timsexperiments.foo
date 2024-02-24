@@ -9,9 +9,9 @@ export type CreateDbOptions = {
 
 export function createDb({ host, username, password }: CreateDbOptions) {
   const client = new Client({
-    host: process.env["DATABASE_HOST"],
-    username: process.env["DATABASE_USERNAME"],
-    password: process.env["DATABASE_PASSWORD"],
+    host: host,
+    username: username,
+    password: password,
   });
   return drizzle(client);
 }
