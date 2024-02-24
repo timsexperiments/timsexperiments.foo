@@ -1,8 +1,8 @@
 /** Common status codes used in HTTP responses. */
 export const HttpStatuses = {
-  /** Ok response code. */
+  /** Ok status code. */
   STATUS_OK: 200,
-  /** No content error code. */
+  /** No content status code. */
   STATUS_NO_CONTENT: 201,
   /** Bad request error code. */
   STATUS_BAD_REQUEST: 400,
