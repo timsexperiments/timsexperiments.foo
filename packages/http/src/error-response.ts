@@ -37,7 +37,7 @@ export function notFoundResponse(options?: Partial<NotFoundResponseOptions>) {
 export function errorResponse(options?: Partial<ErrorResponseOptions>) {
   const { message, status = HttpStatuses.STATUS_INTERNAL_ERROR } =
     options ?? {};
-  return new Response(JSON.stringify({ message }), {
+  return new Response(JSON.stringify({ message, status }), {
     headers: {
       "Content-Type": "application/json",
     },
