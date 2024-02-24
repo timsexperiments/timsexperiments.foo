@@ -21,7 +21,7 @@ export interface NotFoundResponseOptions {
  * @param {string} options.message - The error message.
  * @returns {Response} The response object.
  */
-export default function notFoundResponse({ message }: NotFoundResponseOptions) {
+export function notFoundResponse({ message }: NotFoundResponseOptions) {
   return errorResponse({ message, status: HttpStatuses.STATUS_NOT_FOUND });
 }
 
