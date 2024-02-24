@@ -1,5 +1,5 @@
 {
-  "name": "view-storage",
+  "name": "@timsexperiments/view-storage",
   "module": "src/index.js",
   "type": "module",
   "devDependencies": {
