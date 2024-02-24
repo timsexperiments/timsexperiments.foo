@@ -1,11 +1,13 @@
 import { sql } from "drizzle-orm";
 import {
   index,
-  mysqlTable,
+  mysqlTableCreator,
   serial,
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
+
+const mysqlTable = mysqlTableCreator((name) => `timsexperiments_${name}`);
 
 export const views = mysqlTable(
   "views",
