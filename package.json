@@ -10,5 +10,8 @@
   "workspaces": [
     "packages/*",
     "apps/*"
-  ]
+  ],
+  "dependencies": {
+    "typescript": "^5.3.3"
+  }
 }

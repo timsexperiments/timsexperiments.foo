@@ -1,0 +1,2 @@
+[workspace]
+members = ["packages/workers-ts-plugin/wasm"]
