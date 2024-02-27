@@ -1,0 +1,13 @@
+{
+  "name": "@timsexperiments/views-client",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@timsexperiments/view-storage": "workspace:*",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
