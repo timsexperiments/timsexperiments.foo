@@ -25,4 +25,5 @@ export const views = mysqlTable(
   })
 );
 
-export type View = Omit<typeof views.$inferInsert, "viewedAt">;
+export type View = typeof views.$inferInsert;
+export type ViewOptions = Partial<Omit<View, "viewedAt">>;
