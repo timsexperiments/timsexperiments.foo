@@ -11,9 +11,9 @@ use wasm_bindgen::JsValue;
 use workers::parse_toml;
 
 #[wasm_bindgen]
-pub fn write_definitions(file_path: &str, definitions: &str) -> Result<(), JsValue> {
-    let config = parse_toml(file_path).map_err(JsValue::from)?;
-    let _definitions = generate_typescript_definitions(&config);
+pub fn write_definitions(file_path: String, definitions: String) -> Result<(), JsValue> {
+    let _config = parse_toml(file_path.as_str()).map_err(JsValue::from)?;
+    let _definitions = generate_typescript_definitions(&_config);
 
     let mut file = File::create("wrangler.d.ts")
         .map_err(ConfigError::from)

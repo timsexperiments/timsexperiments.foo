@@ -6,13 +6,15 @@ use wasm_bindgen::JsValue;
 pub enum ConfigError {
     Io(io::Error),
     Toml(toml::de::Error),
+    Other { message: String },
 }
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
+        match self {
             ConfigError::Io(ref err) => write!(f, "IO error: {}", err),
             ConfigError::Toml(ref err) => write!(f, "TOML error: {}", err),
+            ConfigError::Other { message } => write!(f, "Error: {}", message),
         }
     }
 }

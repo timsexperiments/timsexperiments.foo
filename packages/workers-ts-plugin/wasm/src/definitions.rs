@@ -1,34 +1,73 @@
-use crate::workers::{BindingType, WranglerConfig};
-use std::fmt;
+use crate::workers::{Binding, WranglerConfig};
 use std::string::String;
+use std::{fmt, vec};
 
-pub fn generate_typescript_definitions(config: &WranglerConfig) -> Namespace {
-    let fields: Vec<Field> = config
-        .bindings
-        .iter()
-        .map(|binding| {
-            let ts_type = match binding.binding_type {
-                BindingType::KVNamespace => "KVNamespace",
-                BindingType::DurableObjectNamespace => "DurableObjectNamespace",
-                BindingType::R2Bucket => "R2Bucket",
-                BindingType::Service => "Fetcher", // Assuming Fetcher is the type for services
-                BindingType::Queue => "Queue",
-                BindingType::D1Database => "D1Database",
-                BindingType::AI => "any",
-                BindingType::DispatchNamespace => "DispatchNamespace",
-                BindingType::MTlsCertificate => "Fetcher",
-                BindingType::SendEmail => "SendEmail",
-                BindingType::Vectorize => "VectorizeIndex",
-                BindingType::Uknown => "any", // Note: Consider correcting the typo to `Unknown`
-            }
-            .to_owned();
+pub fn generate_typescript_definitions(_config: &WranglerConfig) -> Namespace {
+    let fields: Vec<Field> = vec![];
 
-            Field {
-                key: FieldKey::Name(binding.name.clone()),
-                field_type: ts_type,
-            }
-        })
-        .collect();
+    // config
+    //     .bindings
+    //     .bindings
+    //     .iter()
+    //     .map(|binding| {
+    //         let binding_name;
+    //         let ts_type = match binding {
+    //             Binding {
+    //                 name,
+    //                 binding_type: "kv_namespaces".to_owned(),
+    //             } => {
+    //                 binding_name = name;
+    //                 "KVNamespace"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "DurableObjectNamespace"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "R2Bucket"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "Fetcher"
+    //             } // Assuming Fetcher is the type for services
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "Queue"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "D1Database"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "any"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "DispatchNamespace"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "Fetcher"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "SendEmail"
+    //             }
+    //             BindingType::NamedBinding { binding } => {
+    //                 name = binding;
+    //                 "VectorizeIndex"
+    //             }
+    //         }
+    //         .to_owned();
+
+    //         Field {
+    //             key: FieldKey::Name(name.to_owned()),
+    //             field_type: ts_type,
+    //         }
+    //     })
+    //     .collect();
 
     Namespace {
         name: "global".to_owned(),
