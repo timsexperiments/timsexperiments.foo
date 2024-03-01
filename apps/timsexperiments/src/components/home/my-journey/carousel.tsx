@@ -36,17 +36,6 @@ export const MyJourneyCarousel = () => {
           </p>
         </CarouselItem>
         <CarouselItem>
-          <h2 className="pb-2 font-semibold">Novice</h2>
-          <p className="h-full overflow-auto whitespace-normal text-rhino-700 dark:text-rhino-200">
-            My first steps in software engineering were in the dynamic world of
-            consulting. It was a rollercoaster of learning new tech and meeting
-            tight deadlines, which really accelerated my growth. Those early
-            days were a mix of fast-paced learning and real-world application,
-            setting the stage for my journey as a software engineer who thrives
-            under pressure.
-          </p>
-        </CarouselItem>
-        <CarouselItem>
           <h2 className="pb-2 font-semibold">Builder</h2>
           <p className="h-full overflow-auto whitespace-normal text-rhino-700 dark:text-rhino-200">
             Gaining confidence in tackling complex challenges, I specialized in
