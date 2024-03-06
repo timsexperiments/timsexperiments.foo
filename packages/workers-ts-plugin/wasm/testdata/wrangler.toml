@@ -21,7 +21,7 @@ binding = "TEST_R2"
 [[services]]
 binding = "TEST_SERVICE"
 
-[[queue.producers]]
+[[queues.producers]]
 binding = "TEST_QUEUE"
 
 [[d1_databases]]
