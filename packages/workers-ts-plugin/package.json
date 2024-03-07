@@ -1,7 +1,11 @@
 {
   "name": "@timsexperiments/workers-ts-plugin",
   "module": "src/plugin.ts",
+  "types": "src/plugin.ts",
   "type": "module",
+  "dependencies": {
+    "@timsexperiments/workers-ts-plugin-wasm": "file:../workers-ts-plugin-wasm"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
