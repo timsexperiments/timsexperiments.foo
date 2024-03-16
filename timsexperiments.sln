@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{5F60BC4F-287F-4802-88BF-AD28A7F43A65}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarking-everything", "benchmarking-everything", "{6EEEAE98-02AB-4DD1-9B3E-5327C4CC0FCE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "c#", "c#", "{174D96D1-781F-4000-A78D-3DE9F481F0E4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hello-world", "projects\benchmarking-everything\c#\hello-world\hello-world.csproj", "{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6EEEAE98-02AB-4DD1-9B3E-5327C4CC0FCE} = {5F60BC4F-287F-4802-88BF-AD28A7F43A65}
+		{174D96D1-781F-4000-A78D-3DE9F481F0E4} = {6EEEAE98-02AB-4DD1-9B3E-5327C4CC0FCE}
+		{A5CB5EA0-9ABD-41BF-9210-4F5788A0DA6A} = {174D96D1-781F-4000-A78D-3DE9F481F0E4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEB5A033-640E-4ED0-AEF1-E5543398335E}
+	EndGlobalSection
+EndGlobal
