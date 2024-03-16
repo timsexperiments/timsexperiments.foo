@@ -9,9 +9,11 @@
   },
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "projects/*"
   ],
   "dependencies": {
-    "typescript": "^5.3.3"
+    "prettier": "^3.2.5",
+    "typescript": "5.4.2"
   }
 }

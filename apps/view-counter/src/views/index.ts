@@ -1,6 +1,6 @@
 import { badRequestResponse, responseJson, responseNoContent } from '@timsexperiments/http';
 import { ViewsStorage, createDb, type View } from '@timsexperiments/view-storage';
-import { RouteHandler, type Env } from '../index';
+import { RouteHandler, type Env } from '..';
 
 export class ViewsHandler implements RouteHandler {
 	private readonly db: ViewsStorage;

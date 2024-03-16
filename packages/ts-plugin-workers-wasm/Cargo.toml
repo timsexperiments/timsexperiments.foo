@@ -1,5 +1,5 @@
 [package]
-name = "workers-ts-plugin"
+name = "ts-plugin-workers-wasm"
 version = "0.1.0"
 edition = "2021"
 

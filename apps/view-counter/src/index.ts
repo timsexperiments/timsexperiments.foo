@@ -33,7 +33,6 @@ export interface Env {
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		console.log(request.headers);
 		const requestUrl = new URL(request.url);
 		let response: Response | undefined;
 		switch (requestUrl.pathname) {
