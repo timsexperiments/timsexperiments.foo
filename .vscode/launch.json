@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:timsexperiments}/projects/benchmarking-everything/swift/hello_world",
+      "name": "Debug hello_world (projects/benchmarking-everything/swift/hello_world)",
+      "program": "${workspaceFolder:timsexperiments}/projects/benchmarking-everything/swift/hello_world/.build/debug/hello_world",
+      "preLaunchTask": "swift: Build Debug hello_world (projects/benchmarking-everything/swift/hello_world)"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:timsexperiments}/projects/benchmarking-everything/swift/hello_world",
+      "name": "Release hello_world (projects/benchmarking-everything/swift/hello_world)",
+      "program": "${workspaceFolder:timsexperiments}/projects/benchmarking-everything/swift/hello_world/.build/release/hello_world",
+      "preLaunchTask": "swift: Build Release hello_world (projects/benchmarking-everything/swift/hello_world)"
+    }
+  ]
+}
