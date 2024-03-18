@@ -1,4 +1,4 @@
-FROM rust:buster
+FROM rust:1.76
 
 RUN wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb \
     && dpkg -i erlang-solutions_2.0_all.deb \
