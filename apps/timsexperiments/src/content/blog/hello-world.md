@@ -1,6 +1,6 @@
 ---
 title: 'Hello World!'
-pubDate: 'February 19 2024'
+pubDate: 'February 29, 2024'
 status: 'published'
 tldr: '"Tim''s Experiments" is a personal blog by Tim, a software engineer, where they shares insights, explorations, and practical tips from the world software engineering, catering to professionals, beginners, and tech enthusiasts alike.'
 estimate: 2
