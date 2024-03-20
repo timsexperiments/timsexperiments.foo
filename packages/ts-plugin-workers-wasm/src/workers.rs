@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs};
 
 /// Parses a wrangler config (typically `wrangler.toml`) for cloudflare workers into an Object.
-pub fn parse_toml(file_path: String) -> Result<WranglerConfig, ConfigError> {
+pub fn parse_toml(file_path: &str) -> Result<WranglerConfig, ConfigError> {
     let contents = fs::read_to_string(file_path)?;
     let parsed_toml = toml::from_str(&contents).map_err(ConfigError::from)?;
     Ok(parsed_toml)
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_parse_toml_with_various_bindings() {
-        let toml_file = String::from("testdata/wrangler.toml");
+        let toml_file = "testdata/wrangler.toml";
 
         let parsed_toml = parse_toml(toml_file);
 

@@ -6,6 +6,7 @@ use wasm_bindgen::JsValue;
 pub enum ConfigError {
     Io(io::Error),
     Toml(toml::de::Error),
+    Watcher(notify::Error),
     Other { message: String },
 }
 
@@ -14,6 +15,7 @@ impl fmt::Display for ConfigError {
         match self {
             ConfigError::Io(ref err) => write!(f, "IO error: {}", err),
             ConfigError::Toml(ref err) => write!(f, "TOML error: {}", err),
+            ConfigError::Watcher(ref err) => write!(f, "Watcher error: {}", err),
             ConfigError::Other { message } => write!(f, "Error: {}", message),
         }
     }
@@ -28,6 +30,12 @@ impl From<io::Error> for ConfigError {
 impl From<toml::de::Error> for ConfigError {
     fn from(error: toml::de::Error) -> ConfigError {
         ConfigError::Toml(error)
+    }
+}
+
+impl From<notify::Error> for ConfigError {
+    fn from(error: notify::Error) -> ConfigError {
+        ConfigError::Watcher(error)
     }
 }
 

@@ -173,11 +173,3 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
-
-target/
-
-<<<<<<< HEAD
-.zed/
-=======
-.zed/
->>>>>>> main
