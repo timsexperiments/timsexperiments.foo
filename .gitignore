@@ -176,8 +176,8 @@ dist
 
 target/
 
-<<<<<<< HEAD
 .zed/
-=======
-.zed/
->>>>>>> main
+.vscode/
+
+# Do not ignore
+!./.vscode/settings.json
