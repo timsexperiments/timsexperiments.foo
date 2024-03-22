@@ -99,9 +99,7 @@
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */,
 		"plugins": [
 			{
-				"name": "@timsexperiments/ts-plugin-workers",
-				"wranglerConfig": "wrangler.config",
-				"outfile": "out.d.ts"
+				"name": "@timsexperiments/ts-plugin-workers"
 			}
 		]
 	}
