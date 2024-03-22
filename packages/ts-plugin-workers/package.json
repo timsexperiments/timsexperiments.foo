@@ -1,11 +1,22 @@
 {
   "name": "@timsexperiments/ts-plugin-workers",
-  "module": "src/index.ts",
-  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:future": "bun build src/index.ts --outdir dist --format cjs"
+  },
+  "dependencies": {
+    "@timsexperiments/ts-plugin-workers-wasm": "file:./wasm",
+    "typescript": "^5.4.2"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "workspaces": [
+    "wasm",
+    "example"
+  ]
 }

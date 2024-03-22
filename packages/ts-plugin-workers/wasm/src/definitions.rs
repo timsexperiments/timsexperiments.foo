@@ -1,5 +1,5 @@
 use crate::utils::indent_lines;
-use crate::workers::{Binding, NamedBinding, WranglerBindings, WranglerConfig};
+use crate::workers::{Binding, DurableObject, NamedBinding, WranglerBindings, WranglerConfig};
 use std::collections::HashSet;
 use std::string::String;
 use std::{fmt, vec};
@@ -47,8 +47,15 @@ fn fields_from_wrangler_bindings(bindings: &WranglerBindings) -> Vec<Field> {
         "dispatch_namespaces",
     ));
     fields.append(&mut named_bindings_to_fields(
-        &bindings.durable_objects,
-        "durable_objects",
+        &bindings
+            .durable_object
+            .bindings
+            .iter()
+            .map(|binding| NamedBinding {
+                binding: binding.name.to_owned(),
+            })
+            .collect::<Vec<NamedBinding>>(),
+        "durable_objects.bindings",
     ));
     fields.append(&mut named_bindings_to_fields(&bindings.email, "send_email"));
     fields.append(&mut named_bindings_to_fields(
@@ -118,7 +125,7 @@ fn named_bindings_to_fields(bindings: &[NamedBinding], binding_type: &str) -> Ve
 fn binding_type_to_ts_type(binding_type: &String) -> String {
     match binding_type.as_str() {
         "kv_namespaces" => "KVNamespace",
-        "durable_objects" => "DurableObject",
+        "durable_objects.bindings" => "DurableObject",
         "r2_buckets" => "R2Bucket",
         "services" => "Fetcher",
         "queues.producers" => "Queue",
@@ -281,7 +288,7 @@ impl PartialEq for IndexSignature {
 mod tests {
     use crate::{
         definitions::{generate_typescript_definitions, StructType},
-        workers::{Binding, NamedBinding, Queue, WranglerBindings, WranglerConfig},
+        workers::{Binding, DurableObject, NamedBinding, Queue, WranglerBindings, WranglerConfig},
     };
     use std::fs;
 
@@ -308,9 +315,12 @@ mod tests {
                 dispatch_namespaces: vec![NamedBinding {
                     binding: String::from("TEST_DISPATCH"),
                 }],
-                durable_objects: vec![NamedBinding {
-                    binding: String::from("TEST_DO"),
-                }],
+                durable_object: DurableObject {
+                    bindings: vec![Binding {
+                        name: String::from("TEST_DO"),
+                        binding_type: String::new(),
+                    }],
+                },
                 email: vec![NamedBinding {
                     binding: String::from("TEST_EMAIL"),
                 }],
@@ -361,9 +371,12 @@ mod tests {
                     dispatch_namespaces: vec![NamedBinding {
                         binding: String::from("TEST_DISPATCH"),
                     }],
-                    durable_objects: vec![NamedBinding {
-                        binding: String::from("TEST_DO"),
-                    }],
+                    durable_object: DurableObject {
+                        bindings: vec![Binding {
+                            name: String::from("TEST_DO"),
+                            binding_type: String::new(),
+                        }],
+                    },
                     email: vec![NamedBinding {
                         binding: String::from("TEST_EMAIL"),
                     }],

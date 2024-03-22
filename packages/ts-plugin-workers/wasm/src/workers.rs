@@ -1,10 +1,11 @@
+extern crate web_sys;
+
 use crate::error::ConfigError;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs};
+use std::collections::HashMap;
 
 /// Parses a wrangler config (typically `wrangler.toml`) for cloudflare workers into an Object.
-pub fn parse_toml(file_path: &str) -> Result<WranglerConfig, ConfigError> {
-    let contents = fs::read_to_string(file_path)?;
+pub fn parse_toml(contents: &'_ str) -> Result<WranglerConfig, ConfigError> {
     let parsed_toml = toml::from_str(&contents).map_err(ConfigError::from)?;
     Ok(parsed_toml)
 }
@@ -28,8 +29,8 @@ pub struct WranglerBindings {
     pub bindings: Vec<Binding>,
     #[serde(default)]
     pub kv_namespaces: Vec<NamedBinding>,
-    #[serde(default)]
-    pub durable_objects: Vec<NamedBinding>,
+    #[serde(default, rename = "durable_objects")]
+    pub durable_object: DurableObject,
     #[serde(default)]
     pub r2_buckets: Vec<NamedBinding>,
     #[serde(default)]
@@ -63,12 +64,25 @@ impl Default for Queue {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Binding {
     pub name: String,
+    #[serde(default)]
     pub binding_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NamedBinding {
     pub binding: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DurableObject {
+    #[serde(default)]
+    pub bindings: Vec<Binding>,
+}
+
+impl Default for DurableObject {
+    fn default() -> Self {
+        DurableObject { bindings: vec![] }
+    }
 }
 
 #[cfg(test)]
@@ -156,7 +170,7 @@ impl std::fmt::Display for WranglerBindings {
         writeln!(f, "{}", crate::utils::indent_lines("]]", 2))?;
 
         writeln!(f, "{}", crate::utils::indent_lines("durable_objects: [", 2))?;
-        for binding in &self.durable_objects {
+        for binding in &self.durable_object.bindings {
             writeln!(
                 f,
                 "{},",
@@ -251,13 +265,16 @@ impl std::fmt::Display for Queue {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
 
     #[test]
     fn test_parse_toml_with_various_bindings() {
         let toml_file = "testdata/wrangler.toml";
+        let contents = fs::read_to_string(toml_file).unwrap();
 
-        let parsed_toml = parse_toml(toml_file);
+        let parsed_toml = parse_toml(&contents);
 
         assert!(parsed_toml.is_ok());
         let config = parsed_toml.unwrap();
@@ -269,7 +286,7 @@ mod tests {
         assert_eq!(config.bindings.bindings.len(), 1);
         assert_eq!(config.bindings.d1_databases.len(), 1);
         assert_eq!(config.bindings.dispatch_namespaces.len(), 1);
-        assert_eq!(config.bindings.durable_objects.len(), 1);
+        assert_eq!(config.bindings.durable_object.bindings.len(), 1);
         assert_eq!(config.bindings.email.len(), 1);
         assert_eq!(config.bindings.kv_namespaces.len(), 1);
         assert_eq!(config.bindings.mtls_certificates.len(), 1);

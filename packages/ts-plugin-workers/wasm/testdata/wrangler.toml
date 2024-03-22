@@ -12,8 +12,9 @@ binding_type = "test_binding"
 [[kv_namespaces]]
 binding = "TEST_KV"
 
-[[durable_objects]]
-binding = "TEST_DO"
+[[durable_objects.bindings]]
+name = "TEST_DO"
+class_name = "TEST_CLASS"
 
 [[r2_buckets]]
 binding = "TEST_R2"
