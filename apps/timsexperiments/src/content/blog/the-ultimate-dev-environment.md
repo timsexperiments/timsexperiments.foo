@@ -1,12 +1,11 @@
 ---
 title: 'Redefining Development Environments'
-pubDate: 'April 6, 2024'
+subtitle: 'How Devcontainers Create Customizable, Reproducible  Workspace'
+pubDate: 'April 5, 2024'
 status: 'draft'
 tldr: 'Discover VSCode Devcontainers and GitHub Codespaces: tools transforming development through consistent, customizable environments for all team members. Learn setup, benefits, and how they create portable, reproducible development environments.'
 estimate: 15
 ---
-
-# Redefining Development Environments: How Devcontainers Create Customizable, Reproducible Workspaces
 
 "It works on my computer" is a phrase emblematic of a longstanding challenge in software development: the quest for consistent environments across development teams. This challenge has led to countless hours of troubleshooting and has often complicated the onboarding of new team members. Docker provided a groundbreaking pathway to standardize environments. However, these environments were typically virtualized for production or general use cases rather than specific project needs.
 
