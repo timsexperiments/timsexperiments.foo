@@ -177,3 +177,4 @@ dist
 target/
 
 .zed/
+.vscode/settings.json
