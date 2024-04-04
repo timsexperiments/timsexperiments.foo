@@ -6,7 +6,7 @@ tldr: '"Tim''s Experiments" is a personal blog by Tim, a software engineer, wher
 estimate: 2
 ---
 
-# Welcome to Tim's Experiments!
+## Welcome to Tim's Experiments!
 
 Hey there! I'm Tim. If you've landed here, you're about to dive into my corner of the web, "Tim's Experiments."
 

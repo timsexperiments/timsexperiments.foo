@@ -9,9 +9,12 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { ArrowRight } from 'lucide-react';
 
-const posts = (await getCollection('blog')).sort(
-  (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
-);
+const posts = (await getCollection('blog'))
+  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf())
+  .filter(
+    (blog) =>
+      blog.data.pubDate.valueOf() < Date.now() && blog.data.status !== 'draft'
+  );
 const previewArticle = posts[0];
 ---
 
@@ -29,7 +32,7 @@ const previewArticle = posts[0];
         </header>
         <main class="my-4">
           <section
-            class="flex max-h-80 w-full gap-4 bg-gray-300 px-2 py-8 dark:bg-primary-950 sm:px-4 md:px-8 lg:px-12 xl:px-16">
+            class="hidden h-fit max-h-80 w-full gap-4 bg-gray-300 px-2 py-8 dark:bg-primary-950 sm:px-4 md:flex md:px-8 lg:px-12 xl:px-16">
             <div class="w-full space-y-4 md:w-1/2">
               <h1 class="text-4xl">
                 {previewArticle.data.title}
@@ -55,7 +58,7 @@ const previewArticle = posts[0];
             <ul>
               {
                 posts.map((post) => (
-                  <li>
+                  <li class="py-4 md:py-2">
                     <Article slug={post.slug} {...post.data} />
                   </li>
                 ))
