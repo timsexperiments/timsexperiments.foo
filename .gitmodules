@@ -1,0 +1,3 @@
+[submodule "ts-plugin-workers"]
+	path = projects/ts-plugin-workers
+	url = https://github.com/timsexperiments/ts-plugin-workers
