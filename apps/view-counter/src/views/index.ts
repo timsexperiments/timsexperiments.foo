@@ -12,7 +12,6 @@ export class ViewsHandler implements RouteHandler {
 		env: Env,
 		baseHeaders: Record<string, string>,
 	) {
-		console.log(env.TURSO_AUTH_TOKEN);
 		const db = createDb({
 			url: env.TURSO_URL,
 			authToken: env.TURSO_AUTH_TOKEN,
@@ -66,8 +65,15 @@ export class ViewsHandler implements RouteHandler {
 
 	private async POST(): Promise<Response> {
 		const clientIP = this.request.headers.get('CF-Connecting-IP')!;
-		const view = (await this.request.json()) as Omit<View, 'ipAddress'>;
-		await this.db.add({ ipAddress: clientIP, ...view });
+		const view = (await this.request.json()) as Omit<View, 'ipAddress' | 'path'>;
+		const { page, ...rest } = view;
+		let pageUrl: URL;
+		try {
+			pageUrl = new URL(page);
+		} catch {
+			return badRequestResponse({ message: 'Page must be a valid fully qualified URL.', headers: this.baseHeaders });
+		}
+		await this.db.add({ ipAddress: clientIP, ...rest, page: pageUrl.href, path: pageUrl.pathname });
 		return responseNoContent({ headers: this.baseHeaders });
 	}
 }
