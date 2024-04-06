@@ -17,7 +17,7 @@ function getNavigatorSection(navigator: Element) {
 function setUpNavigator(navigator: Element) {
   const section = getNavigatorSection(navigator);
   navigator.addEventListener('click', () => {
-    section.scrollIntoView({ behavior: 'smooth' });
+    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
   return navigator;
 }
