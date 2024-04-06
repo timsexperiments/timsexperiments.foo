@@ -2,14 +2,14 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
 export type CreateDbOptions = {
+  authToken: string;
   url: string;
-  authToken?: string;
 };
 
-export function createDb({ url, authToken }: CreateDbOptions) {
+export function createDb({ authToken, url }: CreateDbOptions) {
   const client = createClient({
-    url,
     authToken,
+    url,
   });
   return drizzle(client);
 }
