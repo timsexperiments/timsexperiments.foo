@@ -19,7 +19,7 @@ const buttonVariants = cva(
           'dark:bg-rhino-200 dark:text-rhino-900 dark:hover:bg-rhino-200/80 bg-rhino-800 text-rhino-50 hover:bg-rhino-800/80',
         ghost:
           'hover:bg-rhino-100 hover:text-rhino-900 dark:hover:bg-rhino-800 dark:hover:text-rhino-50',
-        link: 'text-rhino-900 underline-offset-4 hover:underline dark:text-rhino-50',
+        link: 'text-primary-600 underline-offset-4 hover:underline dark:text-primary-500',
       },
       size: {
         default: 'h-10 px-4 py-2',
