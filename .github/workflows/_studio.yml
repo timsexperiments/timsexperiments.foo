@@ -19,8 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
           node-version: 20
-      - uses: jaid/action-npm-install@v1.2.1
+      - run: |
+          bun install
+          bun install -g astro
       - uses: withastro/action-studio@main

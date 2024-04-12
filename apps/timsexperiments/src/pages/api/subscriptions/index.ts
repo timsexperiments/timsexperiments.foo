@@ -89,6 +89,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       },
     });
   }
+
   return new Response(
     JSON.stringify({ message: 'Content type not supported.' }),
     {
