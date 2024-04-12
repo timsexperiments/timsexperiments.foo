@@ -14,15 +14,14 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
   <head>
     <BaseHead title={title} description={tldr} />
   </head>
-  <body
-    class="prose-rhino bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
+  <body class="bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
     <header
       class="w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
       <Header />
     </header>
     <main
       class="w-full bg-inherit px-2 py-8 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
-      <article class="prose m-auto dark:prose-invert lg:prose-xl">
+      <article class="prose-custom prose m-auto dark:prose-invert lg:prose-xl">
         <div>
           <div class="title">
             <h1 class="mb-2">{title}</h1>
@@ -48,43 +47,8 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
       <Footer />
     </footer>
     <style>
-      .prose-gray {
-        --tw-prose-body: #434746;
-        --tw-prose-headings: #1b1d1c;
-        --tw-prose-lead: #545a58;
-        --tw-prose-links: #1b1d1c;
-        --tw-prose-bold: #1b1d1c;
-        --tw-prose-counters: #727976;
-        --tw-prose-bullets: #d5d7d6;
-        --tw-prose-hr: #e7e9e8;
-        --tw-prose-quotes: #1b1d1c;
-        --tw-prose-quote-borders: #e7e9e8;
-        --tw-prose-captions: #727976;
-        --tw-prose-kbd: #1b1d1c;
-        --tw-prose-kbd-shadows: 27 29 28;
-        --tw-prose-code: #1b1d1c;
-        --tw-prose-pre-code: #e7e9e8;
-        --tw-prose-pre-bg: #2a2d2c;
-        --tw-prose-th-borders: #d5d7d6;
-        --tw-prose-td-borders: #e7e9e8;
-        --tw-prose-invert-body: #d5d7d6;
-        --tw-prose-invert-headings: #fafafa;
-        --tw-prose-invert-lead: #a3a8a6;
-        --tw-prose-invert-links: #fafafa;
-        --tw-prose-invert-bold: #fafafa;
-        --tw-prose-invert-counters: #a3a8a6;
-        --tw-prose-invert-bullets: #545a58;
-        --tw-prose-invert-hr: #434746;
-        --tw-prose-invert-quotes: #f3f4f6;
-        --tw-prose-invert-quote-borders: #434746;
-        --tw-prose-invert-captions: #a3a8a6;
-        --tw-prose-invert-kbd: #fafafa;
-        --tw-prose-invert-kbd-shadows: 250 250 250;
-        --tw-prose-invert-code: #fafafa;
-        --tw-prose-invert-pre-code: #d5d7d6;
-        --tw-prose-invert-pre-bg: #0a0b0a;
-        --tw-prose-invert-th-borders: #545a58;
-        --tw-prose-invert-td-borders: #434746;
+      .prose-custom {
+        @apply prose-a:text-primary-600 dark:prose-a:text-primary-500;
       }
     </style>
   </body>
