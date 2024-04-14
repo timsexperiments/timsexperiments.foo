@@ -29,7 +29,7 @@ const last3Articles = publishedBlogEntries
     </ButtonLink>
   </div>
   <div
-    class="m-auto hidden w-full items-start justify-start gap-8 md:flex md:max-w-5xl lg:max-w-6xl">
+    class="m-auto hidden w-full items-start justify-start gap-8 md:grid md:max-w-5xl md:grid-cols-3 lg:max-w-6xl">
     {last3Articles.map(({ data, slug }) => <Article slug={slug} {...data} />)}
   </div>
 </div>
