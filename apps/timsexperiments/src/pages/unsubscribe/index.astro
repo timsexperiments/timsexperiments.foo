@@ -1,0 +1,31 @@
+---
+import { db, eq, Subscription } from 'astro:db';
+
+const email = Astro.url.searchParams.get('email');
+
+let doesNotExist = false;
+try {
+  db.select()
+    .from(Subscription)
+    .where(eq(Subscription.email, email ?? ''));
+} catch (e) {
+  console.error(`Unable to find subscribed user with email ${email}: ${e}`);
+  doesNotExist = true;
+}
+
+let failed = false;
+if (!doesNotExist) {
+  try {
+    db.update(Subscription)
+      .set({ subscribed: false })
+      .where(eq(Subscription.email, email ?? ''));
+  } catch (e) {
+    console.error(`Unable to unsubscribe with email, ${email}: ${e}`);
+    failed = true;
+  }
+}
+---
+
+{failed && <div>Unable to unsubscribe.</div>}
+
+{!failed && <div>You have been successfully unsubscribed.</div>}
