@@ -21,7 +21,8 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
     </header>
     <main
       class="w-full bg-inherit px-2 py-8 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
-      <article class="prose-custom prose m-auto dark:prose-invert lg:prose-xl">
+      <article
+        class="prose m-auto dark:prose-invert lg:prose-xl prose-a:text-primary-600 prose-pre:relative dark:prose-a:text-primary-500">
         <div>
           <div class="title">
             <h1 class="mb-2">{title}</h1>
@@ -46,10 +47,5 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
       class="w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
       <Footer />
     </footer>
-    <style>
-      .prose-custom {
-        @apply prose-a:text-primary-600 dark:prose-a:text-primary-500;
-      }
-    </style>
   </body>
 </html>
