@@ -1,3 +1,6 @@
 [submodule "ts-plugin-workers"]
 	path = projects/ts-plugin-workers
 	url = https://github.com/timsexperiments/ts-plugin-workers
+[submodule "projects/editor-theme"]
+	path = projects/editor-theme
+	url = https://github.com/timsexperiments/timsexperiments-theme

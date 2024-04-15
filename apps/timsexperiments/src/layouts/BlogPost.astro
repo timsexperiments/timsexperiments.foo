@@ -1,4 +1,5 @@
 ---
+import Prose from '@/components/Prose.astro';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
@@ -21,9 +22,8 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
     </header>
     <main
       class="w-full bg-inherit px-2 py-8 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
-      <article
-        class="prose m-auto dark:prose-invert lg:prose-xl prose-a:text-primary-600 prose-pre:relative dark:prose-a:text-primary-500">
-        <div>
+      <article>
+        <Prose>
           <div class="title">
             <h1 class="mb-2">{title}</h1>
             <div class="date">
@@ -40,12 +40,13 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
             <hr />
           </div>
           <slot />
-        </div>
+        </Prose>
       </article>
     </main>
     <footer
       class="w-full bg-inherit px-2 py-2 sm:px-4 md:bg-transparent md:px-8 lg:px-12 xl:px-16">
       <Footer />
     </footer>
+    <script src="@/scripts/copy_code.ts"></script>
   </body>
 </html>

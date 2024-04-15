@@ -178,3 +178,5 @@ target/
 
 .zed/
 .vscode/settings.json
+
+projects/testing/
