@@ -20,6 +20,17 @@ const { title, description } = Astro?.props ?? {};
       href="https://fonts.googleapis.com/css2?family=Urbanist:wght@100;200;300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+    <style is:global>
+      html.dark .shiki,
+      html.dark .shiki span {
+        color: var(--shiki-dark) !important;
+        background-color: var(--shiki-dark-bg) !important;
+        /* Optional, if you also want font styles */
+        font-style: var(--shiki-dark-font-style) !important;
+        font-weight: var(--shiki-dark-font-weight) !important;
+        text-decoration: var(--shiki-dark-text-decoration) !important;
+      }
+    </style>
   </head>
 
   <body
@@ -27,6 +38,6 @@ const { title, description } = Astro?.props ?? {};
     <slot />
     <Toaster client:load />
     <ScrollTracker />
-    <script src="../scripts/animate.ts"></script>
+    <script src="@/scripts/animate.ts"></script>
   </body>
 </html>

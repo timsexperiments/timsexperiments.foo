@@ -7,9 +7,6 @@ tldr: 'Discover VSCode Devcontainers and GitHub Codespaces: tools transforming d
 estimate: 15
 ---
 
-import Subscribe from '@/components/Subscribe.astro';
-import { Button } from '@/components/ui/button';
-
 "It works on my computer" is a longstanding challenge in software development: the quest for consistent environments across development teams. This challenge has led to countless hours of troubleshooting and has often complicated the onboarding of new team members. Docker provided a groundbreaking pathway to standardize environments. However, these environments were typically virtualized for production or general use cases rather than specific project needs.
 
 Certainly, the issue of environment inconsistency isn't new, nor was it without a workaround. Developers have long had the option to work directly within Docker containers to mirror production settings or create an image that is distributed through a virtual machine. However, these approaches, while effective, often require a steep learning curve, significant setup time, and much more capital to maintain, making it less accessible for all development teams.
@@ -91,19 +88,13 @@ Sample `devcontainer.json` Configuration:
 ```json
 {
   "name": "Rust Devcontainer",
-
   "image": "ubuntu:latest",
-
   "settings": {
     "terminal.integrated.shell.linux ": "/bin/bash"
   },
-
   "extensions": ["rust-analyzer.rust-analyzer"],
-
   "forwardPorts": [8000],
-
   "postCreateCommand": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; source $HOME/.cargo/env; rustup toolchain install stable; cargo build",
-
   "remoteUser": "root"
 }
 ```
