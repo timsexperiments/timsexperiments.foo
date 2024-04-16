@@ -1,13 +1,12 @@
 import { SubscriptionValidator } from '@/db/validators';
-import { LibsqlError } from '@libsql/core/api';
+import { type LibsqlError } from '@libsql/core/api';
 import type { APIRoute } from 'astro';
-import { db, eq, Subscription } from 'astro:db';
+import { Subscription, db, eq, isDbError } from 'astro:db';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ params, request }) => {
   if (request.headers.get('Content-Type') === 'application/json') {
-    const searchParams = new URL(request.url).searchParams;
     const { name, email, agree } = (await request.json()) as {
       name: string;
       email: string;
@@ -20,7 +19,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       subscribed: true,
     });
     if (!newSubscriptionResponse.success) {
-      console.log(newSubscriptionResponse.error);
+      console.error(newSubscriptionResponse.error);
       return new Response(
         JSON.stringify({ message: 'Missing name or email.' }),
         {
@@ -59,7 +58,11 @@ export const POST: APIRoute = async ({ params, request }) => {
     } catch (e: unknown) {
       console.error(`Unable to create subscription: ${e}`);
 
-      if (e instanceof LibsqlError && e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      if (
+        (isDbError(e) &&
+          (e as LibsqlError).code === 'SQLITE_CONSTRAINT_UNIQUE') ||
+        (e as { message?: string })?.message?.includes('UNIQUE constraint')
+      ) {
         return new Response(
           JSON.stringify({ message: 'User is already subscribed' }),
           {
