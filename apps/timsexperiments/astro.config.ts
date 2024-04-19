@@ -7,13 +7,18 @@ import tailwind from '@astrojs/tailwind';
 import { default as theme } from '@timsexperiments/theme/tim-s-experiments-dark-color-theme.json';
 import { defineConfig } from 'astro/config';
 import { default as copyCodePlugin } from './src/plugins/rehype/code-copy';
-import { default as targetBlank } from './src/plugins/rehype/target-blank';
+import { default as linkHeadersPlugin } from './src/plugins/rehype/link-headers';
+import { default as targetBlankPlugin } from './src/plugins/rehype/target-blank';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://example.com',
   markdown: {
-    rehypePlugins: [copyCodePlugin, [targetBlank, { allBlank: true }]],
+    rehypePlugins: [
+      copyCodePlugin,
+      [targetBlankPlugin, { allBlank: true }],
+      linkHeadersPlugin,
+    ],
 
     shikiConfig: {
       // @ts-expect-error
