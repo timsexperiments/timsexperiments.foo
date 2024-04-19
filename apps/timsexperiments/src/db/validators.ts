@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import { z } from 'zod';
 
 export const SubscriptionValidator = z.object({
   name: z.string(),
