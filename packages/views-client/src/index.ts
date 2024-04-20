@@ -46,6 +46,7 @@ export class ViewsClient {
   async addView({ page }: AddViewOpitons) {
     const url = this.viewsUrl;
     await fetch(url.href, {
+      method: "POST",
       body: JSON.stringify({
         page,
       }),

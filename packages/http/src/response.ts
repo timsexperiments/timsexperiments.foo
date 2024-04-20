@@ -1,14 +1,15 @@
 import { HttpStatuses } from "./status";
 
 export function responseJson(data: any, options?: ResponseInit) {
-  const {
-    status = HttpStatuses.STATUS_OK,
-    headers = {
+  const { status = HttpStatuses.STATUS_OK, headers, ...rest } = options ?? {};
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
       "Content-Type": "application/json",
+      ...headers,
     },
-    ...rest
-  } = options ?? {};
-  return new Response(JSON.stringify(data), { status, headers, ...rest });
+    ...rest,
+  });
 }
 
 export function responseNoContent(options?: ResponseInit) {

@@ -1,9 +1,9 @@
 import { HttpStatuses } from "./status";
 
 /** Options for creating a not found error response. */
-export interface NotFoundResponseOptions extends ResponseInit {
+export interface ErrorResponseOpitons extends ResponseInit {
   /** Message for the error response. */
-  message?: string;
+  message: string;
 }
 
 /**
@@ -12,15 +12,9 @@ export interface NotFoundResponseOptions extends ResponseInit {
  * @param options - The options for the not found response.
  * @returns The response object.
  */
-export function notFoundResponse(options?: Partial<NotFoundResponseOptions>) {
+export function notFoundResponse(options?: Partial<ErrorResponseOpitons>) {
   const { message } = options ?? {};
   return errorResponse({ message, status: HttpStatuses.STATUS_NOT_FOUND });
-}
-
-/** Options for creating a not found error response. */
-export interface BadRequestResponseOptions extends ResponseInit {
-  /** Message for the error response. */
-  message?: string;
 }
 
 /**
@@ -29,17 +23,9 @@ export interface BadRequestResponseOptions extends ResponseInit {
  * @param options - The options for the not found response.
  * @returns The response object.
  */
-export function badRequestResponse(options?: Partial<NotFoundResponseOptions>) {
+export function badRequestResponse(options?: Partial<ErrorResponseOpitons>) {
   const { message } = options ?? {};
   return errorResponse({ message, status: HttpStatuses.STATUS_BAD_REQUEST });
-}
-
-/** Options for creating an HTTP response representing an HTTP error. */
-export interface ErrorResponseOptions extends ResponseInit {
-  /** Message for the error response. */
-  message?: string;
-  /** The HTTP status code for the error. */
-  status: number;
 }
 
 /**
@@ -48,13 +34,19 @@ export interface ErrorResponseOptions extends ResponseInit {
  * @param options - The options for the error response.
  * @returns The error response.
  */
-export function errorResponse(options?: Partial<ErrorResponseOptions>) {
-  const { message, status = HttpStatuses.STATUS_INTERNAL_ERROR } =
-    options ?? {};
+export function errorResponse(options?: Partial<ErrorResponseOpitons>) {
+  const {
+    message,
+    headers,
+    status = HttpStatuses.STATUS_INTERNAL_ERROR,
+    ...rest
+  } = options ?? {};
   return new Response(JSON.stringify({ message, status }), {
     headers: {
       "Content-Type": "application/json",
+      ...headers,
     },
     status,
+    ...rest,
   });
 }
