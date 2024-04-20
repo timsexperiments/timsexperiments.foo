@@ -18,9 +18,7 @@ export type ViewsClientOptions = {
 export class ViewsClient {
   private readonly url;
 
-  constructor({
-    host = "https://api.timsexperiments.foo",
-  }: ViewsClientOptions) {
+  constructor({ host }: ViewsClientOptions) {
     this.url = new URL(host);
   }
 
