@@ -1,17 +1,15 @@
-import { Client } from "@planetscale/database";
-import { drizzle } from "drizzle-orm/planetscale-serverless";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 
 export type CreateDbOptions = {
-  host: string;
-  username: string;
-  password: string;
+  url: string;
+  authToken?: string;
 };
 
-export function createDb({ host, username, password }: CreateDbOptions) {
-  const client = new Client({
-    host: host,
-    username: username,
-    password: password,
+export function createDb({ url, authToken }: CreateDbOptions) {
+  const client = createClient({
+    url,
+    authToken,
   });
   return drizzle(client);
 }
