@@ -23,9 +23,6 @@ export const plugin: RehypePlugin = (options: Options) => {
       }
 
       const wrapper = wrapWithCodeDiv(element);
-      console.log(wrapper === element);
-      console.log(wrapper);
-      console.log(element);
       wrapper.children.push({
         type: 'element',
         tagName: 'button',
