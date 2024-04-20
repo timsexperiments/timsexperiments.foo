@@ -1,5 +1,5 @@
 export class ScrollTracker {
-  private scroll: number = 0;
+  scroll: number = 0;
 
   constructor() {
     window.addEventListener('scroll', this.setPageScroll);
