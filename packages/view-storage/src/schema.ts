@@ -1,22 +1,21 @@
 import { sql } from "drizzle-orm";
 import {
   index,
-  mysqlTableCreator,
-  serial,
-  timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
+  integer,
+  sqliteTableCreator,
+  text,
+} from "drizzle-orm/sqlite-core";
 
-const mysqlTable = mysqlTableCreator((name) => `timsexperiments_${name}`);
+const sqliteTable = sqliteTableCreator((name) => `timsexperiments_${name}`);
 
-export const views = mysqlTable(
+export const views = sqliteTable(
   "views",
   {
-    id: serial("id").primaryKey(),
-    page: varchar("page", { length: 256 }).notNull(),
-    ipAddress: varchar("ip_address", { length: 40 }).notNull(),
-    viewedAt: timestamp("viewed_at")
-      .default(sql`CURRENT_TIMESTAMP()`)
+    id: integer("id").primaryKey(),
+    page: text("page", { length: 256 }).notNull(),
+    ipAddress: text("ip_address", { length: 40 }).notNull(),
+    viewedAt: integer("viewed_at", { mode: "timestamp_ms" })
+      .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
   (views) => ({

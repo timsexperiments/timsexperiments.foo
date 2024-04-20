@@ -1,6 +1,6 @@
 import { badRequestResponse, responseJson, responseNoContent } from '@timsexperiments/http';
 import { ViewsStorage, createDb, type View } from '@timsexperiments/view-storage';
-import { RouteHandler, type Env } from '../index';
+import { RouteHandler } from '../index';
 
 export class ViewsHandler implements RouteHandler {
 	private readonly db: ViewsStorage;
@@ -8,9 +8,9 @@ export class ViewsHandler implements RouteHandler {
 
 	constructor(
 		private readonly request: Request,
-		private readonly env: Env,
+		env: Env,
 	) {
-		const db = createDb({ host: env.DATABASE_HOST, username: env.DATABASE_USERNAME, password: env.DATABASE_PASSWORD });
+		const db = createDb({ url: env.TURSO_URL, authToken: env.TURSO_AUTH_TOKEN });
 		this.db = new ViewsStorage(db);
 		this.url = new URL(request.url);
 	}
