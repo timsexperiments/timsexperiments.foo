@@ -6,12 +6,12 @@ compatibility_date = "2024-02-23"
 mode = "smart"
 
 [env.local.vars]
-TURSO_URL = "http://localhost:8080"
-TURSO_AUTH_TOKEN = ""
-ALLOWED_ORIGIN = "http://localhost:4321"
+ALLOWED_ORIGIN = "*"
+TURSO_URL = "libsql://view-counter-dev-timsexperiments.turso.io"
 
 [vars]
 ALLOWED_ORIGIN = "https://timsexperiments.foo"
+TURSO_URL = "libsql://view-counter-timsexperiments.turso.io"
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.
