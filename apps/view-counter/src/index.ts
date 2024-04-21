@@ -12,14 +12,19 @@ import { ViewsHandler } from './views';
  */
 
 declare global {
-	export interface Env {}
+	export interface Env {
+		TURSO_AUTH_TOKEN: string;
+	}
 }
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		const baseHeaders = corsHeaders({
+			allowedOrigin: env.ALLOWED_ORIGIN,
+		});
 		if (request.method.toUpperCase() === 'OPTIONS') {
 			return new Response(null, {
-				headers: { ...corsHeaders({ allowedOrigin: env.ALLOWED_ORIGIN }) },
+				headers: { ...baseHeaders },
 			});
 		}
 		const requestUrl = new URL(request.url);
@@ -27,7 +32,7 @@ export default {
 		switch (requestUrl.pathname) {
 			case '/views':
 			case '/views/':
-				response = await new ViewsHandler(request, env).handle();
+				response = await new ViewsHandler(request, env, baseHeaders).handle();
 				break;
 		}
 
@@ -35,7 +40,10 @@ export default {
 			return response;
 		}
 
-		return notFoundResponse({ message: `No matching request for ${request.method} ${requestUrl.pathname}` });
+		return notFoundResponse({
+			message: `No matching route for ${request.method} ${requestUrl.pathname}`,
+			headers: baseHeaders,
+		});
 	},
 };
 
