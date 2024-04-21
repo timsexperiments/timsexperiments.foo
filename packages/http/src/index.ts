@@ -1,3 +1,4 @@
+export { corsHeaders, type CorsHeadersOptions } from "./cors";
 export {
   badRequestResponse,
   errorResponse,
