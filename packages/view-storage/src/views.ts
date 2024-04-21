@@ -25,7 +25,7 @@ export class ViewsStorage {
    * @param {ViewsDatabase} db - The ViewsDatabase instance used for storing views data.
    */
   async add(...viewList: View[]) {
-    return (await this.db.insert(views).values(viewList)).insertId;
+    return (await this.db.insert(views).values(viewList)).lastInsertRowid;
   }
 
   /**
