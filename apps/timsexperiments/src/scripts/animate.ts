@@ -2,7 +2,6 @@ const ANIMATE_IN_VIEWPORT_SELECTOR = '.animate-in-viewport';
 
 function setupAnimateStartInViewport() {
   const observer = new IntersectionObserver((entries) => {
-    console.log('found:', entries);
     entries.forEach((entry) => {
       const target = entry.target as HTMLElement;
       const animation = target.dataset.animation;
