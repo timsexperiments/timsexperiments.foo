@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://timsexperiments.foo/sitemap-index.xml
