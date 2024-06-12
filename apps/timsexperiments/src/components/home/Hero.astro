@@ -1,9 +1,7 @@
 ---
-import laptopDark from '@/assets/laptop_dark.jpg';
-import laptopLight from '@/assets/laptop_light.jpg';
-import { Image } from 'astro:assets';
 import { Brain, Hammer, Microscope } from 'lucide-react';
 import ButtonLink from '../ButtonLink.astro';
+import RubiksCubeControl from './hero/RubiksCubeControl.astro';
 ---
 
 <div
@@ -46,20 +44,13 @@ import ButtonLink from '../ButtonLink.astro';
   </div>
 </div>
 <div class="relative hidden h-full w-full lg:block">
-  <Image
-    class="absolute h-full w-full object-cover object-left-top opacity-90 dark:hidden"
-    src={laptopLight}
-    alt="Tim's Experiments :)"
-    format="webp"
-    width="1000"
-    height="1000"
-  />
-  <Image
-    class="absolute hidden h-full w-full object-cover object-left-top opacity-90 dark:block"
-    src={laptopDark}
-    alt="Tim's Experiments :)"
-    format="webp"
-    width="1000"
-    height="1000"
-  />
+  <div class="absolute flex h-full items-center">
+    <RubiksCubeControl />
+  </div>
+  <canvas
+    id="cube"
+    class="absolute left-0 top-0 -z-10 h-full w-full -translate-x-[20%]"
+  ></canvas>
 </div>
+
+<script src="@/scripts/cube.ts"></script>
