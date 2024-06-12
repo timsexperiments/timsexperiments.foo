@@ -1,7 +1,9 @@
 ---
+import ButtonLink from '@/components/ButtonLink.astro';
+import PointerControl from '@/components/home/hero/PointerControl.astro';
+import RubiksCubeControl from '@/components/home/hero/RubiksCubeControl.astro';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Brain, Hammer, Microscope } from 'lucide-react';
-import ButtonLink from '../ButtonLink.astro';
-import RubiksCubeControl from './hero/RubiksCubeControl.astro';
 ---
 
 <div
@@ -44,8 +46,26 @@ import RubiksCubeControl from './hero/RubiksCubeControl.astro';
   </div>
 </div>
 <div class="relative hidden h-full w-full lg:block">
-  <div class="absolute flex h-full items-center">
+  <div
+    id="cube-placeholder"
+    class="absolute left-0 top-0 flex h-full w-full items-center justify-center">
+    <div class="grid aspect-square w-3/5 grid-cols-3 grid-rows-3 gap-4">
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+      <Skeleton className="h-full w-full" />
+    </div>
+  </div>
+  <div class="absolute left-0 right-0 top-0 flex h-full items-center">
     <RubiksCubeControl />
+  </div>
+  <div class="flex h-full w-full items-center justify-center">
+    <PointerControl />
   </div>
   <canvas
     id="cube"
