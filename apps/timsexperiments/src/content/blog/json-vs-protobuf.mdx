@@ -1,0 +1,395 @@
+---
+title: 'Protobuf: The Rosetta Stone of Data'
+subtitle: 'Why Protobuf Might Be the Right Choice for Your Next Project'
+pubDate: 'July 7, 2024'
+status: 'published'
+tldr: 'Discover why Protobuf is replacing JSON in top tech companies. Learn about the benefits of using Protocol Buffer (Protobuf), including performance comparisons, real-world use cases, and practical examples of integrating Protobuf in your applications.'
+estimate: 15
+---
+
+import Subscribe from '@/components/Subscribe.astro';
+
+Approximately 2.5 million terabytes of data are transferred over the internet each day. Every interaction between systems involves the exchange of data, and the method of serialization plays a crucial role in enabling these systems to work harmoniously together. Choosing the right serialization format is essential for facilitating smooth communication and seamless integration between system components.
+
+While JSON has become the modern standard for data transfer, some of the largest companies in the world use alternative formats like Protocol Buffers (Protobuf) for their improved performance and other benefits. During my time as a software engineer at Google, I experienced how Protobuf was extensively used to encode structured data, facilitating high-performance communication at a massive scale. At Google, Protocol Buffers are employed across various applications, from internal microservices communication to APIs and applications that serve billions of users. Beyond performance, Protobuf offers significant benefits in areas such as data integrity, schema evolution, and interoperability, making it a preferred choice for many critical systems.
+
+In this article, I aim to highlight the differences between Protobuf and JSON, and explore where programs can benefit from switching to Protobuf. Through detailed comparisons, practical examples, and insights from my experience, I hope to provide a comprehensive understanding of why Protobuf might be the better choice for your next project.
+
+## JSON and Protobuf
+
+Data serialization has a long history, evolving from simple formats like CSV and plain text to more complex ones. In the late 1990s, XML (eXtensible Markup Language) became popular for its ability to encode complex data structures in a human-readable format. In the 2000s, JSON (JavaScript Object Notation) emerged and quickly became the de facto standard for web APIs due to its familiar structure, simplicity, and flexibility. More recently, binary formats like Protobuf, Apache Avro, and Thrift have been adopted for their performance, efficiency, and the improved developer experience they offer, including type safety and cross-language compatibility.
+
+### What is JSON?
+
+JavaScript Object Notation (JSON) is a lightweight, text-based format for data interchange. It is easy for humans to read and write, and easy for machines to parse and generate. JSON data is formatted as key-value pairs, where keys are strings and values can be strings, numbers, arrays, or other JSON objects. Where objects are enclosed in curly braces {} and arrays are represented with square brackets []. Here's a simple example of JSON data:
+
+```json
+{
+  "name": "Pixel 🐶",
+  "age": 3,
+  "email": "pixel@timsexperiments.foo",
+  "hobbies": ["sleeping", "eating", "playing"]
+}
+```
+
+### What is Protobuf?
+
+Protobuf is a language-agnostic binary serialization format developed by Google. Unlike JSON, which is text-based, Protobuf encodes data in a compact binary format. This results in faster serialization and deserialization, as well as smaller message sizes. Protobuf is designed for performance and efficiency, making it ideal for high-performance applications and systems with bandwidth constraints.
+
+Protobuf requires you to define the structure of your data using a schema file, which describes the data format. This schema ensures data consistency and enables efficient parsing. Here is an example of a Protobuf schema that matches the JSON example given earlier:
+
+```proto
+syntax = "proto3";
+
+message Person {
+    string name = 1;
+    int32 age = 2;
+    string email = 3;
+    repeated string hobbies = 4;
+}
+```
+
+In this schema:
+
+- `syntax = "proto3";` specifies that we are using version `3` of the Protobuf syntax specification.
+- `message Person { ... }` defines a message type named `Person`.
+- `string name = 1;` defines a field named `name` with the type `string` and a field number of `1`.
+- `int32 age = 2;` defines a field named `age` with the type `int32` and a field number of `2`.
+- `string email = 3;` defines a field named `email` with the type `string` and a field number of `3`.
+- `repeated string hobbies = 4;` defines a field named `hobbies` with the type `string` and a field number of `4`. The `repeated` keyword indicates that this field can contain multiple values.
+
+Once the schema is defined, you can use the Protobuf compiler (protoc) to generate code in various programming languages to serialize and deserialize your data according to the schema.
+
+### Key Differences:
+
+- **Format**: JSON is text-based, while Protobuf is binary.
+- **Schema**: JSON is schema-less, meaning the structure is not enforced. Protobuf uses a defined schema, which ensures data consistency and enables more efficient parsing.
+- **Size**: Protobuf messages are generally smaller in size compared to the same data in a JSON format, due to the compact binary format.
+- **Speed**: Serialization and deserialization with Protobuf are typically faster than with JSON, thanks to the binary encoding and optimized parsing.
+
+## Performance Comparison
+
+Performance in data serialization is crucial for applications that require efficient data transfer and storage. Even slight differences in the speed of serialization and deserialization, along with the size of the serialized data, can significantly impact the overall performance and scalability of a system. In this section, we compare the performance of JSON and Protobuf in terms of serialization/deserialization speed and data size.
+
+To provide a comprehensive comparison, I conducted a benchmark test using Go. I serialized and deserialized 1,000,000,000 records using both the standard JSON marshaler and the Protobuf compiler. The data structure used for the benchmark was the `Person` structure with the following fields and values:
+
+```json
+{
+  "name": "Pixel 🐶",
+  "age": 3,
+  "email": "pixel@timsexperiments.foo",
+  "hobbies": ["barking", "sleeping", "eating", "playing"]
+}
+```
+
+### Benchmark Results:
+
+| Metric                       | JSON              | Protobuf         |
+| ---------------------------- | ----------------- | ---------------- |
+| Total Operations             | 1,000,000,000     | 1,000,000,000    |
+| Total Execution Time         | 2h9m30.000001482s | 28m9.000000855s  |
+| Serialization Time           | 45m30.00000053s   | 6m45.000000034s  |
+| Average Serialization Time   | 2.73µs            | 405ns            |
+| Total Serialization Bytes    | 108.96 TB         | 71.71 TB         |
+| Deserialization Time         | 1h24m0.000000952s | 21m24.000000821s |
+| Average Deserialization Time | 5.04µs            | 1.284µs          |
+
+1. Performance Difference:
+
+   - Serialization Speed: Protobuf serialization is significantly faster, with an average time of 405ns compared to JSON's 2.73µs. This represents an approximately 85% reduction in serialization time.
+   - Deserialization Speed: Protobuf deserialization is also faster, with an average time of 1.284µs compared to JSON's 5.04µs, showing a 74% reduction in deserialization time.
+   - Total Execution Time: Protobuf completed the entire process in 28m9.000000855s, whereas JSON took 2h9m30.000001482s, highlighting a reduction of around 78%.
+
+2. Data Size:
+
+   - Protobuf's serialized data size is 71.71 TB, whereas JSON's serialized data size is 108.96 TB. This indicates a reduction of approximately 34% in data size when using Protobuf.
+
+3. Use Case Scenarios:
+
+   - Protobuf's advantages are particularly beneficial in high-performance applications, systems with bandwidth constraints, and environments where large volumes of data need to be processed quickly. Examples include real-time data processing systems, mobile applications with limited bandwidth, and large-scale microservices architectures.
+   - Protobuf also ensures data integrity and consistency across different systems and services by enforcing a defined schema, making it ideal for complex, distributed systems.
+
+4. Trade-offs and Considerations:
+
+   - Adopting Protobuf involves setting up schema definitions and dealing with a steeper learning curve compared to JSON. However, the benefits of type safety, schema enforcement, and efficient parsing often outweigh these initial complexities.
+   - JSON might still be preferred in scenarios where quick prototyping, human readability, and simplicity are more important than performance and efficiency.
+
+This benchmark provides a simplistic example of serialization and deserialization. In real-world applications, you will often deal with more complex messages and scenarios. To explore further, you can clone the repository from GitHub and experiment with different data structures in the benchmark on your own.
+
+## Protobuf in Action
+
+Protobuf benefits don't just stop at being more performant and storage efficient. To highlight some other features of Protobuf, let's take a look at a project that utilizes Protobuf for cross-system communication.
+
+As 2024 is the year of the ChatGPT wrapper, we are going to build the world's next million-dollar project. Are you tired of talking to ChatGPT the old-fashioned way? Step into the future with ChatCLI and chat right from your terminal.
+
+ChatCLI is a command-line interface tool that allows users to communicate with ChatGPT without opening the browser. Users can create conversations and send messages to ChatGPT. Our CLI will communicate with a backend API service to handle the communication with the OpenAI API for messaging. We'll use Protobuf for communication between our CLI and API.
+
+### Project Overview
+
+Our project consists of a CLI written in C# and a backend API service written in Go. The CLI sends requests to the API service, which then processes these requests, interacts with ChatGPT, and returns the results back to the CLI.
+
+#### Commands
+
+The CLI supports various commands to interact with the chat system:
+
+- `chat`: Starts a chat session with ChatGPT.
+- `new`: Creates a new conversation with a given title.
+- `messages`: Adds a message to a conversation.
+- `list`: Lists all conversations or messages in a conversation.
+
+#### Protobuf Communication
+
+In this example, we'll take advantage of Protobuf messages to provide structured and type-safe communication across multiple languages and systems (our CLI and our API). For the chat, we utilize the binary format by sending binary messages to the client in the Protobuf binary format. This involves creating different event messages that can be sent across the WebSocket connection.
+
+Here are the structured messages that will be sent across the network for our other API routes:
+
+- `CreateConversationRequest`: Sent by the CLI to create a new conversation.
+- `Conversation`: Returned by the API to represent a conversation.
+- `CreateMessageRequest`: Sent by the CLI to add a new message to a conversation.
+- `Message`: Represents a single message in a conversation.
+- `ChatEvent`: Used to send different types of events (messages, errors) over WebSocket.
+
+### Benefits of Using Protobuf in Our Application
+
+#### 1. Structured and Type-Safe Data Across Languages
+
+Protobuf ensures that the data transmitted between the CLI and the API is structured and type-safe. This reduces the risk of data inconsistencies and improves communication reliability. One of the significant benefits is that the schema defined in .proto files remains consistent across any language that uses it, ensuring type safety across a barrier that would normally exist between different programming environments.
+
+For instance, our chat.proto file defines messages and enums, like Conversation and Message, with fields specifying data types and constraints:
+
+```proto
+message Conversation {
+    int64 id = 1;
+    string completion_id = 2;
+    string title = 3;
+    string context = 4;
+    google.protobuf.Timestamp created_at = 5;
+    repeated Message messages = 6;
+}
+
+message Message {
+    int64 id = 1;
+    string body = 2;
+    google.protobuf.Timestamp created_at = 3;
+    Sender sender = 4;
+
+    enum Sender {
+        SENDER_UNSPECIFIED = 0;
+        USER = 1;
+        BOT = 2;
+    }
+}
+```
+
+This schema ensures that any language that uses the generated code from this .proto file will handle the data in a consistent and type-safe manner.
+
+#### 2. Efficient Serialization and Deserialization
+
+Protobuf's binary format ensures efficient serialization and deserialization. This is especially important for real-time applications where performance is crucial.
+
+For our create conversation endpoint, we need to parse the request body using the `Unmarshal` function and serialize the `Conversation` response to send to the client.
+
+```go
+func createConversationHandler(c echo.Context) error {
+    request := &chat.CreateConversationRequest{}
+    if err := proto.Unmarshal([]byte(body), request); err != nil {
+        return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse request: %w", err).Error())
+    }
+    conversation, err := db.CreateConversation(request.Title)
+    if err != nil {
+        return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("unable to create conversation: %w", err).Error())
+    }
+    return response.Protobuf(c, http.StatusCreated, conversation)
+}
+```
+
+In echo, we can create a generic serializer for our Protobuf messages to ensure all of our responses are correctly formatted in the protobuf binary format.
+
+```go
+func Protobuf(c echo.Context, code int, message proto.Message) error {
+    serialized, err := proto.Marshal(message)
+    if err != nil {
+        return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+    }
+    return c.Blob(code, "application/protobuf", serialized)
+}
+```
+
+This function takes an Echo context, an HTTP status code, and a Protobuf message. It serializes the Protobuf message using `proto.Marshal` and sends it as a binary response.
+
+#### 3. Cross-Language Support
+
+One of the most compelling features of Protobuf is its cross-language support. This allows seamless data exchange between applications written in different languages. In our project, we leverage this capability by using Go for the backend and C# for the CLI.
+
+Protobuf achieves this interoperability through its code generation tool, `protoc`. `protoc` reads .proto files and generates source code in various languages, ensuring that the data structures defined in Protobuf are consistently represented across different programming environments.
+
+To generate the Protobuf code for Go and C#, we use the following commands:
+
+```
+protoc --proto_path=proto --go_out=internal/proto --go_opt=paths=source_relative proto/chat/chat.proto
+```
+
+```
+protoc --proto_path=proto --csharp_out=cli/build/gen --csharp_opt=file_extension=.g.cs proto/chat/chat.proto
+```
+
+These commands generate the necessary code to work with Protobuf messages in both languages for our project.
+
+In the previous section, we looked at the create conversation endpoint where we deserialized the `CreateConversationRequest` message from the HTTP body and serialized the `Conversation` message to send to our client.
+
+In C#, we can similarly serialize our request and deserialize our conversation response from the endpoint:
+
+```csharp
+public class ConversationClient {
+    public async Task<Conversation> CreateConversationAsync(string title) {
+        var request = new CreateConversationRequest { Title = title };
+        var requestData = request.ToByteArray();
+        var response = await _httpClient.PostAsync("http://localhost:8080/conversations", new ByteArrayContent(requestData));
+        response.EnsureSuccessStatusCode();
+        var responseData = await response.Content.ReadAsByteArrayAsync();
+        return Conversation.Parser.ParseFrom(responseData);
+    }
+}
+```
+
+This C# code shows how to serialize a `CreateConversationRequest` to a byte array using the `ToByteArray` method, send it as a binary request, and then deserialize the response using `Conversation.Parser.ParseFrom`.
+
+#### 4. Handling Polymorphic Data
+
+Protobuf's `oneof` feature allows handling polymorphic data efficiently. In our chat application, we use `oneof` to handle different types of events, such as messages and errors:
+
+```proto
+message ChatEvent {
+    Type type = 1;
+
+    oneof event {
+        MessageEvent message = 2;
+        ErrorEvent error = 3;
+    }
+
+    enum Type {
+        EVENT_TYPE_UNSPECIFIED = 0;
+        MESSAGE = 1;
+        ERROR = 2;
+    }
+}
+```
+
+This allows data that can potentially change shape to still adhere to a type safe schema across languages while allowing for flexibility in the data structure.
+
+#### 5. Repeated Fields for Collections
+
+Protobuf handles collections through repeated fields. In our application, the `Conversation` message includes a repeated `Message` field to store multiple messages.
+
+```proto
+message Conversation {
+    repeated Message messages = 6;
+}
+```
+
+One catch with repeated fields, which can be tricky when coming from a JSON background, is that repeated fields cannot be deserialized on their own. Instead, they must be part of a message. This is why we create a `ListConversationResponse` message to wrap the repeated `Conversation` field:
+
+```proto
+message ListConversationResponse {
+    repeated Conversation conversations = 1;
+}
+```
+
+#### 6. Nesting for Context and Clarity
+
+Nesting enums within messages, such as `Sender` within `Message`, provides clear context and differentiation, reducing ambiguity:
+
+```proto
+message Message {
+    enum Sender {
+        SENDER_UNSPECIFIED = 0;
+        USER = 1;
+        BOT = 2;
+    }
+}
+```
+
+#### 7. Flexibility and Extendibility
+
+Protobuf messages are easily extendable, allowing new fields to be added without breaking existing data structures. This flexibility is beneficial for long-term maintenance and evolution of APIs. When a new field is added to a Protobuf message, old versions of the application that use the same Protobuf schema can still deserialize the message. They simply ignore the new fields, ensuring backward compatibility.
+
+If we wanted to add a new field to `Message`, we can do so without affecting existing messages:
+
+```proto
+message Message {
+    int64 id = 1;
+    string body = 2;
+    google.protobuf.Timestamp created_at = 3;
+    Sender sender = 4;
+    string additional_info = 5; // New field added
+}
+```
+
+In this example, older versions of the application that do not recognize the `additional_info` field will still be able to deserialize messages, but they will ignore the `additional_info` field. This ensures that new features can be added to the application without breaking existing functionality.
+
+##### Backward Compatibility:
+
+Protobuf provides guidelines on how to safely evolve your schemas to ensure backward compatibility. Here are some safe changes and some that are not backward compatible:
+
+**Safe Changes:**
+
+1. **Adding New Fields:** As shown in the example, you can add new fields to your messages.
+2. **Changing Field Names:** You can change the names of fields without affecting serialization, as long as the field numbers stay the same.
+3. **Adding New Enum Values:** You can add new values to an enum type.
+
+**Unsafe Changes:**
+
+1. **Changing Field Numbers:** Changing the number of an existing field will break compatibility because the field number is used to identify the field in the serialized data.
+2. **Changing Field Types:** Changing the type of an existing field can lead to serialization and deserialization errors.
+3. **Removing Fields:** Removing fields can break old clients that still expect those fields.
+
+For more detailed information on updating Protobuf schemas and ensuring backward compatibility, you can refer to the [official Protobuf documentation](https://protobuf.dev/overview/) on updating message types.
+
+By leveraging Protobuf's extendibility, we ensure that our chat application can grow and evolve without disrupting existing functionality. This approach not only future-proofs our application but also allows for smoother updates and feature additions.
+
+Using Protobuf for Structured and Type-safe Communication: By using Protobuf for our chat application, we ensure that data transmitted between the CLI and the API is structured, type-safe, and efficiently serialized. This approach significantly reduces the risk of data inconsistencies and improves overall communication reliability.
+
+## Real-World Use Cases of Protobuf
+
+Protobuf is used extensively in various industries and applications due to its efficiency, flexibility, and cross-language support. Here are some prominent use cases:
+
+**Microservices Communication:**
+
+Protobuf is often used for communication between different services in a microservices architecture due to its compact binary format and efficient serialization. This reduces latency and improves overall system performance, ensuring that data is transmitted quickly and reliably between services written in different languages.
+
+**API Design:**
+
+Many APIs, especially those dealing with large amounts of data or requiring high performance, use Protobuf for request and response payloads. For instance, gRPC, a high-performance RPC framework, uses Protobuf as its interface definition language, providing a well-defined and efficient way to transmit structured data over network protocols.
+
+**Data Storage:**
+
+Protobuf can be used to store structured data in databases, such as event logs or configuration files, serialized using Protobuf and stored efficiently. This reduces storage requirements and speeds up read/write operations due to Protobuf's binary format.
+
+**IoT Devices:**
+
+Internet of Things (IoT) devices often use Protobuf for transmitting data to and from devices due to its low overhead and efficient serialization. This minimizes the amount of data transmitted over potentially unreliable or limited bandwidth networks, improving reliability and performance.
+
+**Game Development:**
+
+In online multiplayer games, Protobuf is used to serialize game state updates and player actions, ensuring that data is transmitted quickly and efficiently between clients and servers. This reduces latency and ensures consistent game state across different platforms and devices.
+
+**WebSocket Connections:**
+
+Protobuf is utilized in WebSocket connections to transmit structured binary data between clients and servers in real-time applications. This approach leverages Protobuf's efficient serialization to maintain low latency and high performance in scenarios requiring continuous data exchange, such as chat applications and live updates.
+
+## Resources for Further Learning
+
+If you're interested in exploring more about using Protobuf to leverage their powerful features, here are some resources to help you get started:
+
+1. **[Official Protobuf Documentation](https://protobuf.dev/overview/):**
+   - The [official documentation](https://protobuf.dev/overview/) is an excellent starting point to learn about Protobuf syntax, features, and best practices.
+2. **[gRPC Documentation](https://grpc.io/docs/):**
+   - gRPC, which uses Protobuf as its IDL, is a powerful framework for remote procedure calls and is widely used in microservices.
+3. **[Protobuf Language Guide](https://protobuf.dev/programming-guides/proto3/):**
+   - A comprehensive guide on Protobuf syntax, including message definitions, scalar types, and advanced features like oneof and map fields.
+
+I hope you enjoyed learning about and looking into the benefits of using Protobuf for structured data communication. By leveraging Protobuf's efficiency, performance, and cross-language support, you can build robust and reliable systems that scale effectively and handle complex data structures with ease.
+
+If you enjoyed the content and want to keep up to date on all of the articles, <Subscribe>subscribe to my newsletter</Subscribe>. Where I'll to inform you of content fresh off the press. To ensure that every new article we post finds its way to your inbox—without the worry of excessive spam, you will only receive at most one email per week and only when there is new content for you to enjoy!
+
+See you next time, happy coding!
