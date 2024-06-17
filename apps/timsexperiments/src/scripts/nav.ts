@@ -36,11 +36,6 @@ const observer = new IntersectionObserver(
       if (entry.isIntersecting && !anyIntersecting) {
         anyIntersecting = true;
         navigator.classList.add('active');
-        console.log(
-          'scrolling the navigator for',
-          entry.target.id,
-          'into view'
-        );
         navigator.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         navigator.classList.remove('active');

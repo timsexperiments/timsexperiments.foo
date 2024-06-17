@@ -27,7 +27,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toast": "^1.1.5",
     "@timsexperiments/theme": "^0.0.0",
-    "@timsexperiments/three-rubiks-cube": "^0.0.3",
+    "@timsexperiments/three-rubiks-cube": "^0.0.5",
     "@timsexperiments/views-client": "workspace:*",
     "@types/hast": "^3.0.4",
     "@types/react": "^18.2.47",

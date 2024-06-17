@@ -73,8 +73,8 @@ importers:
         specifier: ^0.0.0
         version: 0.0.0
       '@timsexperiments/three-rubiks-cube':
-        specifier: ^0.0.3
-        version: 0.0.3(three-mesh-bvh@0.7.5(three@0.165.0))
+        specifier: ^0.0.5
+        version: 0.0.5(three-mesh-bvh@0.7.5(three@0.165.0))
       '@timsexperiments/views-client':
         specifier: workspace:*
         version: link:../../packages/views-client
@@ -219,6 +219,9 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.4.5
+      valibot:
+        specifier: ^0.32.0
+        version: 0.32.0
     devDependencies:
       '@timsexperiments/view-storage':
         specifier: workspace:*
@@ -1810,8 +1813,8 @@ packages:
     resolution: {integrity: sha512-UdwWfGJPb/5LFIM+g8DNw7qvxz2pI5chexvA6dpJYTBkOUA07yALC++/y6Oz9lxNgIhAAzpbX+6vrsNKleXsQA==}
     engines: {vscode: ^1.88.0}
 
-  '@timsexperiments/three-rubiks-cube@0.0.3':
-    resolution: {integrity: sha512-LeRPFyOoFEtO/YlpeuvR6yo5vHj0zFJi3y8Xa0gd4T8Bt2fd3h30xDVKBMakCGeWZKAOUsYfhIyoPd6ghQg6mw==}
+  '@timsexperiments/three-rubiks-cube@0.0.5':
+    resolution: {integrity: sha512-6rMOe7xA8x1Wuk4gViWjGTFAp1SLTVNv9C7fe9sASXe7E1l8g/TYx3VcM+0vz3J0oEszmlgZ5EEnbH+fC2VwXQ==}
 
   '@timsexperiments/ts-plugin-workers-wasm@0.0.2':
     resolution: {integrity: sha512-REgfwnM/Cgc4AdBszcUOB5et2nDmCiyUeyUZx0Dw/aSvANeZgreRxl+1YfXO1+DPonCmJi4GXOdtE/BEkidKGw==}
@@ -4147,6 +4150,9 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  valibot@0.32.0:
+    resolution: {integrity: sha512-FXBnJl4bNOmeg7lQv+jfvo/wADsRBN8e9C3r+O77Re3dEnDma8opp7p4hcIbF7XJJ30h/5SVohdjer17/sHOsQ==}
+
   vfile-location@5.0.2:
     resolution: {integrity: sha512-NXPYyxyBSH7zB5U6+3uDdd6Nybz6o6/od9rk8bp9H8GR3L+cm/fC0uUTbqBmUTnMCUDslAGBOIKNfvvb+gGlDg==}
 
@@ -5740,7 +5746,7 @@ snapshots:
 
   '@timsexperiments/theme@0.0.0': {}
 
-  '@timsexperiments/three-rubiks-cube@0.0.3(three-mesh-bvh@0.7.5(three@0.165.0))':
+  '@timsexperiments/three-rubiks-cube@0.0.5(three-mesh-bvh@0.7.5(three@0.165.0))':
     dependencies:
       three: 0.165.0
       three-bvh-csg: 0.0.16(three-mesh-bvh@0.7.5(three@0.165.0))(three@0.165.0)
@@ -8558,6 +8564,8 @@ snapshots:
       '@types/react': 18.3.3
 
   util-deprecate@1.0.2: {}
+
+  valibot@0.32.0: {}
 
   vfile-location@5.0.2:
     dependencies:
