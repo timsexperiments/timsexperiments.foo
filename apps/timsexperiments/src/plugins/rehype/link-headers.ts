@@ -29,7 +29,7 @@ export const plugin: RehypePlugin = (options: Options) => {
               type: 'element',
               tagName: 'svg',
               properties: {
-                class: 'h-[1em] w-[1em] mt-1.5',
+                class: 'h-[.9em] w-[.9em] mt-1.5',
                 xmlns: 'http://www.w3.org/2000/svg',
                 viewBox: '0 0 24 24',
                 fill: 'none',
