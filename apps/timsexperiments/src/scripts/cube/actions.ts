@@ -1,0 +1,10 @@
+export const UNHIDE = 'unhide';
+export const HIDE = 'hide';
+export const ADD_CLASSES = 'addClasses';
+export const REMOVE_CLASSES = 'removeClasses';
+export const ACTION = 'resize';
+export const INIT = 'init';
+export const UPDATE_THEME = 'updateTheme';
+export const RESIZE = 'resize';
+export const DISPATCH_EVENT = 'dispatchEvent';
+export const HIDE_PLACEHOLDER = 'hidePlaceholder';
