@@ -8,10 +8,10 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230419.0",
-		"@timsexperiments/view-storage": "workspace:*",
 		"@timsexperiments/http": "workspace:*",
 		"@timsexperiments/ts-plugin-workers": "^0.0.2",
-		"typescript": "^5.0.4",
+		"@timsexperiments/view-storage": "workspace:*",
+		"typescript": "^5.4.5",
 		"wrangler": "^3.0.0"
 	}
 }
