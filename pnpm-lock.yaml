@@ -12,7 +12,7 @@ importers:
         specifier: ^1.0.33
         version: 1.1.12
       typescript:
-        specifier: ^5.3.3
+        specifier: ^5.4.5
         version: 5.4.5
     devDependencies:
       bun-types:
@@ -130,7 +130,7 @@ importers:
         specifier: ^0.165.0
         version: 0.165.0
       typescript:
-        specifier: ^5.3.3
+        specifier: ^5.4.5
         version: 5.4.5
       unist-util-visit:
         specifier: ^5.0.0
@@ -176,7 +176,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/view-storage
       typescript:
-        specifier: ^5.0.4
+        specifier: ^5.4.5
         version: 5.4.5
       wrangler:
         specifier: ^3.0.0
