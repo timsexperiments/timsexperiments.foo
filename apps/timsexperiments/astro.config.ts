@@ -39,4 +39,7 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
+  redirects: {
+    '/parser': 'https://parser.timsexperiments.foo',
+  },
 });
