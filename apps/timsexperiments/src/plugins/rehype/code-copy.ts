@@ -4,7 +4,7 @@ import { visit } from 'unist-util-visit';
 
 interface Options {}
 
-export const plugin: RehypePlugin = (options: Options) => {
+export const plugin: RehypePlugin = (_options: Options) => {
   return (tree) => {
     visit(tree, (node) => {
       if (node.type != 'element') {
