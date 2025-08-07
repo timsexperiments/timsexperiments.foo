@@ -1,5 +1,7 @@
 ---
-import { db, eq, Subscription } from 'astro:db';
+import db from '@/db/config';
+import { Subscription } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 const email = Astro.url.searchParams.get('email');
 

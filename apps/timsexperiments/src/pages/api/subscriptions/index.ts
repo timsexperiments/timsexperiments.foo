@@ -1,11 +1,12 @@
-import { SubscriptionValidator } from '@/db/validators';
+import db from '@/db/config';
+import { Subscription, SubscriptionValidator } from '@/db/schema';
 import { type LibsqlError } from '@libsql/core/api';
 import type { APIRoute } from 'astro';
-import { Subscription, db, eq, isDbError } from 'astro:db';
+import { eq } from 'drizzle-orm';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ params, request }) => {
+export const POST: APIRoute = async ({ params: _params, request }) => {
   if (request.headers.get('Content-Type') === 'application/json') {
     const { name, email, agree } = (await request.json()) as {
       name: string;
@@ -59,8 +60,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       console.error(`Unable to create subscription: ${e}`);
 
       if (
-        (isDbError(e) &&
-          (e as LibsqlError).code === 'SQLITE_CONSTRAINT_UNIQUE') ||
+        (e as LibsqlError).code === 'SQLITE_CONSTRAINT_UNIQUE' ||
         (e as { message?: string })?.message?.includes('UNIQUE constraint')
       ) {
         return new Response(
