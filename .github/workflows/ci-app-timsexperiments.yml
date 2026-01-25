@@ -1,0 +1,23 @@
+name: CI - App Tims Experiments
+
+on:
+  push:
+    paths:
+      - "apps/timsexperiments/**"
+      - ".github/workflows/ci-app-timsexperiments.yml"
+  pull_request:
+    paths:
+      - "apps/timsexperiments/**"
+      - ".github/workflows/ci-app-timsexperiments.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: cd apps/timsexperiments && bun run check
+      - run: cd apps/timsexperiments && bun run build

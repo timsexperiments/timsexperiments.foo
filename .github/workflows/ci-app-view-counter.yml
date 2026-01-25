@@ -1,0 +1,22 @@
+name: CI - App View Counter
+
+on:
+  push:
+    paths:
+      - "apps/view-counter/**"
+      - ".github/workflows/ci-app-view-counter.yml"
+  pull_request:
+    paths:
+      - "apps/view-counter/**"
+      - ".github/workflows/ci-app-view-counter.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: cd apps/view-counter && bun test

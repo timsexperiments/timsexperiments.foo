@@ -1,15 +1,9 @@
-# @timsexperiments/http
+# HTTP Package
 
-To install dependencies:
+This package contains HTTP-related utilities and types used across Tims Experiments.
 
-```bash
-bun install
-```
+## Contents
 
-To run:
-
-```bash
-bun run src/index.ts
-```
-
-This project was created using `bun init` in bun v1.0.26. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+- `cors.ts`: CORS headers configuration.
+- `error-response.ts`: Standardized error response structure.
+- `status.ts`: HTTP status codes.
