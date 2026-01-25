@@ -1,28 +1,35 @@
-name: Astro Studio
-
-env:
-  ASTRO_STUDIO_APP_TOKEN: ${{secrets.ASTRO_STUDIO_APP_TOKEN }}
+name: "Database Migrations"
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, reopened, synchronize]
 
 jobs:
-  DB:
-    permissions:
-      contents: read
-      actions: read
-      pull-requests: write
+  migrate-db:
+    name: "Run Database Migrations"
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Install pnpm"
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 20
-      - run: |
-          bun install
-          bun install -g astro
-      - uses: withastro/action-studio@main
+          version: 9
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: "Install Dependencies"
+        run: pnpm install
+
+      - name: "Run Migrations"
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
