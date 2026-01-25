@@ -1,6 +1,6 @@
 const ANIMATE_IN_VIEWPORT_SELECTOR = '.animate-in-viewport';
 
-function setupAnimateStartInViewport() {
+export function setupAnimateStartInViewport() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const target = entry.target as HTMLElement;

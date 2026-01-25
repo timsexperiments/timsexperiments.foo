@@ -1,4 +1,4 @@
-import { type View } from "@timsexperiments/view-storage";
+
 import * as v from "valibot";
 
 const GetViewsSchema = v.object({
@@ -42,7 +42,7 @@ export class ViewsClient {
    *
    * @param {GetViewsOptions} options - The options for retrieving views.
    * @param {string} options.page - The page for which to retrieve views.
-   * @returns {Promise<View>} - A promise that resolves to the retrieved views.
+   * @returns {Promise<{ views: number }>} - A promise that resolves to the retrieved views count.
    */
   async getViews(options: GetViewsOptions) {
     const parsed = v.safeParse(GetViewsSchema, options);
@@ -55,7 +55,7 @@ export class ViewsClient {
     const url = this.viewsUrl;
     url.searchParams.append("page", page);
     const response = await fetch(url.href);
-    return (await response.json()) as View;
+    return (await response.json()) as { views: number };
   }
 
   /**

@@ -1,15 +1,7 @@
-# @timsexperiments/views-client
+# Views Client Package
 
-To install dependencies:
+This package provides a client-side library for interacting with the view counting service.
 
-```bash
-bun install
-```
+## Usage
 
-To run:
-
-```bash
-bun run src/index.ts
-```
-
-This project was created using `bun init` in bun v1.0.26. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Import `reportView` to send view analytics.
