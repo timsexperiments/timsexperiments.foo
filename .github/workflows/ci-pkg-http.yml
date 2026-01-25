@@ -1,0 +1,22 @@
+name: CI - Package HTTP
+
+on:
+  push:
+    paths:
+      - "packages/http/**"
+      - ".github/workflows/ci-pkg-http.yml"
+  pull_request:
+    paths:
+      - "packages/http/**"
+      - ".github/workflows/ci-pkg-http.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: cd packages/http && bun test
