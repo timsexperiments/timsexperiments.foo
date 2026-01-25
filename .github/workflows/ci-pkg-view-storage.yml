@@ -1,0 +1,22 @@
+name: CI - Package View Storage
+
+on:
+  push:
+    paths:
+      - "packages/view-storage/**"
+      - ".github/workflows/ci-pkg-view-storage.yml"
+  pull_request:
+    paths:
+      - "packages/view-storage/**"
+      - ".github/workflows/ci-pkg-view-storage.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: cd packages/view-storage && bun test
