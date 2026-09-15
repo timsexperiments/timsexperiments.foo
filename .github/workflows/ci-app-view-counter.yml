@@ -3,10 +3,20 @@ name: CI - App View Counter
 on:
   push:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
+      - "packages/**"
       - "apps/view-counter/**"
       - ".github/workflows/ci-app-view-counter.yml"
   pull_request:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
+      - "packages/**"
       - "apps/view-counter/**"
       - ".github/workflows/ci-app-view-counter.yml"
 
@@ -15,8 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      - run: bun install
-      - run: cd apps/view-counter && bun test
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run test --filter=view-counter
+      - run: bun run build --filter=view-counter

@@ -3,10 +3,18 @@ name: CI - Package View Storage
 on:
   push:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
       - "packages/view-storage/**"
       - ".github/workflows/ci-pkg-view-storage.yml"
   pull_request:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
       - "packages/view-storage/**"
       - ".github/workflows/ci-pkg-view-storage.yml"
 
@@ -15,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      - run: bun install
-      - run: cd packages/view-storage && bun test
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run test --filter=@timsexperiments/view-storage

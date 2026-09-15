@@ -1,0 +1,102 @@
+---
+import Header from '../../../components/Header.astro';
+import '../../../styles/global.css';
+import { endpointUrl, guideUrl } from '../../../lib/resume/knowledge';
+
+const command = `claude mcp add --transport http tim-experience ${endpointUrl}`;
+const connectionPrompt = `Connect to Tim Altemus's experience MCP at ${endpointUrl} using Streamable HTTP. No API key is required. If you can't add MCP servers directly, walk me through connecting it in this app. Once connected, read his resume and use get_answer_brief to explain his strongest relevant experience citing supporting MCP records.`;
+const questions = [
+  'What has Tim personally designed and built at R1 RCM?',
+  'Tell me about a platform Tim built that other teams adopted.',
+  'How did Tim use CI/CD to improve a release process?',
+  'What has Tim shipped for schools or small businesses?',
+  'What experience does Tim have with AI agents and human review?',
+  'Compare Tim’s experience with this job description. Cite concrete examples and identify any gaps.',
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ask about my experience | Tim's Experiments</title>
+    <meta name="description" content="Connect your AI agent to Tim Altemus's resume and detailed experience stories. Setup instructions and example questions." />
+    <link rel="canonical" href={guideUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
+    <header class="site-header"><Header /></header>
+    <main>
+      <p class="eyebrow">Timothy Altemus / Experience</p>
+      <h1>Ask your agent about my experience.</h1>
+      <p class="intro">Connect your AI agent to my resume and the stories behind it: what I built, the decisions I made, and the results. Ask follow-up questions or bring a job description.</p>
+      <section aria-labelledby="connect">
+        <h2 id="connect">1. Paste this into your AI agent</h2>
+        <div class="copy-block connection-prompt"><p>{connectionPrompt}</p><button type="button" data-copy={connectionPrompt}>Copy prompt</button></div>
+        <p class="note">Some apps need you to add the connection in settings. The prompt asks your agent to help with that step.</p>
+        <details class="setup"><summary>Manual setup and connection details</summary>
+        <p>MCP lets your AI agent retrieve information from this site. In an app that supports remote MCP servers, add a server named <strong>Tim’s experience</strong>, choose <strong>Streamable HTTP</strong> if prompted, and paste this server URL. No API key or account is required.</p>
+        <div class="copy-block"><code>{endpointUrl}</code><button type="button" data-copy={endpointUrl}>Copy URL</button></div>
+        <p class="note">Use the server URL above in your agent. The address on my resume opens this setup page.</p>
+        <details class="setup"><summary>Using Claude Code</summary>
+          <p>Run this command, then use <code>/mcp</code> in Claude Code to check the connection.</p>
+          <div class="copy-block"><code>{command}</code><button type="button" data-copy={command}>Copy command</button></div>
+          <a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noreferrer">Claude Code MCP documentation</a>
+        </details>
+        </details>
+      </section>
+      <section aria-labelledby="ask">
+        <h2 id="ask">2. Ask a question</h2>
+        <p>Start with one of these, then ask for more detail:</p>
+        <ul class="questions">{questions.map(question => <li>{question}<button type="button" data-copy={question} aria-label={`Copy question: ${question}`}>Copy</button></li>)}</ul>
+      </section>
+      <section aria-labelledby="follow-up">
+        <h2 id="follow-up">3. Follow the evidence</h2>
+        <p>Your agent can read my resume, search for relevant work, and retrieve a complete experience story. Ask it to cite its sources and distinguish what I implemented myself from work I led or delegated.</p>
+        <p>I’m adding depth to this collection over time. These stories cover my engineering roles, business ownership, research applications, and open-source work. When a detail isn’t recorded, your agent should say so.</p>
+        <dl class="tools"><div><dt><code>get_answer_brief</code></dt><dd>Get a focused answer brief with strengths, supporting stories, and context.</dd></div><div><dt><code>get_resume</code></dt><dd>Career overview and an index of available stories.</dd></div><div><dt><code>search_experience</code></dt><dd>Find relevant projects, technologies, and leadership examples.</dd></div><div><dt><code>get_experience</code></dt><dd>Read a full story, including outcomes and qualifications.</dd></div></dl>
+      </section>
+      <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
+    </main>
+    <footer><a href="/">Tim's Experiments</a><span>Experience records updated September 2026</span></footer>
+  </body>
+</html>
+<script>
+  const status = document.getElementById('copy-status');
+  for (const button of document.querySelectorAll('button[data-copy]')) {
+    if (!(button instanceof HTMLButtonElement)) continue;
+    button.addEventListener('click', async () => {
+      const text = button.dataset.copy;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        if (status) status.textContent = 'Copied to clipboard.';
+        const label = button.textContent;
+        button.textContent = 'Copied';
+        window.setTimeout(() => { button.textContent = label; }, 1800);
+      } catch { if (status) status.textContent = 'Could not copy. Select the text and copy it manually.'; }
+    });
+  }
+</script>
+<style>
+  body { margin:0; font-family:Inter,ui-sans-serif,system-ui,sans-serif; font-size:16px; line-height:1.7; }
+  .site-header { max-width:1120px; margin:auto; padding:24px; }
+  main { max-width:800px; margin:48px auto 80px; padding:0 24px; }
+  h1 { font-size:clamp(2rem,5vw,3rem); line-height:1.15; font-weight:700; letter-spacing:-.035em; margin:12px 0 24px; }
+  h2 { font-size:1.4rem; font-weight:650; line-height:1.3; margin-bottom:16px; }
+  p { margin:12px 0; } .intro { font-size:1.15rem; }
+  .eyebrow,.note { font-size:.875rem; opacity:.8; } .eyebrow { letter-spacing:.06em; }
+  section { margin-top:44px; } a { text-decoration:underline; text-underline-offset:3px; }
+  .copy-block { display:flex; align-items:center; gap:16px; padding:16px; border:1px solid #8294ac; border-radius:6px; margin:18px 0 10px; }
+  code { font-family:ui-monospace,SFMono-Regular,monospace; font-size:.875rem; overflow-wrap:anywhere; }
+  .copy-block code { flex:1; min-width:0; }
+  .connection-prompt { flex-direction:column; align-items:flex-start; }
+  .connection-prompt p { margin:0; overflow-wrap:anywhere; }
+  button { flex-shrink:0; padding:7px 12px; border:1px solid currentColor; border-radius:4px; background:transparent; font:inherit; font-size:.875rem; cursor:pointer; }
+  button:hover { background:#8294ac25; } button:focus-visible,summary:focus-visible,a:focus-visible { outline:3px solid #648fff; outline-offset:4px; }
+  summary { cursor:pointer; font-weight:600; } details { padding:16px 0; border-bottom:1px solid #8294ac70; scroll-margin-top:24px; }
+  .questions { padding:0; list-style:none; } .questions li { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:14px 0; border-bottom:1px solid #8294ac70; }
+  .tools { margin:24px 0; } .tools div { display:grid; grid-template-columns:175px 1fr; gap:16px; margin:12px 0; } dd { margin:0; }
+  footer { max-width:1120px; margin:auto; padding:24px; display:flex; justify-content:space-between; gap:20px; font-size:.875rem; }
+  @media(max-width:550px) { main { margin-top:24px; } .copy-block { align-items:flex-start; flex-direction:column; } .tools div { display:block; } footer { flex-direction:column; } }
+</style>

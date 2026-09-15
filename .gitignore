@@ -179,3 +179,8 @@ target/
 .vscode/settings.json
 
 projects/testing/
+# Monorepo task and local Cloudflare state
+.turbo/
+.wrangler/
+.dev.vars
+.dev.vars.*
