@@ -1,0 +1,174 @@
+[
+  {
+    "question": "What has Tim personally built for agent dispatch at R1?",
+    "expected": "r1-dispatch"
+  },
+  {
+    "question": "Did Tim build the Slack support bot himself and what does 71% mean?",
+    "expected": "r1-support"
+  },
+  {
+    "question": "Azure authentication and external billing automation",
+    "expected": "r1-epars"
+  },
+  {
+    "question": "Replace bespoke care flows with configurable task requirements",
+    "expected": "included-health"
+  },
+  {
+    "question": "Routing contention, latency and database lock tradeoffs",
+    "expected": "included-health-router"
+  },
+  {
+    "question": "Recurring shifts and daylight saving time scheduling",
+    "expected": "included-health-scheduling"
+  },
+  {
+    "question": "Debugging duplicate appointment slots during an incident",
+    "expected": "included-health-shift-incident"
+  },
+  {
+    "question": "Workday Okta SCIM credentialing",
+    "expected": "included-health-data"
+  },
+  {
+    "question": "ReBAC default hidden Protobuf fields",
+    "expected": "included-health-permissions"
+  },
+  {
+    "question": "How could teams extend GraphQL profiles and notification settings?",
+    "expected": "included-health-graphql"
+  },
+  {
+    "question": "Adapting scheduling APIs for MCP",
+    "expected": "included-health-mcp"
+  },
+  {
+    "question": "How did he mentor engineers on extensible lifecycle design?",
+    "expected": "included-health-mentorship"
+  },
+  {
+    "question": "Supplier onboarding SAP multiple sites",
+    "expected": "google-supplier"
+  },
+  {
+    "question": "Did other finance teams reuse his masking library?",
+    "expected": "google-masking"
+  },
+  {
+    "question": "Supplier profile diffs and approval counts",
+    "expected": "google-supplier-approvals"
+  },
+  {
+    "question": "Mentoring an intern who built supplier messaging",
+    "expected": "google-supplier-messaging"
+  },
+  {
+    "question": "What unblocked Angular Buying Experience integration and SAP login?",
+    "expected": "google-buying"
+  },
+  {
+    "question": "How did he add parallel reviews for contracts?",
+    "expected": "google-contracts"
+  },
+  {
+    "question": "A/B testing upfront painting and roofing prices",
+    "expected": "credera-pricing"
+  },
+  {
+    "question": "Did he train the ML model for professional recommendations?",
+    "expected": "credera"
+  },
+  {
+    "question": "Staffing onboarding and text notifications",
+    "expected": "credera-staffing"
+  },
+  {
+    "question": "Migrating legacy IIS systems to Azure VMs",
+    "expected": "credera-cloud"
+  },
+  {
+    "question": "How did he persuade a skeptical lead to automate NuGet releases?",
+    "expected": "credera-ci"
+  },
+  {
+    "question": "Trunk based development and CI/CD",
+    "expected": "credera-ci"
+  },
+  {
+    "question": "Explore large Parquet files",
+    "expected": "avanade"
+  },
+  {
+    "question": "Has he owned Selenium test cases for Microsoft?",
+    "expected": "avanade-microsoft"
+  },
+  {
+    "question": "Business ownership and payroll automation",
+    "expected": "naya-studio"
+  },
+  {
+    "question": "Are Arumi Moves and Naya Studio the same business?",
+    "expected": "naya-studio"
+  },
+  {
+    "question": "Native macOS software and MDM controls",
+    "expected": "tsa-devices"
+  },
+  {
+    "question": "How many laptops did his shipping infrastructure support?",
+    "expected": "tsa-fulfillment"
+  },
+  {
+    "question": "Zoom SDK breakout rooms and attendance",
+    "expected": "tsa-calls"
+  },
+  {
+    "question": "Flutter Spanish localization and hospital distribution",
+    "expected": "ut-health"
+  },
+  {
+    "question": "Replace spreadsheets and publish Notion articles without code",
+    "expected": "awake-solar"
+  },
+  {
+    "question": "Why did he make es-exec instead of nodemon?",
+    "expected": "open-source-es-exec"
+  },
+  {
+    "question": "Open source work for Cloudflare bindings",
+    "expected": "projects"
+  },
+  {
+    "question": "What did he teach in Google Tech Exchange?",
+    "expected": "google-tech-exchange"
+  },
+  {
+    "question": "What is the strongest evidence Tim can operate at Staff level?",
+    "expected": "included-health-mentorship"
+  },
+  {
+    "question": "Tell me about a time he changed minds without authority",
+    "expected": "credera-ci"
+  },
+  {
+    "question": "Does he have experience building secure systems?",
+    "expected": "included-health-permissions"
+  },
+  {
+    "question": "What production machine learning models has he trained?",
+    "expected": "credera"
+  },
+  {
+    "question": "What measurable impact has Tim had?",
+    "expected": "credera-ci"
+  },
+  {
+    "question": "Has he graduated from Georgia Tech?",
+    "expected": "career-context"
+  },
+  {
+    "question": "What has he built that thousands of people use?",
+    "expected": "tsa-devices"
+  }
+]
