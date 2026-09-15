@@ -19,5 +19,5 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: cd apps/timsexperiments && bun run check
+      - run: cd apps/timsexperiments && bun run test
       - run: cd apps/timsexperiments && bun run build

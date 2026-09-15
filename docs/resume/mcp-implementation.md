@@ -52,3 +52,9 @@ The service is read-only, requires no API key, and bounds requests to 32 KiB. It
 ## Deployment
 
 Build and local Cloudflare-runtime validation passed. This cleanup did not deploy publicly. Production remains a separate rollout step through the existing Cloudflare Pages project `timsexperiments-foo`; do not create a replacement site. Verify the production endpoint using the same client check after deployment. Source links are canonical production URLs, so newly added anchors will become available there when the new build is deployed.
+
+## CI and preview build configuration
+
+GitHub Actions runs `bun run test`, followed by `bun run build`, which includes Astro type checking. A standalone `check` script is also available.
+
+The existing Pages project build command is `bun install --frozen-lockfile && bun run build` from `apps/timsexperiments`. Preview settings explicitly select Bun 1.3.14 and skip automatic dependency installation so npm does not reject workspace dependencies. Preview Functions use compatibility date `2025-07-18` with `nodejs_compat`, matching the tested local runtime. Existing preview environment variables were preserved. Production runtime/environment settings were not changed.
