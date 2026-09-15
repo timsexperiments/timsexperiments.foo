@@ -3,11 +3,21 @@ name: CI - App Tims Experiments
 on:
   push:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
       - "apps/timsexperiments/**"
+      - "packages/**"
       - ".github/workflows/ci-app-timsexperiments.yml"
   pull_request:
     paths:
+      - "package.json"
+      - "bun.lock"
+      - ".bun-version"
+      - "turbo.json"
       - "apps/timsexperiments/**"
+      - "packages/**"
       - ".github/workflows/ci-app-timsexperiments.yml"
 
 jobs:
@@ -15,9 +25,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      - run: bun install
-      - run: cd apps/timsexperiments && bun run check
-      - run: cd apps/timsexperiments && bun run build
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run test --filter=apps-timsexperiments
+      - run: bun run build:site
+        env:
+          # Astro imports server modules during build; no database queries run.
+          # Keep PR builds independent of production credentials.
+          DATABASE_URL: https://ci-build.invalid
+          DATABASE_AUTH_TOKEN: ci-placeholder

@@ -5,12 +5,15 @@
   "type": "module",
   "devDependencies": {
     "@timsexperiments/view-storage": "workspace:*",
-    "@types/bun": "latest"
+    "@types/bun": "1.4.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "valibot": "^0.32.0"
+  },
+  "scripts": {
+    "test": "bun test"
   }
 }
