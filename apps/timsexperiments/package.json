@@ -9,7 +9,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "db:migrate": "drizzle-kit migrate",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "check": "astro check",
+    "test": "bun test src/pages src/lib/resume"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
