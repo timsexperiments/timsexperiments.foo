@@ -36,6 +36,7 @@ test('a hiring client discovers, searches, follows up, and reads sources over HT
   const client = new Client({ name: 'hiring-manager-journey', version: '1.0.0' });
   try {
     await client.connect(new StreamableHTTPClientTransport(new URL('/resume/mcp/server', listener.url)));
+    expect(client.getServerVersion()?.name).toBe('tim-experience');
     expect(client.getInstructions()).toContain('Consulting client identities are withheld');
     expect(JSON.stringify(await client.callTool({ name: 'get_resume', arguments: {} }))).toContain('Naya');
     for (const scenario of scenarios) {

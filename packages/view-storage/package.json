@@ -8,11 +8,14 @@
     "drizzle-orm": "^0.44.4"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "1.4.2",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.20.17"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "test": "bun test"
   }
 }

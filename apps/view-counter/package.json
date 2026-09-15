@@ -1,17 +1,20 @@
 {
-	"name": "view-counter",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"start": "wrangler dev --remote"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230419.0",
-		"@timsexperiments/view-storage": "workspace:*",
-		"@timsexperiments/http": "workspace:*",
-		"@timsexperiments/ts-plugin-workers": "^0.0.2",
-		"typescript": "^5.0.4",
-		"wrangler": "^3.0.0"
-	}
+  "name": "view-counter",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "start": "wrangler dev --remote",
+    "test": "bun test",
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20230419.0",
+    "@timsexperiments/view-storage": "workspace:*",
+    "@timsexperiments/http": "workspace:*",
+    "@timsexperiments/ts-plugin-workers": "^0.0.2",
+    "typescript": "^5.0.4",
+    "wrangler": "4.131.2"
+  }
 }
