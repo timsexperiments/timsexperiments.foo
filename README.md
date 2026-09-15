@@ -23,7 +23,7 @@ Run these from the repository root:
 | `bun run check` | Run the site’s Astro type check |
 | `bun run build` | Build the site and validate the view-counter Worker bundle without deploying |
 | `bun run build:site` | Build only the Astro site |
-| `bun run test --filter=apps-timsexperiments` | Run the site’s page and MCP tests |
+| `bun run test --filter=apps-timsexperiments` | Run every test in the site workspace |
 
 Shared packages export TypeScript source, so they do not need a separate compilation step. Turbo caching is disabled while builds can embed environment-specific configuration. Deployments remain explicit workspace commands.
 
