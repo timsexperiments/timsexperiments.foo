@@ -49,9 +49,7 @@ describe('resume MCP', () => {
       expect(prompts.prompts[0]?.name).toBe('explore_experience');
     } finally { await client.close(); listener.stop(true); }
   });
-  test('rejects unexpected origins and bounds requests without Content-Length', async () => {
-    const forbidden = await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'POST', headers: { origin: 'https://untrusted.example', 'content-type': 'application/json' }, body: '{}' }));
-    expect(forbidden.status).toBe(403);
+  test('bounds requests without Content-Length and rejects malformed JSON', async () => {
     const large = await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'POST', headers: { 'content-type': 'application/json' }, body: ' '.repeat(32769) }));
     expect(large.status).toBe(413);
     const malformed = await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{' }));
@@ -65,17 +63,26 @@ describe('HTTP boundary behavior', () => {
     expect(response.status).toBe(405);
     expect(response.headers.get('Allow')).toBe('POST, OPTIONS');
   });
-  test('preflight permits configured clients', async () => {
-    const response = await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'OPTIONS', headers: { origin: 'https://claude.ai' } }));
+  test('preflight permits any browser client', async () => {
+    const response = await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'OPTIONS', headers: { origin: 'https://any-agent.example' } }));
     expect(response.status).toBe(204);
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://claude.ai');
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
   test('wrong media type is rejected', async () => {
     expect((await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '{}' }))).status).toBe(415);
   });
-  test('null or attacker origins cannot claim a trusted suffix', async () => {
-    for (const origin of ['null', 'https://claude.ai.evil.example', 'https://chatgpt.com.evil.example']) {
-      expect((await handleResumeRequest(new Request('http://localhost/resume/mcp/server', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: '{}' }))).status).toBe(403);
+  test('initialization accepts browser, opaque, and origin-free clients', async () => {
+    for (const origin of ['https://any-agent.example', 'null', undefined]) {
+      const headers = new Headers({ 'content-type': 'application/json', accept: 'application/json, text/event-stream' });
+      if (origin) headers.set('origin', origin);
+      const response = await handleResumeRequest(new Request('https://timsexperiments.foo/resume/mcp/server', {
+        method: 'POST', headers,
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'generic-agent', version: '1.0.0' } } }),
+      }));
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      expect(response.headers.has('Access-Control-Allow-Credentials')).toBe(false);
+      expect(await response.text()).toContain('tim-experience');
     }
   });
 });
