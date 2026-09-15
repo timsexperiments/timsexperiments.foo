@@ -21,3 +21,8 @@ jobs:
       - run: bun install
       - run: cd apps/timsexperiments && bun run test
       - run: cd apps/timsexperiments && bun run build
+        env:
+          # Astro imports server modules during build; no database queries run.
+          # Keep PR builds independent of production credentials.
+          DATABASE_URL: https://ci-build.invalid
+          DATABASE_AUTH_TOKEN: ci-placeholder
