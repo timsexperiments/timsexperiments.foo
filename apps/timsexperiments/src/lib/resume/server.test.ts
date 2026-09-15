@@ -17,6 +17,8 @@ describe('resume MCP', () => {
       const search = await client.callTool({ name: 'search_experience', arguments: { query: 'Slack support' } });
       expect(JSON.stringify(search)).toContain('r1-support');
       const story = await client.callTool({ name: 'get_experience', arguments: { id: 'r1-support' } });
+      expect(JSON.stringify(story)).toContain('tim-resume://experience/r1-support');
+      expect(JSON.stringify(story)).not.toContain('/resume/mcp#');
       expect(JSON.stringify(story)).toContain('71%');
       expect(JSON.stringify(story)).toContain('delegated');
       expect(JSON.stringify(story)).toContain('measurement window');

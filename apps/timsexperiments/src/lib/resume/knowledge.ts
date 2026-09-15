@@ -20,7 +20,7 @@ export const currentResume = z.object({
 }).parse(resume);
 export const guideUrl = 'https://timsexperiments.foo/resume/mcp';
 export const endpointUrl = `${guideUrl}/server`;
-export const sourceUrl = (id: string) => `${guideUrl}#${id}`;
+export const sourceUrl = (id: string) => `tim-resume://experience/${id}`;
 
 const stopWords = new Set('a an and are as at be been by can could did do does for from had has have he her him his how i in into is it me most much my of on or our s should show some tell that the their them there these they this tim timothy to us used using was were what when where whether which who why will with work worked experience about example examples give please describe anything any know you your built build building system systems time people use without strongest evidence level operate ever actually need make looking'.split(' '));
 const aliases: Record<string, string> = {
