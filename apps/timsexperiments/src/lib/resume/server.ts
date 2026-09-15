@@ -43,24 +43,17 @@ export function createResumeServer() {
   return server;
 }
 
-const allowedOrigins = new Set(['https://timsexperiments.foo', 'https://www.timsexperiments.foo', 'https://claude.ai', 'https://chatgpt.com']);
 const maxBytes = 32 * 1024;
 
 export async function handleResumeRequest(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  const origin = request.headers.get('origin');
-  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-  if (origin && !allowedOrigins.has(origin) && !(local && origin === url.origin)) {
-    return new Response('Origin not allowed.', { status: 403 });
-  }
+  // Public, read-only information: any browser origin may connect without credentials.
   const headers = new Headers({
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, MCP-Protocol-Version, Mcp-Method, Mcp-Name, Last-Event-ID',
     'Access-Control-Expose-Headers': 'MCP-Protocol-Version',
     'Cache-Control': 'no-store',
-    'Vary': 'Origin',
   });
-  if (origin) headers.set('Access-Control-Allow-Origin', origin);
   const reply = (text: string, status: number) => new Response(text, { status, headers });
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (request.method !== 'POST') {
