@@ -11,7 +11,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
     "check": "astro check",
-    "test": "bun test src/pages src/lib/resume"
+    "test": "bun test"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
