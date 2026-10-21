@@ -1,0 +1,32 @@
+---
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalPath?: string;
+  type?: 'website' | 'article';
+}
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, image = '/timothy_altemus_headshot.jpeg', canonicalPath = Astro.url.pathname, type = 'website' } = Astro.props;
+const canonical = new URL(canonicalPath, Astro.site);
+canonical.search = '';
+canonical.hash = '';
+const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
+const imageUrl = new URL(image, Astro.site);
+---
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
+<meta property="og:site_name" content={SITE_TITLE} />
+<meta property="og:type" content={type} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={imageUrl} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />

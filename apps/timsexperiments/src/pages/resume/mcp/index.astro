@@ -1,4 +1,5 @@
 ---
+import SeoHead from '../../../components/SeoHead.astro';
 import Header from '../../../components/Header.astro';
 import '../../../styles/global.css';
 import { endpointUrl, guideUrl } from '../../../lib/resume/knowledge';
@@ -19,9 +20,7 @@ const questions = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Ask about my experience | Tim's Experiments</title>
-    <meta name="description" content="Connect your AI agent to Tim Altemus's resume and detailed experience stories. Setup instructions and example questions." />
-    <link rel="canonical" href={guideUrl} />
+    <SeoHead title="Tim Altemus's engineering experience" description="Explore Tim Altemus's software engineering experience. Connect an AI agent to his public resume MCP for project details and source-backed answers." canonicalPath={guideUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">

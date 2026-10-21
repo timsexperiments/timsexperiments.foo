@@ -1,4 +1,5 @@
 ---
+import SeoHead from '../SeoHead.astro';
 import { getCollection } from 'astro:content';
 import logo from '@/assets/tim_s_experiments_logo_dark.svg?url';
 import labLogo from '@/assets/the_lab_logo_dark.svg?url';
@@ -10,7 +11,7 @@ import RobotHost from './RobotHost.astro';
 import LetterStation from './LetterStation.astro';
 // Imported MDX widgets share this request context; hidden articles must stay static.
 Astro.locals.campusNewsletter = true;
-const entries = (await getCollection('blog', ({ data }) => data.status === 'published')).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const entries = (await getCollection('blog', ({ data }) => data.status === 'published' && data.pubDate <= new Date())).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const recipes = await Promise.all(entries.map(async entry => ({ ...entry, rendered: await entry.render() })));
 const stations = [
   { id: 'recipes', number: '01', name: 'Recipe shelf', description: 'Read engineering articles.', icon: 'M4 4h5v16H4z M10 4h5v16h-5z M17 5l4-1 3 15-4 1z' },
@@ -25,8 +26,12 @@ const stations = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0A0B0A" />
-    <meta name="description" content="Tim Altemus, a software engineer available for freelance and fractional work. Read articles, try experiments, or get in touch." />
-    <title>Tim's Experiments | The Lab</title>
+    <SeoHead canonicalPath="/" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'WebSite', name: 'TimsExperiments',
+      url: new URL('/', Astro.site).href,
+      author: { '@type': 'Person', name: 'Tim Altemus', url: new URL('/resume/mcp', Astro.site).href }
+    }).replace(/</g, '\\u003c')} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" href="/fonts/campus/inter-400.ttf" as="font" type="font/ttf" crossorigin />
   </head>
@@ -64,7 +69,7 @@ const stations = [
         </nav>
       </section>
     </main>
-    <footer class="lab-footer"><span>TIM ALTEMUS</span><a href="/classic">Classic site <span aria-hidden="true">↗</span></a><span>© {new Date().getFullYear()} TIM'S EXPERIMENTS</span></footer>
+    <footer class="lab-footer"><span>TIM ALTEMUS</span><a href="/lab">Article archive</a><a href="/classic">Classic site <span aria-hidden="true">↗</span></a><span>© {new Date().getFullYear()} TIM'S EXPERIMENTS</span></footer>
     <dialog id="recipes-dialog" class="lab-dialog recipe-dialog" aria-labelledby="recipes-title">
       <div class="dialog-topbar"><span class="eyebrow">01 / THE RECIPE SHELF</span><button class="dialog-close" aria-label="Close recipe shelf">Close <span aria-hidden="true">×</span></button></div>
       <div class="recipe-intro"><h2 id="recipes-title">Engineering articles</h2><p>Read an article or open its experiment at the workbench.</p></div>

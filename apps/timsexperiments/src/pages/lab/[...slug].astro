@@ -4,7 +4,7 @@ import BlogPost from '../../layouts/BlogPost.astro';
 import SerializationBench from '../../components/campus/SerializationBench.astro';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = await getCollection('blog', ({ data }) => data.status === 'published' && data.pubDate <= new Date());
   return posts.map((post) => ({
     params: { slug: post.slug },
     props: post,
