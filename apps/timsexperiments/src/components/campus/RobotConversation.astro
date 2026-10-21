@@ -8,7 +8,7 @@ const { id = 'robot-conversation' } = Astro.props;
     <button type="button" data-chat-options aria-expanded="false" aria-controls={`${id}-options`}>Options</button>
   </header>
   <div class="chat-body">
-    <div data-transcript class="robot-transcript" role="region" aria-label="Conversation" tabindex="0">
+    <div data-transcript class="robot-transcript" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text" tabindex="0">
       <article class="chat-greeting"><h3 class="robot-speaker">Lab robot</h3><p>Hi, ask me about Tim's work.</p></article>
     </div>
     <section class="chat-options" id={`${id}-options`} aria-label="Conversation options" hidden>
@@ -20,7 +20,7 @@ const { id = 'robot-conversation' } = Astro.props;
     <button class="chat-new" type="button" data-chat-new hidden>New reply ↓</button>
   </div>
   <div class="chat-feedback">
-    <p data-status role="status" aria-live="polite" aria-atomic="true">Ready to search the published records.</p>
+    <p data-status role="status" aria-live="polite" aria-atomic="true">Questions stay on this device.</p>
     <button type="button" data-stop hidden>Stop</button>
     <progress max="1" value="0" aria-label="Local model loading progress" hidden></progress>
     <p data-ai-status role="status" aria-live="polite" hidden></p>
@@ -29,12 +29,12 @@ const { id = 'robot-conversation' } = Astro.props;
     <button type="button" data-question data-prompt="What platform architecture has Tim led?">Platform work</button>
     <button type="button" data-question data-prompt="How has Tim mentored engineers?">Mentoring</button>
   </div>
-  <form class="robot-form">
+  <form class="robot-form" autocomplete="off">
     <label for={`${id}-question`}>Your question</label>
-    <div class="chat-compose"><textarea id={`${id}-question`} name="question" rows="1" maxlength="600" placeholder="Ask about Tim…" required aria-describedby={`${id}-help`}></textarea><button type="submit" data-send>Send <span aria-hidden="true">↗</span></button></div>
+    <div class="chat-compose"><textarea id={`${id}-question`} name="question" rows="1" maxlength="600" placeholder="Ask about Tim…" required disabled aria-describedby={`${id}-help`}></textarea><button type="submit" data-send disabled>Send <span aria-hidden="true">↗</span></button></div>
     <small id={`${id}-help`}>Enter to send · Shift + Enter for a new line</small>
   </form>
-  <noscript>This conversation needs JavaScript. <a href="/resume/mcp">Read the resume MCP guide</a>.</noscript>
+  <noscript>This conversation needs JavaScript. <a href="/classic">Read about Tim's work</a>.</noscript>
 </div>
 <style is:global>
 /* Scope the station chrome to this integrated conversation only. Keep the dialog's
@@ -73,6 +73,7 @@ const { id = 'robot-conversation' } = Astro.props;
 .robot-conversation .robot-ai-answer>p { white-space:pre-wrap; }
 .robot-conversation small,.robot-conversation .robot-source-note { color:var(--chat-muted); font-size:12px; }
 .robot-conversation .robot-source { border-top:1px solid var(--chat-line); font-size:13px; }
+.robot-conversation .robot-evidence>summary,.robot-conversation .robot-model-selection>summary { color:var(--chat-muted); font-size:12px; }
 .robot-conversation summary { min-height:44px; padding:11px 0; cursor:pointer; }
 .robot-conversation .robot-source summary small { display:block; padding-left:16px; }
 .robot-conversation ul { padding-left:20px; }

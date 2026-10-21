@@ -1,5 +1,6 @@
 ---
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
 interface Props {
   title?: string;
   description?: string;
@@ -7,8 +8,28 @@ interface Props {
   canonicalPath?: string;
   type?: 'website' | 'article';
 }
-const { title = SITE_TITLE, description = SITE_DESCRIPTION, image = '/timothy_altemus_headshot.jpeg', canonicalPath = Astro.url.pathname, type = 'website' } = Astro.props;
-const canonical = new URL(canonicalPath, Astro.site);
+
+const {
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  image = '/timothy_altemus_headshot.jpeg',
+  canonicalPath = Astro.url.pathname,
+  type = 'website',
+} = Astro.props;
+
+/** Align prerendered canonicals with @astrojs/sitemap trailing-slash URLs. */
+function normalizeCanonicalPath(pathOrUrl: string): string {
+  let pathname: string;
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+    pathname = new URL(pathOrUrl).pathname;
+  } else {
+    pathname = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  }
+  if (pathname === '/' || pathname === '') return '/';
+  return pathname.endsWith('/') ? pathname : `${pathname}/`;
+}
+
+const canonical = new URL(normalizeCanonicalPath(canonicalPath), Astro.site);
 canonical.search = '';
 canonical.hash = '';
 const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;

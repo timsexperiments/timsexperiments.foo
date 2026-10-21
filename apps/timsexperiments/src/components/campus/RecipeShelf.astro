@@ -1,0 +1,66 @@
+---
+import type { CollectionEntry } from 'astro:content';
+type Props = { recipes: CollectionEntry<'blog'>[] };
+const { recipes } = Astro.props;
+---
+
+<dialog
+  id="recipes-dialog"
+  class="lab-dialog recipe-dialog"
+  aria-labelledby="recipes-title">
+  <div class="dialog-topbar">
+    <span class="eyebrow">01 / THE RECIPE SHELF</span><button
+      class="dialog-close"
+      aria-label="Close recipe shelf"
+      >Close <span aria-hidden="true">×</span></button>
+  </div>
+  <div class="recipe-intro">
+    <h2 id="recipes-title">Engineering articles</h2><p>
+      Read an article or open its experiment at the workbench.
+    </p>
+  </div>
+  <div class="recipe-catalog">
+    {
+      recipes.map((recipe, i) => (
+        <a
+          class="recipe-card"
+          href={`/lab/${recipe.slug}/`}
+          data-recipe={recipe.slug}
+          aria-label={`Open recipe: ${recipe.data.title}`}>
+          <div class:list={['recipe-cover', `recipe-cover-${i % 3}`]}>
+            <>
+              <span class="cover-series">
+                TIM'S EXPERIMENTS
+                <br />
+                ENGINEERING RECIPES
+              </span>
+              <span class="cover-diagram" aria-hidden="true">
+                {i === 0 ? '{ }' : '[ _ ]'}
+              </span>
+              <span class="cover-title">{recipe.data.title}</span>
+              <span class="cover-bottom">
+                RECIPE {String(i + 1).padStart(2, '0')} <span>↗</span>
+              </span>
+            </>
+          </div>
+          <span class="recipe-card-meta">
+            {recipe.data.estimate} MIN READ{' '}
+            <span>
+              {recipe.slug === 'json-vs-protobuf'
+                ? 'WITH A HANDS-ON EXPERIMENT'
+                : 'FROM THE ARCHIVE'}
+            </span>
+          </span>
+          <>
+            <h3>{recipe.data.title}</h3>
+            <p>{recipe.data.subtitle}</p>
+          </>
+        </a>
+      ))
+    }
+  </div>
+  <div class="shelf-bottom">
+    <span>Browse published articles.</span><a href="/lab"
+      >Visit the complete archive ↗</a>
+  </div>
+</dialog>
