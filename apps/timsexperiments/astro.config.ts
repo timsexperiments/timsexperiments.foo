@@ -11,7 +11,7 @@ import { default as targetBlankPlugin } from './src/plugins/rehype/target-blank'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://timsexperiments.foo',
   markdown: {
     rehypePlugins: [
       copyCodePlugin,
@@ -26,7 +26,7 @@ export default defineConfig({
   },
   integrations: [
     mdx(),
-    sitemap(),
+    sitemap({ filter: (page) => !['/campus', '/classic', '/unsubscribe', '/parser'].includes(new URL(page).pathname.replace(/\/$/, '')) }),
     react(),
     // @ts-ignore
     tailwind({

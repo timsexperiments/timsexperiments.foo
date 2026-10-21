@@ -15,7 +15,16 @@ const { title, tldr, pubDate, updatedDate, estimate } = Astro.props;
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={title} description={tldr} />
+    <BaseHead title={title} description={tldr} type="article" />
+    <meta property="article:published_time" content={pubDate.toISOString()} />
+    {updatedDate && <meta property="article:modified_time" content={updatedDate.toISOString()} />}
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title,
+      description: tldr, datePublished: pubDate.toISOString(),
+      dateModified: (updatedDate ?? pubDate).toISOString(),
+      mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+      author: { '@type': 'Person', name: 'Tim Altemus', url: new URL('/resume/mcp', Astro.site).href }
+    }).replace(/</g, '\\u003c')} />
   </head>
   <body class="bg-rhino-50 text-rhino-950 dark:bg-rhino-950 dark:text-rhino-50">
     <header class="w-full px-2 py-2 sm:px-4 md:px-8 lg:px-12 xl:px-16">
