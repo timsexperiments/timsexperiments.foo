@@ -1,0 +1,52 @@
+---
+import RobotConversation from './RobotConversation.astro';
+---
+<RobotConversation>
+  <Fragment slot="consent">
+    <details data-ai-consent>
+      <summary>Optional local AI</summary>
+      <p>Download about 204 MB plus runtime files to draft answers on your device. Requires a compatible GPU. Answers may be withheld when they cannot be grounded in the sources.</p>
+      <p>Questions go to this site's public resume service. Model hosts receive download requests. Files may stay in your browser cache.</p>
+      <button type="button" data-enable>Download and enable AI</button>
+    </details>
+  </Fragment>
+  <Fragment slot="about">
+  <details class="robot-about">
+    <summary>Sources, privacy, and model</summary>
+    <p>
+      Evidence comes from Tim's curated, public resume records and may
+      include self-reported or historical claims. A search match does not
+      confirm a question's premise. Expand each source to read its full details
+      and qualifications. Source identifiers are shown as text; external
+      links come only from those records.
+    </p>
+    <p>
+      AI is optional and can make factual mistakes. It uses a bounded selection
+      of complete retrieved records with their qualifications. Conversation
+      stays in page memory, up to 12 questions per session. Clear starts a new
+      session. Closing this dialog stops requests and unloads local inference.
+      Downloaded model files may remain in your browser cache.
+    </p>
+    <p>
+      AI inference runs on your device, never on a server. Runtime: <a
+        href="https://github.com/mlc-ai/web-llm"
+        target="_blank"
+        rel="noopener noreferrer">WebLLM</a
+      >. Model: <a
+        href="https://huggingface.co/mlc-ai/SmolLM2-360M-Instruct-q4f16_1-MLC"
+        target="_blank"
+        rel="noopener noreferrer">MLC SmolLM2 360M</a
+      >, using f16 or f32 according to GPU support. WebLLM and the <a
+        href="https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct"
+        target="_blank"
+        rel="noopener noreferrer">upstream SmolLM2 model</a
+      > use Apache 2.0. See publisher pages for license and provenance.
+    </p>
+    <a href="/resume/mcp">Resume MCP connection guide</a>
+  </details>
+  </Fragment>
+</RobotConversation>
+
+<script>
+  import '../../scripts/robot/host';
+</script>

@@ -1,6 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import SerializationBench from '../../components/campus/SerializationBench.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -17,4 +18,5 @@ const { Content } = await post.render();
 
 <BlogPost {...post.data}>
   <Content />
+  {post.slug === 'json-vs-protobuf' && <div class="not-prose mt-12"><SerializationBench id="article-serialization" /></div>}
 </BlogPost>

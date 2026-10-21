@@ -1,0 +1,91 @@
+---
+import { getCollection } from 'astro:content';
+import logo from '@/assets/tim_s_experiments_logo_dark.svg?url';
+import labLogo from '@/assets/the_lab_logo_dark.svg?url';
+import '@/styles/global.css';
+import '@/styles/campus-fonts.css';
+import '@/styles/campus.css';
+import SerializationBench from './SerializationBench.astro';
+import RobotHost from './RobotHost.astro';
+import LetterStation from './LetterStation.astro';
+// Imported MDX widgets share this request context; hidden articles must stay static.
+Astro.locals.campusNewsletter = true;
+const entries = (await getCollection('blog', ({ data }) => data.status === 'published')).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const recipes = await Promise.all(entries.map(async entry => ({ ...entry, rendered: await entry.render() })));
+const stations = [
+  { id: 'recipes', number: '01', name: 'Recipe shelf', description: 'Read engineering articles.', icon: 'M4 4h5v16H4z M10 4h5v16h-5z M17 5l4-1 3 15-4 1z' },
+  { id: 'workbench', number: '02', name: 'Workbench', description: 'Compare JSON and Protobuf.', icon: 'M3 4h18v12H3z M8 20h8 M12 16v4 M8 8l-3 2 3 2 M16 8l3 2-3 2' },
+  { id: 'robot', number: '03', name: 'Meet the host', description: "Ask about Tim's work.", icon: 'M5 7h14v12H5z M12 3v4 M9 11v2 M15 11v2 M9 16h6 M2 10v6 M22 10v6' },
+  { id: 'contact', number: '04', name: 'Write a letter', description: 'Contact Tim.', icon: 'M3 5h18v14H3z M3 5l9 8 9-8' },
+];
+---
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0A0B0A" />
+    <meta name="description" content="Tim Altemus, a software engineer available for freelance and fractional work. Read articles, try experiments, or get in touch." />
+    <title>Tim's Experiments | The Lab</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/campus/inter-400.ttf" as="font" type="font/ttf" crossorigin />
+  </head>
+  <body class="campus-page">
+    <a class="campus-skip" href="#lab-directory">Skip to lab directory</a>
+    <div class="lab-scene"><canvas id="campus-canvas" inert tabindex="-1" aria-hidden="true" aria-label="Explore the lab in first person" aria-describedby="scene-controls"></canvas><div class="scene-vignette" aria-hidden="true"></div></div>
+    <p id="scene-controls" class="sr-only">Drag the room to look around. While the scene is focused, use W, A, S, D or arrows to walk, J and L to turn, I and K to look up and down, and E or Enter to select the station at the center. Hold Shift to walk faster. Tab or Shift+Tab leaves the scene. Touch users can hold the named walk buttons while dragging elsewhere to look. Every activity is also available in the lab directory.</p>
+    <header class="lab-header">
+      <a href="/" aria-label="Tim's Experiments home" class="lab-brand"><img src={logo} width="252" height="42" alt="Tim's Experiments" /></a>
+      <div class="header-center"><span class="live-dot"></span> FREELANCE &amp; FRACTIONAL ENGINEERING</div>
+      <button class="header-contact" data-open-station="contact">Start a project <span aria-hidden="true">↗</span></button>
+    </header>
+    <main id="lab-main">
+      <section class="arrival-copy" id="arrival-copy" aria-labelledby="arrival-title">
+        <div class="eyebrow"><span class="tiny-cross">+</span> TIM ALTEMUS</div>
+        <h1 id="arrival-title">Good ideas<br />start with<br /><em>an experiment.</em></h1>
+        <p>I'm Tim, a software engineer and technical leader. I bring hands-on experience to help teams turn ideas into working software.</p>
+        <button class="enter-lab" id="enter-lab">Explore the room <span aria-hidden="true">↗</span></button>
+        <div class="arrival-links"><button data-open-station="recipes">Read articles</button><a href="/resume/mcp">Experience & resume <span aria-hidden="true">↗</span></a></div>
+      </section>
+      <div class="room-caption"><img src={labLogo} alt="The lab" width="123" height="26" /><span>ROOM 001</span></div>
+      <div class="scene-status" id="scene-status" role="status">Preparing the lab…</div>
+      <div class="explore-note" id="explore-note" hidden><span class="live-dot"></span><span id="location-label">Arrival</span><span class="note-divider"></span><span>Drag to look · WASD walk · IJKL look · E select</span></div>
+      <div class="scene-walk-pad" id="scene-walk-pad" role="group" aria-label="Hold to walk; drag the room to look" hidden>
+        <button type="button" data-walk="KeyW" aria-label="Walk forward">↑</button>
+        <button type="button" data-walk="KeyA" aria-label="Walk left">←</button>
+        <button type="button" data-walk="KeyS" aria-label="Walk backward">↓</button>
+        <button type="button" data-walk="KeyD" aria-label="Walk right">→</button>
+        <span>Hold to walk · Drag room to look</span>
+      </div>
+      <section class="lab-directory" id="lab-directory" aria-label="Lab directory">
+        <div class="directory-heading"><span>LAB DIRECTORY</span><button type="button" id="toggle-touch-controls" aria-pressed="false" aria-controls="scene-walk-pad">Walk pad</button><button id="toggle-scene" aria-pressed="false" title="Pause the 3D scene">Pause scene</button></div>
+        <nav class="station-dock" aria-label="Explore the lab">
+          {stations.map(station => <button class="station-button" data-open-station={station.id}><span class="station-icon"><svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d={station.icon} /></svg></span><span class="station-button-copy"><span class="station-number">{station.number}</span><span class="station-name">{station.name}</span><span class="station-description">{station.description}</span></span><span class="station-arrow" aria-hidden="true">↗</span></button>)}
+        </nav>
+      </section>
+    </main>
+    <footer class="lab-footer"><span>TIM ALTEMUS</span><a href="/classic">Classic site <span aria-hidden="true">↗</span></a><span>© {new Date().getFullYear()} TIM'S EXPERIMENTS</span></footer>
+    <dialog id="recipes-dialog" class="lab-dialog recipe-dialog" aria-labelledby="recipes-title">
+      <div class="dialog-topbar"><span class="eyebrow">01 / THE RECIPE SHELF</span><button class="dialog-close" aria-label="Close recipe shelf">Close <span aria-hidden="true">×</span></button></div>
+      <div class="recipe-intro"><h2 id="recipes-title">Engineering articles</h2><p>Read an article or open its experiment at the workbench.</p></div>
+      <div class="recipe-catalog">
+        {recipes.map((recipe, i) => <button class="recipe-card" data-recipe={recipe.slug} aria-label={`Open recipe: ${recipe.data.title}`}>
+          <div class:list={['recipe-cover', `recipe-cover-${i % 3}`]}><span class="cover-series">TIM'S EXPERIMENTS<br />ENGINEERING RECIPES</span><span class="cover-diagram" aria-hidden="true">{i === 0 ? '{ }' : '[ _ ]'}</span><span class="cover-title">{recipe.data.title}</span><span class="cover-bottom">RECIPE {String(i + 1).padStart(2, '0')} <span>↗</span></span></div>
+          <span class="recipe-card-meta">{recipe.data.estimate} MIN READ <span>{recipe.slug === 'json-vs-protobuf' ? 'WITH A HANDS-ON EXPERIMENT' : 'FROM THE ARCHIVE'}</span></span>
+          <h3>{recipe.data.title}</h3><p>{recipe.data.subtitle}</p>
+        </button>)}
+      </div>
+      <div class="shelf-bottom"><span>Browse published articles.</span><a href="/lab">Visit the complete archive ↗</a></div>
+    </dialog>
+    <dialog id="reader-dialog" class="lab-dialog reader-dialog" aria-label="Read an engineering recipe">
+      <div class="dialog-topbar"><button id="reader-back" class="text-action">← Back to the shelf</button><button class="dialog-close" aria-label="Close article">Close <span aria-hidden="true">×</span></button></div>
+      <p id="reader-copy-status" class="sr-only" role="status" aria-live="polite"></p>
+      {recipes.map(recipe => {const { Content } = recipe.rendered;return <article class="campus-article" data-recipe-content={recipe.slug} hidden><div class="eyebrow">AN ENGINEERING RECIPE / {recipe.data.estimate} MIN READ</div><h2>{recipe.data.title}</h2><p class="article-subtitle">{recipe.data.subtitle}</p><a class="article-permalink" href={`/lab/${recipe.slug}`}>Open standalone article ↗</a><div class="article-body"><Content /></div><div class="recipe-end"><span class="eyebrow">CONTINUE EXPLORING</span><h3>Try the experiment</h3>{recipe.slug === 'json-vs-protobuf' ? <button class="mint-button" data-open-station="workbench">Open workbench ↗</button> : <a class="mint-button" href="/lab">Find another recipe ↗</a>}</div></article>})}
+    </dialog>
+    <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><span class="eyebrow">02 / THE WORKBENCH</span><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><h2 id="workbench-title" class="station-heading">JSON and Protobuf</h2><SerializationBench /></dialog>
+    <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><div class="dialog-topbar"><span class="eyebrow">03 / YOUR LAB HOST</span><button class="dialog-close" aria-label="Close robot host">Close <span aria-hidden="true">×</span></button></div><h2 id="robot-title" class="station-heading">Ask about Tim</h2><RobotHost /></dialog>
+    <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-title"><div class="dialog-topbar"><span class="eyebrow">04 / THE LETTER DESK</span><button class="dialog-close" aria-label="Close letter desk">Close <span aria-hidden="true">×</span></button></div><LetterStation /></dialog>
+    <noscript><div class="no-script-note">The lab's 3D experience needs JavaScript. You can still <a href="/lab">read the recipes</a>, <a href="/resume/mcp">explore Tim's experience</a>, or <a href="mailto:hello@timsexperiments.foo">send Tim an email</a>.</div></noscript>
+    <script src="@/scripts/site/campus-home.ts"></script>
+  </body>
+</html>

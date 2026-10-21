@@ -2,6 +2,18 @@
 import { SubscriptionDialog } from '@/components/subscription/dialog';
 ---
 
-<SubscriptionDialog client:load>
-  <slot />
-</SubscriptionDialog>
+{Astro.locals.campusNewsletter ? (
+  <a
+    href="/lab/json-vs-protobuf#newsletter"
+    target="_blank"
+    rel="noopener"
+    aria-label="Subscribe to my newsletter on the standalone article (opens in a new tab)">
+    <slot />
+  </a>
+) : (
+  <span id="newsletter" tabindex="-1">
+    <SubscriptionDialog client:load>
+      <slot />
+    </SubscriptionDialog>
+  </span>
+)}

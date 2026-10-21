@@ -37,6 +37,11 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
+  vite: {
+    worker: {
+      format: 'es',
+    },
+  },
   redirects: {
     '/parser': 'https://parser.timsexperiments.foo',
   },

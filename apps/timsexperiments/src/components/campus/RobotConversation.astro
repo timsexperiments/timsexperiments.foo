@@ -1,0 +1,97 @@
+---
+interface Props { id?: string }
+const { id = 'robot-conversation' } = Astro.props;
+---
+<div class="robot-host robot-conversation" data-robot-host data-chat-view>
+  <header class="chat-toolbar">
+    <span>Lab robot <small>· Tim's published work</small></span>
+    <button type="button" data-chat-options aria-expanded="false" aria-controls={`${id}-options`}>Options</button>
+  </header>
+  <div class="chat-body">
+    <div data-transcript class="robot-transcript" role="region" aria-label="Conversation" tabindex="0">
+      <article class="chat-greeting"><h3 class="robot-speaker">Lab robot</h3><p>Hi, ask me about Tim's work.</p></article>
+    </div>
+    <section class="chat-options" id={`${id}-options`} aria-label="Conversation options" hidden>
+      <button type="button" data-chat-back>Back to conversation</button>
+      <div class="robot-local"><slot name="consent" /></div>
+      <div class="robot-about"><slot name="about" /></div>
+      <button type="button" data-clear>Clear conversation</button>
+    </section>
+    <button class="chat-new" type="button" data-chat-new hidden>New reply ↓</button>
+  </div>
+  <div class="chat-feedback">
+    <p data-status role="status" aria-live="polite" aria-atomic="true">Ready to search the published records.</p>
+    <button type="button" data-stop hidden>Stop</button>
+    <progress max="1" value="0" aria-label="Local model loading progress" hidden></progress>
+    <p data-ai-status role="status" aria-live="polite" hidden></p>
+  </div>
+  <div class="chat-suggestions" aria-label="Suggested questions">
+    <button type="button" data-question data-prompt="What platform architecture has Tim led?">Platform work</button>
+    <button type="button" data-question data-prompt="How has Tim mentored engineers?">Mentoring</button>
+  </div>
+  <form class="robot-form">
+    <label for={`${id}-question`}>Your question</label>
+    <div class="chat-compose"><textarea id={`${id}-question`} name="question" rows="1" maxlength="600" placeholder="Ask about Tim…" required aria-describedby={`${id}-help`}></textarea><button type="submit" data-send>Send <span aria-hidden="true">↗</span></button></div>
+    <small id={`${id}-help`}>Enter to send · Shift + Enter for a new line</small>
+  </form>
+  <noscript>This conversation needs JavaScript. <a href="/resume/mcp">Read the resume MCP guide</a>.</noscript>
+</div>
+<style is:global>
+/* Scope the station chrome to this integrated conversation only. Keep the dialog's
+   accessible heading while avoiding a second visible title above the transcript. */
+.robot-dialog:has(> .robot-conversation) > .station-heading { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(max-width:700px) {
+  .robot-dialog:has(> .robot-conversation) { padding:12px; }
+  .robot-dialog:has(> .robot-conversation) > .dialog-topbar { top:-12px; padding:0 0 8px; margin-bottom:12px; }
+}
+.robot-conversation { --chat-line:#3c6258; --chat-mint:#a5f3ce; --chat-muted:#b1c9bd; display:flex; flex-direction:column; width:100%; min-width:0; height: min(620px, calc(100dvh - 204px)); min-height:260px; padding:0; border:1px solid var(--chat-line); border-radius:16px; background:#0c1818; color:#ecf6f1; font:400 14px/1.5 system-ui,sans-serif; }
+.robot-conversation * { box-sizing:border-box; min-width:0; }
+.robot-conversation [hidden] { display:none!important; }
+.robot-conversation p { margin:0 0 10px; }
+.robot-conversation button,.robot-conversation textarea { font:inherit; }
+.robot-conversation button { min-height:44px; border:1px solid var(--chat-line); border-radius:8px; padding:8px 12px; background:#132423; color:#ecf6f1; cursor:pointer; }
+.robot-conversation button:hover:enabled { border-color:var(--chat-mint); }
+.robot-conversation button:disabled { opacity:.6; cursor:default; }
+.robot-conversation :focus-visible { outline:2px solid var(--chat-mint); outline-offset:2px; }
+.robot-conversation a { color:var(--chat-mint); overflow-wrap:anywhere; }
+.robot-conversation .chat-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border-bottom:1px solid var(--chat-line); }
+.robot-conversation .chat-toolbar small { color:var(--chat-muted); font-size:11px; }
+.robot-conversation .chat-toolbar button { background:transparent; font-size:12px; }
+.robot-conversation .chat-body { position:relative; flex:1; min-height:0; display:flex; }
+.robot-conversation .robot-transcript,.robot-conversation .chat-options { flex:1; min-height:0; overflow-y:auto; padding:16px 12px; scrollbar-color:#537c69 #0c1818; overflow-wrap:anywhere; }
+.robot-conversation .robot-transcript { max-height:none; margin:0; scroll-padding:16px; }
+.robot-conversation .robot-transcript:empty { display:block; }
+.robot-conversation .chat-greeting { max-width:88%; background:#182e28; padding:12px; border-radius:3px 14px 14px; }
+.robot-conversation .robot-speaker { font:600 11px/1.5 system-ui,sans-serif; color:var(--chat-mint); margin:0 0 5px; letter-spacing:0; text-transform:none; }
+.robot-conversation .robot-turn { display:flex; flex-direction:column; border:0; padding:0; margin:20px 0; overflow-wrap:anywhere; }
+.robot-conversation .robot-turn>.robot-speaker:first-child { align-self:flex-end; color:var(--chat-muted); }
+.robot-conversation .robot-question { align-self:flex-end; max-width:88%; background:#28473c; padding:10px 13px; border-radius:14px 3px 14px 14px; white-space:pre-wrap; margin:0 0 16px; }
+.robot-conversation .robot-turn>div { background:#182e28; border-radius:3px 14px 14px; padding:12px; max-width:95%; }
+.robot-conversation h4 { font-size:13px; margin:0 0 8px; }
+.robot-conversation h5 { font-size:12px; margin:12px 0 6px; }
+.robot-conversation .robot-ai-answer { margin-bottom:16px; }
+.robot-conversation .robot-ai-answer>p { white-space:pre-wrap; }
+.robot-conversation small,.robot-conversation .robot-source-note { color:var(--chat-muted); font-size:12px; }
+.robot-conversation .robot-source { border-top:1px solid var(--chat-line); font-size:13px; }
+.robot-conversation summary { min-height:44px; padding:11px 0; cursor:pointer; }
+.robot-conversation .robot-source summary small { display:block; padding-left:16px; }
+.robot-conversation ul { padding-left:20px; }
+.robot-conversation code { display:block; overflow-wrap:anywhere; font-size:11px; }
+.robot-conversation .chat-new { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); background:var(--chat-mint); color:#0c1818; box-shadow:0 2px 12px #0008; white-space:nowrap; }
+.robot-conversation .chat-feedback { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; padding:6px 12px; border-top:1px solid var(--chat-line); }
+.robot-conversation .chat-feedback p { flex:1 1 160px; font-size:11px; color:var(--chat-muted); margin:0; }
+.robot-conversation .chat-feedback progress { width:100%; height:6px; accent-color:var(--chat-mint); }
+.robot-conversation .chat-feedback button { font-size:12px; }
+.robot-conversation .chat-suggestions { display:flex; flex-wrap:wrap; gap:6px; padding:0 12px; }
+.robot-conversation .chat-suggestions button { font-size:12px; background:transparent; padding:5px 10px; }
+.robot-conversation .robot-form { flex-shrink:0; padding:8px 12px 12px; }
+.robot-conversation .robot-form label { display:block; font-size:12px; margin-bottom:4px; }
+.robot-conversation .chat-compose { display:flex; align-items:flex-end; gap:8px; }
+.robot-conversation textarea { flex:1; width:100%; resize:vertical; min-height:46px; max-height:80px; border:1px solid #60816f; border-radius:8px; padding:10px; background:#081210; color:#ecf6f1; font-size:16px; }
+.robot-conversation textarea::placeholder { color:#a1bbad; }
+.robot-conversation [data-send] { background:var(--chat-mint); color:#0c1818; font-weight:650; }
+.robot-conversation .robot-form>small { display:block; margin-top:5px; font-size:10px; }
+.robot-conversation .chat-options>button { margin-bottom:12px; }
+@media(max-width:700px) { .robot-conversation { height:calc(100dvh - 132px); } }
+@media(max-width:360px) { .robot-conversation .chat-toolbar small { display:none; } }
+</style>
