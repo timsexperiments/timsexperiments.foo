@@ -72,10 +72,10 @@ const { id = "challenge" } = Astro.props;
     <ul class="checks" data-checks><li>Encode, decode, then compare every supported value.</li></ul>
     <p class="presence-note">Proto3 omits empty name/email and zero age. The decoder restores those defaults, so this checks values, not whether a scalar was explicitly present. Negative ages are valid int32 experiments; they use ten value bytes.</p>
     <div class="inspectors" data-inspectors hidden>
-      <details><summary>Protobuf wire bytes <span>hex + offset</span></summary><pre data-protobuf-hex></pre><p>0a = name · 10 = age · 1a = email · 22 = a hobby. Strings carry a UTF-8 byte length after the tag.</p></details>
-      <details><summary>JSON wire bytes <span>UTF-8 hex + offset</span></summary><pre data-json-hex></pre></details>
-      <details><summary>Compact JSON sent</summary><pre data-json-text></pre></details>
-      <details><summary>Decoded records <span>JSON / Protobuf</span></summary><h4>From JSON</h4><pre data-json-decoded></pre><h4>From Protobuf</h4><pre data-protobuf-decoded></pre></details>
+      <details><summary>Protobuf wire bytes <span>hex + offset</span></summary><pre data-protobuf-hex tabindex="0" role="region" aria-label="Protobuf wire bytes"></pre><p>0a = name · 10 = age · 1a = email · 22 = a hobby. Strings carry a UTF-8 byte length after the tag.</p></details>
+      <details><summary>JSON wire bytes <span>UTF-8 hex + offset</span></summary><pre data-json-hex tabindex="0" role="region" aria-label="JSON wire bytes"></pre></details>
+      <details><summary>Compact JSON sent</summary><pre data-json-text tabindex="0" role="region" aria-label="Compact JSON sent"></pre></details>
+      <details><summary>Decoded records <span>JSON / Protobuf</span></summary><h4>From JSON</h4><pre data-json-decoded tabindex="0" role="region" aria-label="Decoded JSON record"></pre><h4>From Protobuf</h4><pre data-protobuf-decoded tabindex="0" role="region" aria-label="Decoded Protobuf record"></pre></details>
     </div>
   </section>
   <footer class="bench-footer"><span>What the bytes don't tell you</span><p>JSON carries readable field names. Protobuf sends field numbers and requires an agreed schema. Smaller payloads alone don't decide which format fits a system.</p></footer>
@@ -121,7 +121,7 @@ const { id = "challenge" } = Astro.props;
   button.run:hover { background: #51d2b6; }
   button.run span { margin-left: 14px; }
   button:disabled { opacity: .5; cursor: not-allowed; }
-  :is(button, a, textarea, summary):focus-visible { outline: 2px solid #70e5c5; outline-offset: 4px; }
+  :is(button, a, textarea, summary, pre):focus-visible { outline: 2px solid #70e5c5; outline-offset: 4px; }
   .draft-state { margin-left: auto; font: 10px ui-monospace, monospace; color: var(--bench-muted); }
   .recipes { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 22px; }
   .recipes p { width: 100%; margin-bottom: 2px; }
@@ -129,6 +129,7 @@ const { id = "challenge" } = Astro.props;
   .recipe-note { margin-top: 9px; font-size: 11px; }
   .schema { background: var(--bench-panel); border: 1px solid var(--bench-line); border-radius: 5px; }
   summary { cursor: pointer; color: #e2e7e3; font-size: 12px; padding: 12px 14px; }
+  summary::after { content: ""; display: block; clear: both; }
   summary span { float: right; font: 10px/1.8 ui-monospace, monospace; color: var(--bench-muted); margin-left: 8px; }
   pre { overflow: auto; max-height: 280px; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; color: #d9e6dd; }
   .schema pre { padding: 0 16px 16px; }
@@ -150,9 +151,9 @@ const { id = "challenge" } = Astro.props;
   .checks :global(.check-pass) { color: #65dfbf; font: 10px/1.9 ui-monospace, monospace; }
   .checks :global(.check-fail) { color: #ffc0b8; font: 10px/1.9 ui-monospace, monospace; }
   .presence-note { margin-top: 13px; font-size: 10px; max-width: 100ch; }
-  .inspectors { display: grid; gap: 7px; margin-top: 17px; }
-  .inspectors details { border: 1px solid var(--bench-line); border-radius: 4px; }
-  .inspectors pre { background: #111411; padding: 14px; margin: 0 10px 10px; white-space: pre; }
+  .inspectors { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 7px; margin-top: 17px; }
+  .inspectors details { min-width: 0; border: 1px solid var(--bench-line); border-radius: 4px; }
+  .inspectors pre { background: #111411; padding: 14px; margin: 0 10px 10px; white-space: pre; overflow-x: auto; overscroll-behavior-x: contain; }
   .inspectors p { color: var(--bench-muted); font-size: 10px; padding: 0 14px 12px; }
   h4 { font-size: 11px; font-weight: 500; margin: 5px 14px 8px; }
   .bench-footer { margin-top: 24px; display: grid; grid-template-columns: 180px 1fr; gap: 16px; color: var(--bench-muted); font-size: 11px; }
