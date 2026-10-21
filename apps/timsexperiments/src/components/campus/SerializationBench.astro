@@ -1,169 +1,263 @@
 ---
-import { serializationChallenge, starterJson } from "../../lib/playgrounds/registry";
-
-interface Props { id?: string }
-const { id = "challenge" } = Astro.props;
+import {
+  serializationChallenge,
+  starterJson,
+} from '../../lib/playgrounds/registry';
+import { evaluateSerialization } from '../../lib/playgrounds/serialization';
+import './serialization-bench/bench.css';
+interface Props {
+  id?: string;
+}
+const { id = 'challenge' } = Astro.props;
+const baseline = evaluateSerialization(starterJson);
 ---
 
 <serialization-bench id={id} data-challenge-id={serializationChallenge.id}>
   <header class="bench-heading">
     <div>
-      <p class="eyebrow"><span aria-hidden="true" class="signal"></span> Software lab / experiment 01</p>
-      <h2>Serialization bench</h2>
-      <p class="intro">Same record. Two ways to send it.</p>
+      <p class="bench-eyebrow">Software lab / experiment 01</p><h2>
+        Serialization bench
+      </h2>
     </div>
-    <a class="article-link" href={serializationChallenge.canonicalUrl}>Read the article <span aria-hidden="true">↗</span></a>
+    <button type="button" data-mode disabled
+      >Sandbox <span aria-hidden="true">↗</span></button
+    >
   </header>
-
-  <div class="brief">
-    <span class="brief-label">Your challenge</span>
-    <p>Keep Pixel's data intact. Add an emoji, grow the hobbies list, then inspect what each format sends. Can you explain the byte difference?</p>
-  </div>
-
-  <div class="workbench">
-    <section class="editor-panel" aria-label="Edit the Person record">
-      <div class="panel-heading"><h3><span>01</span> Edit the record</h3><span class="format-label">person.json</span></div>
-      <p class="hint">Editable data. A fixed serializer runs locally in your browser.</p>
-      <form novalidate>
-        <label class="editor-label">Person JSON
-          <textarea name="person" spellcheck="false" autocapitalize="off" autocomplete="off" rows="13" maxlength="16384">{starterJson}</textarea>
-        </label>
-        <p class="editor-help">All four fields required. Age is signed int32. Up to 32 hobbies and 1,024 UTF-8 bytes per string. Editor limit: 16 KiB.</p>
-        <p class="error" data-error hidden></p>
-        <div class="actions">
-          <button type="submit" class="run" disabled>Run comparison <span aria-hidden="true">↗</span></button>
-          <button type="button" data-reset disabled>Reset</button>
-          <span class="draft-state" data-draft>Ready to run</span>
-        </div>
-        <div class="reset-confirm" data-reset-confirm hidden>
-          <p>Discard your edits and restore Pixel's record?</p>
-          <button type="button" data-confirm-reset>Restore starter</button>
-          <button type="button" data-cancel-reset>Keep editing</button>
-        </div>
-      </form>
-      <div class="recipes" aria-label="Try a recipe">
-        <p class="small-label">Try a recipe</p>
-        <button type="button" data-recipe="emoji" disabled>+ One emoji</button>
-        <button type="button" data-recipe="hobbies" disabled>+ Eight hobbies</button>
-        <button type="button" data-recipe="defaults" disabled>Empty defaults</button>
-      </div>
-      <p class="recipe-note" data-recipe-note>Predict first. An emoji takes multiple UTF-8 bytes in both formats.</p>
-    </section>
-
-    <section class="readout-panel" aria-label="Schema and byte comparison">
-      <div class="panel-heading"><h3><span>02</span> Pack &amp; inspect</h3><span class="format-label">proto3</span></div>
-      <details class="schema" open>
-        <summary>The shared contract <span>Person</span></summary>
-        <pre><code>{serializationChallenge.schema}</code></pre>
-      </details>
-      <div class="meters" aria-label="Encoded byte counts">
-        <div class="meter-row"><span>JSON <small>UTF-8</small></span><strong><span data-json-count>—</span> <small>bytes</small></strong></div>
-        <div class="meter-track"><div class="meter-fill json-fill" data-json-bar></div></div>
-        <div class="meter-row"><span>Protobuf <small>binary</small></span><strong><span data-protobuf-count>—</span> <small>bytes</small></strong></div>
-        <div class="meter-track"><div class="meter-fill proto-fill" data-protobuf-bar></div></div>
-        <p class="comparison" data-comparison>Run to measure the encoded bytes.</p>
-      </div>
-      <p class="measurement-note">Compact JSON vs. binary Protobuf. No compression, schema-transfer cost or speed benchmark. Whitespace in the editor does not affect the result.</p>
-    </section>
-  </div>
-
-  <section class="verification" aria-label="Round-trip verification">
-    <div class="panel-heading"><h3><span>03</span> Check the return trip</h3><span class="format-label" data-check-summary>Awaiting a run</span></div>
-    <ul class="checks" data-checks><li>Encode, decode, then compare every supported value.</li></ul>
-    <p class="presence-note">Proto3 omits empty name/email and zero age. The decoder restores those defaults, so this checks values, not whether a scalar was explicitly present. Negative ages are valid int32 experiments; they use ten value bytes.</p>
-    <div class="inspectors" data-inspectors hidden>
-      <details><summary>Protobuf wire bytes <span>hex + offset</span></summary><pre data-protobuf-hex tabindex="0" role="region" aria-label="Protobuf wire bytes"></pre><p>0a = name · 10 = age · 1a = email · 22 = a hobby. Strings carry a UTF-8 byte length after the tag.</p></details>
-      <details><summary>JSON wire bytes <span>UTF-8 hex + offset</span></summary><pre data-json-hex tabindex="0" role="region" aria-label="JSON wire bytes"></pre></details>
-      <details><summary>Compact JSON sent</summary><pre data-json-text tabindex="0" role="region" aria-label="Compact JSON sent"></pre></details>
-      <details><summary>Decoded records <span>JSON / Protobuf</span></summary><h4>From JSON</h4><pre data-json-decoded tabindex="0" role="region" aria-label="Decoded JSON record"></pre><h4>From Protobuf</h4><pre data-protobuf-decoded tabindex="0" role="region" aria-label="Decoded Protobuf record"></pre></details>
+  <div data-lesson>
+    <div class="lesson-heading">
+      <p class="bench-label" data-challenge-number>Challenge 1 / 3</p><button
+        type="button"
+        class="quiet"
+        data-restart
+        disabled>Restart</button>
     </div>
+    <nav class="lesson-steps" aria-label="Lesson steps">
+      <button type="button" data-step="predict" aria-current="step" disabled
+        ><span>01</span> Predict</button
+      >
+      <button type="button" data-step="change" disabled
+        ><span>02</span> Change</button
+      >
+      <button type="button" data-step="measure" disabled
+        ><span>03</span> Measure</button
+      >
+      <button type="button" data-step="check" disabled
+        ><span>04</span> Check</button
+      >
+    </nav>
+    <section class="lesson-stage" data-stage="predict">
+      <p class="bench-label">Before you send it</p><h3 data-question>
+        Add 🐶. Which gains more bytes?
+      </h3>
+      <div class="baseline">
+        <span>Pixel's starting record</span><span
+          >JSON <b>{baseline.json.byteLength} B</b></span
+        ><span>Protobuf <b>{baseline.protobuf.byteLength} B</b></span>
+      </div>
+      <div class="prediction-options" role="group" aria-label="Your prediction">
+        <button type="button" data-prediction="json" disabled>JSON</button
+        ><button type="button" data-prediction="protobuf" disabled
+          >Protobuf</button
+        ><button type="button" data-prediction="same" disabled
+          >Same change</button
+        >
+      </div><p class="bench-hint">
+        Make a prediction, or skip ahead and try it.
+      </p>
+    </section>
+    <section class="lesson-stage" data-stage="change" hidden>
+      <p class="bench-label" data-challenge-title>One more emoji</p><h3
+        data-instruction>
+        Add an emoji to the name, then measure the change.
+      </h3>
+      <dl class="person-record">
+        <div><dt>name</dt><dd data-person-name></dd></div><div>
+          <dt>age</dt><dd data-person-age></dd>
+        </div><div><dt>email</dt><dd data-person-email></dd></div><div>
+          <dt>hobbies</dt><dd data-person-hobbies></dd>
+        </div>
+      </dl>
+      <div class="record-tools">
+        <button type="button" data-change="add" disabled>Add 🐶</button><button
+          type="button"
+          data-change="remove"
+          disabled>Undo emoji</button
+        ><span class="bench-hint" data-edit-note></span>
+      </div>
+    </section>
+  </div>
+  <section class="sandbox" data-sandbox hidden aria-label="JSON sandbox">
+    <p class="bench-label">Sandbox</p><h3>Edit the Person record</h3>
+    <form novalidate>
+      <label class="editor-label"
+        >Person JSON<textarea
+          name="person"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+          rows="8"
+          maxlength="16384">{starterJson}</textarea
+        ></label
+      >
+      <p class="editor-help">
+        All four fields required. Age is signed int32. Up to 32 hobbies and
+        1,024 UTF-8 bytes per string. Editor limit: 16 KiB.
+      </p>
+      <p class="bench-error" data-error hidden></p>
+      <div class="bench-actions">
+        <button type="submit" class="primary" disabled>Run comparison</button
+        ><button type="button" data-reset disabled>Reset record</button><button
+          type="button"
+          data-clear
+          disabled>Clear editor</button
+        ><span class="bench-hint" data-draft>Ready to run</span>
+      </div>
+    </form>
+    <div class="recipes" role="group" aria-label="Record recipes">
+      <button type="button" data-recipe="emoji" disabled>+ One emoji</button
+      ><button type="button" data-recipe="hobbies" disabled
+        >+ Eight hobbies</button
+      ><button type="button" data-recipe="defaults" disabled
+        >Empty defaults</button>
+    </div>
+    <p class="bench-hint" data-recipe-note>
+      Recipes change your current valid record.
+    </p>
   </section>
-  <footer class="bench-footer"><span>What the bytes don't tell you</span><p>JSON carries readable field names. Protobuf sends field numbers and requires an agreed schema. Smaller payloads alone don't decide which format fits a system.</p></footer>
-  <p class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-status></p>
-  <noscript><p class="no-script">Enable JavaScript to edit and run. Worked example: Pixel's starter record takes 107 compact JSON bytes and 68 Protobuf bytes. Both decode to the same values.</p></noscript>
+  <section
+    class="bench-results"
+    data-results
+    hidden
+    aria-label="Serialization result">
+    <div data-measure>
+      <p class="bench-label">Encoded bytes</p><h3>Compare the bytes</h3>
+      <div class="meters">
+        <div class="meter-row">
+          <span>JSON <small>UTF-8</small></span><strong
+            ><span data-json-count>—</span> <small>bytes</small></strong>
+        </div><div class="meter-track">
+          <div class="meter-fill json-fill" data-json-bar></div>
+        </div><p class="byte-delta" data-json-delta></p>
+        <div class="meter-row">
+          <span>Protobuf <small>binary</small></span><strong
+            ><span data-protobuf-count>—</span> <small>bytes</small></strong>
+        </div><div class="meter-track">
+          <div class="meter-fill proto-fill" data-protobuf-bar></div>
+        </div><p class="byte-delta" data-protobuf-delta></p>
+      </div>
+      <p class="comparison" data-comparison>
+        Run to measure the encoded bytes.
+      </p><p class="prediction-feedback" data-feedback></p><p
+        class="bench-hint"
+        data-explanation>
+      </p>
+      <p class="measurement-note">
+        Compact JSON vs. binary Protobuf. No compression, schema-transfer cost
+        or speed benchmark.
+      </p>
+    </div>
+    <div class="verification" data-verification hidden>
+      <p class="bench-label">The return trip</p><h3>
+        Did Pixel's data survive?
+      </h3><p class="check-summary" data-check-summary>
+        Run a comparison to check the decoded values.
+      </p><ul class="checks" data-checks></ul>
+      <dl class="person-record decoded-record" data-decoded-record hidden>
+        <div><dt>name</dt><dd data-decoded-name></dd></div><div>
+          <dt>age</dt><dd data-decoded-age></dd>
+        </div><div><dt>email</dt><dd data-decoded-email></dd></div><div>
+          <dt>hobbies</dt><dd data-decoded-hobbies></dd>
+        </div>
+      </dl>
+      <p class="bench-hint">
+        Values are checked after decoding both formats. Proto3 restores omitted
+        scalar defaults; this does not check explicit field presence.
+      </p>
+    </div>
+    <details class="explore" data-explore hidden>
+      <summary>Explore bytes &amp; schema</summary>
+      <div class="inspectors">
+        <details>
+          <summary>Protobuf wire bytes <span>hex + offset</span></summary><pre
+            data-protobuf-hex
+            tabindex="0"
+            role="region"
+            aria-label="Protobuf wire bytes">
+          </pre><p>
+            0a = name · 10 = age · 1a = email · 22 = a hobby. Strings carry a
+            UTF-8 byte length after the tag.
+          </p>
+        </details>
+        <details>
+          <summary>JSON wire bytes <span>UTF-8 hex + offset</span></summary><pre
+            data-json-hex
+            tabindex="0"
+            role="region"
+            aria-label="JSON wire bytes">
+          </pre>
+        </details>
+        <details>
+          <summary>Compact JSON sent</summary><pre
+            data-json-text
+            tabindex="0"
+            role="region"
+            aria-label="Compact JSON sent">
+          </pre>
+        </details>
+        <details>
+          <summary>Decoded records <span>JSON / Protobuf</span></summary><h4>
+            From JSON
+          </h4><pre
+            data-json-decoded
+            tabindex="0"
+            role="region"
+            aria-label="Decoded JSON record">
+          </pre><h4>From Protobuf</h4><pre
+            data-protobuf-decoded
+            tabindex="0"
+            role="region"
+            aria-label="Decoded Protobuf record">
+          </pre>
+        </details>
+        <details>
+          <summary>The shared Person contract</summary><pre
+            tabindex="0"
+            role="region"
+            aria-label="Person schema"><code>{serializationChallenge.schema}</code></pre><p>
+            JSON carries field names. Protobuf uses field numbers and requires
+            an agreed schema. Negative ages use ten value bytes in this int32
+            codec.
+          </p>
+        </details>
+      </div>
+    </details>
+  </section>
+  <footer class="lesson-footer" data-lesson-footer>
+    <button type="button" class="quiet" data-back hidden disabled>Back</button
+    ><button type="button" class="primary" data-next disabled
+      >Skip prediction →</button
+    ><button type="button" class="quiet" data-skip disabled>Skip lesson</button>
+  </footer>
+  <footer class="bench-footer">
+    <span data-context>Runs locally in your browser</span><a
+      href={serializationChallenge.canonicalUrl}
+      >Read the article <span aria-hidden="true">↗</span></a>
+  </footer>
+  <p
+    class="sr-only"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-status>
+  </p>
+  <noscript
+    ><p class="bench-error">
+      Enable JavaScript to run the lesson. Pixel's starting record encodes to {
+        baseline.json.byteLength
+      } compact JSON bytes and {baseline.protobuf.byteLength} Protobuf bytes.
+    </p></noscript
+  >
 </serialization-bench>
-
 <script>
-  import "../../scripts/playgrounds/serialization-bench";
+  import '../../scripts/playgrounds/serialization-bench';
 </script>
-
-<style>
-  serialization-bench { --bench-bg: #0a0b0a; --bench-panel: #1b1d1c; --bench-text: #fafafa; --bench-muted: #b4bcb7; --bench-line: #414944; --bench-mint: #17b897; display: block; color-scheme: dark; color: var(--bench-text); background: var(--bench-bg); border: 1px solid var(--bench-line); border-radius: 12px; padding: clamp(18px, 3.5vw, 36px); font: 400 15px/1.6 system-ui, sans-serif; text-align: left; max-width: 1120px; margin-inline: auto; }
-  serialization-bench *, serialization-bench *::before, serialization-bench *::after { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  h2, h3, h4, p, pre, ul { margin: 0; }
-  .bench-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-  .eyebrow, .small-label, .brief-label { color: var(--bench-muted); font: 600 10px/1.6 ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; }
-  .eyebrow { display: flex; align-items: center; gap: 9px; }
-  .signal { width: 6px; height: 6px; background: var(--bench-mint); border-radius: 50%; }
-  h2 { color: var(--bench-text); font: 500 clamp(25px, 3.5vw, 36px)/1.2 system-ui, sans-serif; letter-spacing: -.04em; margin-block: 9px 7px; }
-  .intro { color: var(--bench-muted); font-size: 14px; }
-  a { color: var(--bench-text); text-decoration: underline; text-underline-offset: 5px; }
-  .article-link { font-size: 12px; white-space: nowrap; }
-  .article-link span { color: var(--bench-mint); margin-left: 9px; }
-  .brief { display: grid; grid-template-columns: 118px 1fr; align-items: baseline; gap: 15px; padding: 19px 0; margin-block: 24px; border-block: 1px solid var(--bench-line); }
-  .brief p { max-width: 68ch; font-size: 13px; color: #dce1dd; }
-  .workbench { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; }
-  .workbench > section { min-width: 0; }
-  .panel-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  h3 { font-size: 13px; font-weight: 500; color: var(--bench-text); }
-  h3 > span { margin-right: 9px; color: var(--bench-mint); font: 11px ui-monospace, monospace; }
-  .format-label { font: 10px ui-monospace, monospace; color: var(--bench-muted); }
-  .hint, .editor-help, .recipe-note, .measurement-note, .presence-note { color: var(--bench-muted); font-size: 12px; line-height: 1.7; }
-  .editor-label { display: block; margin-top: 13px; color: #dce1dd; font-size: 12px; }
-  textarea { display: block; width: 100%; resize: vertical; min-height: 232px; max-height: 600px; margin-top: 7px; border: 1px solid #68756c; border-radius: 5px; padding: 16px; background: #111411; color: #e0eee6; font: 12px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; }
-  textarea[aria-invalid="true"] { border-color: #f4aba2; }
-  .editor-help { font-size: 10px; margin-top: 8px; }
-  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 16px; }
-  button { cursor: pointer; min-height: 40px; border: 1px solid #68756c; border-radius: 4px; padding: 8px 12px; color: var(--bench-text); background: var(--bench-panel); font: 500 12px/1.5 system-ui, sans-serif; }
-  button:hover { background: #2e3731; border-color: #b4bcb7; }
-  button.run { background: var(--bench-mint); color: #06100c; border-color: var(--bench-mint); font-weight: 650; }
-  button.run:hover { background: #51d2b6; }
-  button.run span { margin-left: 14px; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  :is(button, a, textarea, summary, pre):focus-visible { outline: 2px solid #70e5c5; outline-offset: 4px; }
-  .draft-state { margin-left: auto; font: 10px ui-monospace, monospace; color: var(--bench-muted); }
-  .recipes { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 22px; }
-  .recipes p { width: 100%; margin-bottom: 2px; }
-  .recipes button { min-height: 34px; padding: 6px 9px; background: transparent; font-size: 11px; }
-  .recipe-note { margin-top: 9px; font-size: 11px; }
-  .schema { background: var(--bench-panel); border: 1px solid var(--bench-line); border-radius: 5px; }
-  summary { cursor: pointer; color: #e2e7e3; font-size: 12px; padding: 12px 14px; }
-  summary::after { content: ""; display: block; clear: both; }
-  summary span { float: right; font: 10px/1.8 ui-monospace, monospace; color: var(--bench-muted); margin-left: 8px; }
-  pre { overflow: auto; max-height: 280px; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; color: #d9e6dd; }
-  .schema pre { padding: 0 16px 16px; }
-  code { color: inherit; font: inherit; background: none; padding: 0; }
-  .meters { margin-top: 24px; }
-  .meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px; }
-  .meter-row > span small { margin-left: 7px; }
-  .meter-row small { color: var(--bench-muted); font-size: 10px; font-weight: 400; }
-  .meter-row strong { font: 500 25px/1.5 ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-  .meter-track { background: #242b26; height: 5px; margin-block: 7px 17px; border-radius: 2px; overflow: hidden; }
-  .meter-fill { height: 100%; width: 0; }
-  .json-fill { background: #c4d0c8; }
-  .proto-fill { background: var(--bench-mint); }
-  .comparison { font-size: 12px; color: #d3e9dd; min-height: 20px; }
-  .measurement-note { font-size: 10px; margin-top: 9px; }
-  .verification { border-top: 1px solid var(--bench-line); margin-top: 28px; padding-top: 23px; }
-  .checks { list-style: none; padding: 0; display: grid; gap: 7px; color: var(--bench-muted); font-size: 12px; }
-  .checks :global(li) { display: flex; gap: 10px; }
-  .checks :global(.check-pass) { color: #65dfbf; font: 10px/1.9 ui-monospace, monospace; }
-  .checks :global(.check-fail) { color: #ffc0b8; font: 10px/1.9 ui-monospace, monospace; }
-  .presence-note { margin-top: 13px; font-size: 10px; max-width: 100ch; }
-  .inspectors { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 7px; margin-top: 17px; }
-  .inspectors details { min-width: 0; border: 1px solid var(--bench-line); border-radius: 4px; }
-  .inspectors pre { background: #111411; padding: 14px; margin: 0 10px 10px; white-space: pre; overflow-x: auto; overscroll-behavior-x: contain; }
-  .inspectors p { color: var(--bench-muted); font-size: 10px; padding: 0 14px 12px; }
-  h4 { font-size: 11px; font-weight: 500; margin: 5px 14px 8px; }
-  .bench-footer { margin-top: 24px; display: grid; grid-template-columns: 180px 1fr; gap: 16px; color: var(--bench-muted); font-size: 11px; }
-  .bench-footer > span { color: var(--bench-text); }
-  .bench-footer p { max-width: 85ch; }
-  .error, .no-script { padding: 10px 12px; margin-top: 12px; border-left: 2px solid #f4aba2; background: #251b19; color: #ffc0b8; font-size: 12px; }
-  .reset-confirm { border: 1px solid var(--bench-line); border-radius: 4px; padding: 12px; margin-top: 12px; font-size: 12px; }
-  .reset-confirm p { margin-bottom: 8px; }
-  .reset-confirm button + button { margin-left: 6px; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  @media (max-width: 720px) { .workbench { grid-template-columns: 1fr; gap: 28px; } .bench-heading { align-items: flex-start; flex-direction: column; gap: 14px; } .brief { grid-template-columns: 1fr; gap: 7px; } .bench-footer { grid-template-columns: 1fr; gap: 5px; } }
-  @media (max-width: 390px) { .draft-state { margin-left: 0; width: 100%; } .panel-heading { flex-wrap: wrap; } textarea { padding: 10px; } }
-</style>

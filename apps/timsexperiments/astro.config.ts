@@ -26,7 +26,13 @@ export default defineConfig({
   },
   integrations: [
     mdx(),
-    sitemap({ filter: (page) => !['/campus', '/classic', '/unsubscribe', '/parser'].includes(new URL(page).pathname.replace(/\/$/, '')) }),
+    sitemap({
+      filter: (page) => {
+        const pathname = new URL(page).pathname.replace(/\/$/, '') || '/';
+        if (pathname.startsWith('/article-fragments')) return false;
+        return !['/campus', '/classic', '/unsubscribe', '/parser'].includes(pathname);
+      },
+    }),
     react(),
     // @ts-ignore
     tailwind({
@@ -44,5 +50,9 @@ export default defineConfig({
   },
   redirects: {
     '/parser': 'https://parser.timsexperiments.foo',
+    '/campus': {
+      status: 301,
+      destination: '/',
+    },
   },
 });

@@ -38,7 +38,13 @@ export function createConversationView(root: HTMLElement) {
   observer.observe(transcript, { childList: true, subtree: true, characterData: true });
   return {
     /** Call immediately before appending a turn, while the old scroll geometry exists. */
-    beforeTurn() { following = nearBottom(); },
+    beforeTurn() {
+      if (!panel.hidden) {
+        showOptions(false);
+        root.querySelector('textarea')?.focus();
+      }
+      following = nearBottom();
+    },
     /** Keep host textContent rendering, validation, and pending reply construction. */
     clear() {
       transcript.replaceChildren();

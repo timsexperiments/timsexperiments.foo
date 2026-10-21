@@ -9,10 +9,10 @@ import '@/styles/campus.css';
 import SerializationBench from './SerializationBench.astro';
 import RobotHost from './RobotHost.astro';
 import LetterStation from './LetterStation.astro';
-// Imported MDX widgets share this request context; hidden articles must stay static.
-Astro.locals.campusNewsletter = true;
-const entries = (await getCollection('blog', ({ data }) => data.status === 'published' && data.pubDate <= new Date())).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const recipes = await Promise.all(entries.map(async entry => ({ ...entry, rendered: await entry.render() })));
+import TabletReader from './TabletReader.astro';
+import RecipeShelf from './RecipeShelf.astro';
+import '@/styles/tablet-reader.css';
+const recipes = (await getCollection('blog', ({ data }) => data.status === 'published' && data.pubDate <= new Date())).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const stations = [
   { id: 'recipes', number: '01', name: 'Recipe shelf', description: 'Read engineering articles.', icon: 'M4 4h5v16H4z M10 4h5v16h-5z M17 5l4-1 3 15-4 1z' },
   { id: 'workbench', number: '02', name: 'Workbench', description: 'Compare JSON and Protobuf.', icon: 'M3 4h18v12H3z M8 20h8 M12 16v4 M8 8l-3 2 3 2 M16 8l3 2-3 2' },
@@ -70,23 +70,8 @@ const stations = [
       </section>
     </main>
     <footer class="lab-footer"><span>TIM ALTEMUS</span><a href="/lab">Article archive</a><a href="/classic">Classic site <span aria-hidden="true">↗</span></a><span>© {new Date().getFullYear()} TIM'S EXPERIMENTS</span></footer>
-    <dialog id="recipes-dialog" class="lab-dialog recipe-dialog" aria-labelledby="recipes-title">
-      <div class="dialog-topbar"><span class="eyebrow">01 / THE RECIPE SHELF</span><button class="dialog-close" aria-label="Close recipe shelf">Close <span aria-hidden="true">×</span></button></div>
-      <div class="recipe-intro"><h2 id="recipes-title">Engineering articles</h2><p>Read an article or open its experiment at the workbench.</p></div>
-      <div class="recipe-catalog">
-        {recipes.map((recipe, i) => <button class="recipe-card" data-recipe={recipe.slug} aria-label={`Open recipe: ${recipe.data.title}`}>
-          <div class:list={['recipe-cover', `recipe-cover-${i % 3}`]}><span class="cover-series">TIM'S EXPERIMENTS<br />ENGINEERING RECIPES</span><span class="cover-diagram" aria-hidden="true">{i === 0 ? '{ }' : '[ _ ]'}</span><span class="cover-title">{recipe.data.title}</span><span class="cover-bottom">RECIPE {String(i + 1).padStart(2, '0')} <span>↗</span></span></div>
-          <span class="recipe-card-meta">{recipe.data.estimate} MIN READ <span>{recipe.slug === 'json-vs-protobuf' ? 'WITH A HANDS-ON EXPERIMENT' : 'FROM THE ARCHIVE'}</span></span>
-          <h3>{recipe.data.title}</h3><p>{recipe.data.subtitle}</p>
-        </button>)}
-      </div>
-      <div class="shelf-bottom"><span>Browse published articles.</span><a href="/lab">Visit the complete archive ↗</a></div>
-    </dialog>
-    <dialog id="reader-dialog" class="lab-dialog reader-dialog" aria-label="Read an engineering recipe">
-      <div class="dialog-topbar"><button id="reader-back" class="text-action">← Back to the shelf</button><button class="dialog-close" aria-label="Close article">Close <span aria-hidden="true">×</span></button></div>
-      <p id="reader-copy-status" class="sr-only" role="status" aria-live="polite"></p>
-      {recipes.map(recipe => {const { Content } = recipe.rendered;return <article class="campus-article" data-recipe-content={recipe.slug} hidden><div class="eyebrow">AN ENGINEERING RECIPE / {recipe.data.estimate} MIN READ</div><h2>{recipe.data.title}</h2><p class="article-subtitle">{recipe.data.subtitle}</p><a class="article-permalink" href={`/lab/${recipe.slug}`}>Open standalone article ↗</a><div class="article-body"><Content /></div><div class="recipe-end"><span class="eyebrow">CONTINUE EXPLORING</span><h3>Try the experiment</h3>{recipe.slug === 'json-vs-protobuf' ? <button class="mint-button" data-open-station="workbench">Open workbench ↗</button> : <a class="mint-button" href="/lab">Find another recipe ↗</a>}</div></article>})}
-    </dialog>
+    <RecipeShelf recipes={recipes} />
+    <TabletReader />
     <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><span class="eyebrow">02 / THE WORKBENCH</span><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><h2 id="workbench-title" class="station-heading">JSON and Protobuf</h2><SerializationBench /></dialog>
     <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><div class="dialog-topbar"><span class="eyebrow">03 / YOUR LAB HOST</span><button class="dialog-close" aria-label="Close robot host">Close <span aria-hidden="true">×</span></button></div><h2 id="robot-title" class="station-heading">Ask about Tim</h2><RobotHost /></dialog>
     <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-title"><div class="dialog-topbar"><span class="eyebrow">04 / THE LETTER DESK</span><button class="dialog-close" aria-label="Close letter desk">Close <span aria-hidden="true">×</span></button></div><LetterStation /></dialog>

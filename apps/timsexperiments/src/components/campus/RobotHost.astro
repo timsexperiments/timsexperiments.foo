@@ -4,31 +4,29 @@ import RobotConversation from './RobotConversation.astro';
 <RobotConversation>
   <Fragment slot="consent">
     <details data-ai-consent>
-      <summary>Optional local AI</summary>
-      <p>Download about 204 MB plus runtime files to draft answers on your device. Requires a compatible GPU. Answers may be withheld when they cannot be grounded in the sources.</p>
-      <p>Questions go to this site's public resume service. Model hosts receive download requests. Files may stay in your browser cache.</p>
+      <summary>Optional local model</summary>
+      <p>The conversation already works on your device. This experiment lets a small model select an exact passage from the same sources. It cannot add facts.</p>
+      <p>Enabling it downloads about 204 MB plus runtime files from model hosts. They receive download requests, never your questions. A compatible GPU is required. Files may stay in your browser cache.</p>
       <button type="button" data-enable>Download and enable AI</button>
     </details>
   </Fragment>
   <Fragment slot="about">
   <details class="robot-about">
-    <summary>Sources, privacy, and model</summary>
+    <summary>About this conversation</summary>
     <p>
-      Evidence comes from Tim's curated, public resume records and may
-      include self-reported or historical claims. A search match does not
-      confirm a question's premise. Expand each source to read its full details
-      and qualifications. Source identifiers are shown as text; external
-      links come only from those records.
+      Answers select published resume statements using local search and fixed rules.
+      This is a bounded guide to Tim's work, not an open-ended generative chat.
+      Sources are self-reported and include historical claims. Each answer's
+      source disclosure includes dates, ownership, and limits.
     </p>
     <p>
-      AI is optional and can make factual mistakes. It uses a bounded selection
-      of complete retrieved records with their qualifications. Conversation
-      stays in page memory, up to 12 questions per session. Clear starts a new
-      session. Closing this dialog stops requests and unloads local inference.
-      Downloaded model files may remain in your browser cache.
+      The page downloads public records with its code. Searching and answering
+      happen in your browser. Questions are never sent to a resume service or
+      inference server. Conversation stays in page memory, up to 12 questions.
+      Clear starts over. Closing stops pending work and unloads the optional model.
     </p>
     <p>
-      AI inference runs on your device, never on a server. Runtime: <a
+      The optional model runs on your device with <a
         href="https://github.com/mlc-ai/web-llm"
         target="_blank"
         rel="noopener noreferrer">WebLLM</a
@@ -42,7 +40,6 @@ import RobotConversation from './RobotConversation.astro';
         rel="noopener noreferrer">upstream SmolLM2 model</a
       > use Apache 2.0. See publisher pages for license and provenance.
     </p>
-    <a href="/resume/mcp">Resume MCP connection guide</a>
   </details>
   </Fragment>
 </RobotConversation>

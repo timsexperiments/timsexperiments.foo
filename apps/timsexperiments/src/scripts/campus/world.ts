@@ -1,9 +1,16 @@
 import * as THREE from 'three';
 import logoGlbUrl from '../../assets/campus/tims-experiments-dark.glb?url';
 import logoUrl from '../../assets/tim_s_experiments_logo_dark.svg?url';
-import type { StationId } from './index';
+import { createTextureRegistry } from './textures';
+import type {
+  CollisionBounds,
+  StationId,
+  StationView,
+  WorldHandle,
+} from './types';
 
-export type StationView = { position: THREE.Vector3; target: THREE.Vector3 };
+export type { StationView } from './types';
+
 export const views: Record<StationId, StationView> = {
   arrival: {
     position: new THREE.Vector3(0, 1.75, 7.6),
@@ -27,27 +34,47 @@ export const views: Record<StationId, StationView> = {
   },
 };
 
+type ShadowFlags = {
+  cast?: boolean;
+  receive?: boolean;
+};
+
 export function buildWorld(
   scene: THREE.Scene,
   mobile: boolean,
-  onInvalidate?: () => void
-) {
+  onInvalidate?: () => void,
+  maxAnisotropy = 8
+): WorldHandle {
   const targets: THREE.Object3D[] = [];
-  const textures = new Set<THREE.Texture>();
-  const extraGeometries = new Set<THREE.BufferGeometry>();
-  const extraMaterials = new Set<THREE.Material>();
-  const collisions: {
-    minX: number;
-    maxX: number;
-    minZ: number;
-    maxZ: number;
-  }[] = [];
+  const textureRegistry = createTextureRegistry(maxAnisotropy);
+  const collisions: CollisionBounds[] = [];
+
+  // Shared geometry and material caches eliminate redundant GPU buffer uploads.
+  const boxGeometries = new Map<string, THREE.BoxGeometry>();
+  const cylinderGeometries = new Map<string, THREE.CylinderGeometry>();
+  const roundedGeometries = new Map<string, THREE.ExtrudeGeometry>();
+  const planeGeometries = new Map<string, THREE.PlaneGeometry>();
+  const standardMaterials = new Map<string, THREE.MeshStandardMaterial>();
+
   const mint = 0x17b897;
   const material = (
     color: THREE.ColorRepresentation,
     roughness = 0.6,
     metalness = 0
-  ) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
+  ) => {
+    const hex = new THREE.Color(color).getHexString();
+    const key = `${hex}|${roughness}|${metalness}`;
+    const cached = standardMaterials.get(key);
+    if (cached) return cached;
+    const created = new THREE.MeshStandardMaterial({
+      color,
+      roughness,
+      metalness,
+    });
+    standardMaterials.set(key, created);
+    return created;
+  };
+
   const ceramic = material(0xeef5f2, 0.36, 0.08);
   const plaster = material(0x141918, 0.76, 0.08);
   const deskCharcoal = material(0x1f2624, 0.34, 0.24);
@@ -73,44 +100,47 @@ export function buildWorld(
     emissiveIntensity: 0.65,
     roughness: 0.3,
   });
-  function mesh(
-    geometry: THREE.BufferGeometry,
-    mat: THREE.Material,
-    x: number,
-    y: number,
-    z: number,
-    parent: THREE.Object3D = scene
-  ) {
-    const object = new THREE.Mesh(geometry, mat);
-    object.position.set(x, y, z);
-    object.castShadow = true;
-    object.receiveShadow = true;
-    parent.add(object);
-    return object;
+  const emissiveMaterials = new Set<THREE.Material>([
+    glow,
+    warmGlow,
+    coolTrim,
+  ]);
+
+  const q = (v: number) => Math.round(v * 1000) / 1000;
+
+  function getBoxGeometry(w: number, h: number, d: number) {
+    const key = `${q(w)}|${q(h)}|${q(d)}`;
+    const existing = boxGeometries.get(key);
+    if (existing) return existing;
+    const created = new THREE.BoxGeometry(w, h, d);
+    boxGeometries.set(key, created);
+    return created;
   }
-  function box(
-    w: number,
-    h: number,
-    d: number,
-    mat: THREE.Material,
-    x: number,
-    y: number,
-    z: number,
-    parent: THREE.Object3D = scene
-  ) {
-    return mesh(new THREE.BoxGeometry(w, h, d), mat, x, y, z, parent);
+
+  function getPlaneGeometry(w: number, h: number) {
+    const key = `${q(w)}|${q(h)}`;
+    const existing = planeGeometries.get(key);
+    if (existing) return existing;
+    const created = new THREE.PlaneGeometry(w, h);
+    planeGeometries.set(key, created);
+    return created;
   }
-  function rounded(
-    w: number,
-    h: number,
-    d: number,
-    radius: number,
-    mat: THREE.Material,
-    x: number,
-    y: number,
-    z: number,
-    parent: THREE.Object3D = scene
-  ) {
+
+  function getCylinderGeometry(r: number, bottom: number, h: number) {
+    const segments = mobile ? 18 : 32;
+    const key = `${q(r)}|${q(bottom)}|${q(h)}|${segments}`;
+    const existing = cylinderGeometries.get(key);
+    if (existing) return existing;
+    const created = new THREE.CylinderGeometry(r, bottom, h, segments);
+    cylinderGeometries.set(key, created);
+    return created;
+  }
+
+  function getRoundedGeometry(w: number, h: number, d: number, radius: number) {
+    const curveSegments = mobile ? 6 : 8;
+    const key = `${q(w)}|${q(h)}|${q(d)}|${q(radius)}|${curveSegments}`;
+    const existing = roundedGeometries.get(key);
+    if (existing) return existing;
     const s = new THREE.Shape();
     const r = Math.min(radius, w / 2, h / 2);
     s.moveTo(-w / 2 + r, -h / 2);
@@ -129,11 +159,68 @@ export function buildWorld(
       bevelThickness: 0.025,
       bevelSegments: 2,
       steps: 1,
-      curveSegments: 8,
+      curveSegments,
     });
     g.translate(0, 0, -d / 2);
-    return mesh(g, mat, x, y, z, parent);
+    roundedGeometries.set(key, g);
+    return g;
   }
+
+  function mesh(
+    geometry: THREE.BufferGeometry,
+    mat: THREE.Material,
+    x: number,
+    y: number,
+    z: number,
+    parent: THREE.Object3D = scene,
+    shadows: ShadowFlags = {}
+  ) {
+    const object = new THREE.Mesh(geometry, mat);
+    object.position.set(x, y, z);
+    const isEmissive = emissiveMaterials.has(mat);
+    object.castShadow = isEmissive ? false : (shadows.cast ?? true);
+    object.receiveShadow = isEmissive ? false : (shadows.receive ?? true);
+    parent.add(object);
+    return object;
+  }
+
+  function box(
+    w: number,
+    h: number,
+    d: number,
+    mat: THREE.Material,
+    x: number,
+    y: number,
+    z: number,
+    parent: THREE.Object3D = scene,
+    shadows?: ShadowFlags
+  ) {
+    return mesh(getBoxGeometry(w, h, d), mat, x, y, z, parent, shadows);
+  }
+
+  function rounded(
+    w: number,
+    h: number,
+    d: number,
+    radius: number,
+    mat: THREE.Material,
+    x: number,
+    y: number,
+    z: number,
+    parent: THREE.Object3D = scene,
+    shadows?: ShadowFlags
+  ) {
+    return mesh(
+      getRoundedGeometry(w, h, d, radius),
+      mat,
+      x,
+      y,
+      z,
+      parent,
+      shadows
+    );
+  }
+
   function cylinder(
     r: number,
     bottom: number,
@@ -142,17 +229,20 @@ export function buildWorld(
     x: number,
     y: number,
     z: number,
-    parent: THREE.Object3D = scene
+    parent: THREE.Object3D = scene,
+    shadows?: ShadowFlags
   ) {
     return mesh(
-      new THREE.CylinderGeometry(r, bottom, h, mobile ? 20 : 40),
+      getCylinderGeometry(r, bottom, h),
       mat,
       x,
       y,
       z,
-      parent
+      parent,
+      shadows
     );
   }
+
   function label(
     text: string,
     width: number,
@@ -164,38 +254,36 @@ export function buildWorld(
       background?: string;
       color?: string;
       size?: number;
+      resolution?: number;
       parent?: THREE.Object3D;
     } = {}
   ) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = Math.max(64, Math.round((1024 * height) / width));
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    ctx.fillStyle = options.background ?? '#111b18';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = options.color ?? '#FAFAFA';
-    ctx.font = `600 ${options.size ?? Math.round(canvas.height * 0.42)}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, 512, canvas.height / 2, 950);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 4;
-    textures.add(texture);
+    const labelMat = textureRegistry.getLabelMaterial({
+      text,
+      width,
+      height,
+      background: options.background,
+      color: options.color,
+      size: options.size,
+      resolution: options.resolution,
+    });
+    if (!labelMat) return null;
     return mesh(
-      new THREE.PlaneGeometry(width, height),
-      new THREE.MeshBasicMaterial({ map: texture }),
+      getPlaneGeometry(width, height),
+      labelMat,
       x,
       y,
       z + 0.035,
-      options.parent
+      options.parent,
+      { cast: false, receive: false }
     );
   }
+
   function interactive(object: THREE.Object3D, station: StationId) {
     object.userData.station = station;
     targets.push(object);
   }
+
   function stationSign(
     station: StationId,
     title: string,
@@ -206,11 +294,23 @@ export function buildWorld(
     const g = new THREE.Group();
     scene.add(g);
     g.position.set(x, 0, z);
-    rounded(2.65, 0.5, 0.06, 0.07, ink, 0, 2.95, 0, g);
+    rounded(2.65, 0.5, 0.06, 0.07, ink, 0, 2.95, 0, g, {
+      cast: false,
+      receive: true,
+    });
     label(`${number}  /  ${title}`, 2.45, 0.32, 0, 2.95, 0.045, { parent: g });
-    box(0.12, 0.12, 0.075, glow, -1.2, 2.95, 0.05, g);
+    box(0.12, 0.12, 0.075, glow, -1.2, 2.95, 0.05, g, {
+      cast: false,
+      receive: false,
+    });
     interactive(g, station);
   }
+
+  const sharedFoliageGeo = new THREE.SphereGeometry(1, 10, 8);
+  const soilMat = material(0x1f261c);
+  const exteriorLeafMat = material(0x1f3d32, 0.78);
+  const interiorLeafMat = material(0x265e48, 0.78);
+
   function plant(x: number, z: number, scale = 1, exterior = false) {
     const group = new THREE.Group();
     scene.add(group);
@@ -224,10 +324,14 @@ export function buildWorld(
       0,
       0.29,
       0,
-      group
+      group,
+      { cast: !exterior, receive: true }
     );
-    cylinder(0.34, 0.34, 0.04, material(0x1f261c), 0, 0.59, 0, group);
-    const leaf = material(exterior ? 0x1f3d32 : 0x265e48, 0.78);
+    cylinder(0.34, 0.34, 0.04, soilMat, 0, 0.59, 0, group, {
+      cast: false,
+      receive: false,
+    });
+    const leaf = exterior ? exteriorLeafMat : interiorLeafMat;
     for (let i = 0; i < 11; i++) {
       const angle = i * 2.4;
       const stem = cylinder(
@@ -238,16 +342,18 @@ export function buildWorld(
         Math.cos(angle) * 0.12,
         0.95,
         Math.sin(angle) * 0.12,
-        group
+        group,
+        { cast: false, receive: false }
       );
       stem.rotation.z = Math.sin(angle) * 0.35;
       const foliage = mesh(
-        new THREE.SphereGeometry(1, 10, 8),
+        sharedFoliageGeo,
         leaf,
         Math.cos(angle) * 0.32,
         1.3 + (i % 3) * 0.17,
         Math.sin(angle) * 0.32,
-        group
+        group,
+        { cast: false, receive: !exterior }
       );
       foliage.scale.set(0.12, 0.42, 0.22);
       foliage.rotation.set(0.35, angle, Math.sin(angle) * 0.7);
@@ -256,22 +362,7 @@ export function buildWorld(
 
   // Night sky: layered starfield and luminous moon visible through glass and roof ribs.
   function buildNightSky() {
-    const starDotCanvas = document.createElement('canvas');
-    starDotCanvas.width = 64;
-    starDotCanvas.height = 64;
-    const starCtx = starDotCanvas.getContext('2d');
-    if (starCtx) {
-      const grad = starCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
-      grad.addColorStop(0, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.32, 'rgba(232,252,248,0.85)');
-      grad.addColorStop(0.7, 'rgba(165,225,255,0.22)');
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      starCtx.fillStyle = grad;
-      starCtx.fillRect(0, 0, 64, 64);
-    }
-    const starTexture = new THREE.CanvasTexture(starDotCanvas);
-    starTexture.colorSpace = THREE.SRGBColorSpace;
-    textures.add(starTexture);
+    const starTexture = textureRegistry.createStarDotTexture();
 
     const fineCount = mobile ? 420 : 760;
     const finePositions = new Float32Array(fineCount * 3);
@@ -294,17 +385,14 @@ export function buildWorld(
       let y = 0;
       let z = 0;
       if (band < 3) {
-        // Primary sky curtain directly visible through the north glass wall.
         x = (rand() - 0.5) * 92;
         y = 1.6 + rand() * 26;
         z = -29 - rand() * 44;
       } else if (band === 3) {
-        // Upper sky visible between the exposed ceiling ribs.
         x = (rand() - 0.5) * 64;
         y = 9 + rand() * 24;
         z = -28 + rand() * 42;
       } else {
-        // Side window horizons.
         x = (rand() < 0.5 ? -1 : 1) * (24 + rand() * 32);
         y = 2 + rand() * 22;
         z = -30 + rand() * 40;
@@ -339,7 +427,6 @@ export function buildWorld(
     });
     scene.add(new THREE.Points(fineGeometry, fineMaterial));
 
-    // Curated bright hero stars framed across the window bays.
     const heroCoords: [number, number, number][] = [
       [-18.5, 9.2, -36],
       [-14.2, 6.4, -33],
@@ -370,7 +457,8 @@ export function buildWorld(
       heroPositions[i * 3] = x;
       heroPositions[i * 3 + 1] = y;
       heroPositions[i * 3 + 2] = z;
-      const c = i % 3 === 0 ? new THREE.Color(0xc9f8ef) : new THREE.Color(0xffffff);
+      const c =
+        i % 3 === 0 ? new THREE.Color(0xc9f8ef) : new THREE.Color(0xffffff);
       heroColors[i * 3] = c.r;
       heroColors[i * 3 + 1] = c.g;
       heroColors[i * 3 + 2] = c.b;
@@ -396,42 +484,10 @@ export function buildWorld(
     });
     scene.add(new THREE.Points(heroGeometry, heroMaterial));
 
-    // Detailed moon disc + double atmospheric corona framed through the upper-right glass bay.
     const moonX = 9.3;
     const moonY = 6.65;
     const moonZ = -32;
-    const moonCanvas = document.createElement('canvas');
-    moonCanvas.width = 512;
-    moonCanvas.height = 512;
-    const mCtx = moonCanvas.getContext('2d');
-    if (mCtx) {
-      const baseGrad = mCtx.createRadialGradient(220, 210, 24, 256, 256, 256);
-      baseGrad.addColorStop(0, '#ffffff');
-      baseGrad.addColorStop(0.55, '#e8f7f3');
-      baseGrad.addColorStop(0.88, '#bfd9d6');
-      baseGrad.addColorStop(1, '#8fb2b0');
-      mCtx.fillStyle = baseGrad;
-      mCtx.fillRect(0, 0, 512, 512);
-      const maria: [number, number, number, number][] = [
-        [185, 175, 68, 0.16],
-        [310, 215, 54, 0.14],
-        [245, 300, 76, 0.12],
-        [150, 290, 42, 0.11],
-        [330, 320, 38, 0.1],
-      ];
-      for (const [cx, cy, r, alpha] of maria) {
-        const g = mCtx.createRadialGradient(cx, cy, r * 0.15, cx, cy, r);
-        g.addColorStop(0, `rgba(78, 112, 116, ${alpha})`);
-        g.addColorStop(1, 'rgba(78, 112, 116, 0)');
-        mCtx.fillStyle = g;
-        mCtx.beginPath();
-        mCtx.arc(cx, cy, r, 0, Math.PI * 2);
-        mCtx.fill();
-      }
-    }
-    const moonTexture = new THREE.CanvasTexture(moonCanvas);
-    moonTexture.colorSpace = THREE.SRGBColorSpace;
-    textures.add(moonTexture);
+    const moonTexture = textureRegistry.createMoonTexture();
     const moonDisc = new THREE.Mesh(
       new THREE.SphereGeometry(1.52, 32, 24),
       new THREE.MeshBasicMaterial({
@@ -443,24 +499,9 @@ export function buildWorld(
     moonDisc.rotation.y = -0.4;
     scene.add(moonDisc);
 
-    const haloCanvas = document.createElement('canvas');
-    haloCanvas.width = 256;
-    haloCanvas.height = 256;
-    const hCtx = haloCanvas.getContext('2d');
-    if (hCtx) {
-      const hGrad = hCtx.createRadialGradient(128, 128, 10, 128, 128, 128);
-      hGrad.addColorStop(0, 'rgba(215, 246, 255, 0.72)');
-      hGrad.addColorStop(0.26, 'rgba(155, 226, 242, 0.34)');
-      hGrad.addColorStop(0.58, 'rgba(23, 184, 151, 0.11)');
-      hGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      hCtx.fillStyle = hGrad;
-      hCtx.fillRect(0, 0, 256, 256);
-    }
-    const haloTexture = new THREE.CanvasTexture(haloCanvas);
-    haloTexture.colorSpace = THREE.SRGBColorSpace;
-    textures.add(haloTexture);
+    const haloTexture = textureRegistry.createHaloTexture();
     const innerHalo = new THREE.Mesh(
-      new THREE.PlaneGeometry(9.5, 9.5),
+      getPlaneGeometry(9.5, 9.5),
       new THREE.MeshBasicMaterial({
         map: haloTexture,
         transparent: true,
@@ -474,7 +515,7 @@ export function buildWorld(
     scene.add(innerHalo);
 
     const outerHalo = new THREE.Mesh(
-      new THREE.PlaneGeometry(21, 16),
+      getPlaneGeometry(21, 16),
       new THREE.MeshBasicMaterial({
         map: haloTexture,
         transparent: true,
@@ -490,52 +531,126 @@ export function buildWorld(
   }
   buildNightSky();
 
-  // Continuous architectural shell, inset dark rhino terrazzo tiles, and exposed roof ribs.
-  box(21, 0.24, 19, material(0x090d0c, 0.85), 0, -0.16, 0);
-  const tile = material(0x181f1d, 0.34, 0.16);
-  for (let x = -9; x <= 9; x += 3)
-    for (let z = -6; z <= 9; z += 3) box(2.97, 0.025, 2.97, tile, x, -0.025, z);
-  box(20, 0.12, 0.12, ink, 0, 0.02, -7.4);
-  box(0.12, 0.035, 16, aluminum, -8.8, 0, 0.4);
-  box(0.12, 0.035, 16, aluminum, 8.8, 0, 0.4);
-  box(20, 0.9, 0.25, ink, 0, 4.65, -7.5);
-  box(0.3, 4.7, 17, plaster, -10, 2.3, 0.5);
-  box(0.3, 4.7, 17, plaster, 10, 2.3, 0.5);
+  // Continuous architectural shell, instanced dark terrazzo tiles, and exposed roof ribs.
+  box(21, 0.24, 19, material(0x090d0c, 0.85), 0, -0.16, 0, scene, {
+    cast: false,
+    receive: true,
+  });
+
+  const tileMat = material(0x181f1d, 0.34, 0.16);
+  const tileGeo = getBoxGeometry(2.97, 0.025, 2.97);
+  const tileGridX = [-9, -6, -3, 0, 3, 6, 9];
+  const tileGridZ = [-6, -3, 0, 3, 6, 9];
+  const tileInstances = new THREE.InstancedMesh(
+    tileGeo,
+    tileMat,
+    tileGridX.length * tileGridZ.length
+  );
+  tileInstances.castShadow = false;
+  tileInstances.receiveShadow = true;
+  const tileMatrix = new THREE.Matrix4();
+  let tileIdx = 0;
+  for (const x of tileGridX) {
+    for (const z of tileGridZ) {
+      tileMatrix.makeTranslation(x, -0.025, z);
+      tileInstances.setMatrixAt(tileIdx++, tileMatrix);
+    }
+  }
+  tileInstances.instanceMatrix.needsUpdate = true;
+  scene.add(tileInstances);
+
+  box(20, 0.12, 0.12, ink, 0, 0.02, -7.4, scene, {
+    cast: false,
+    receive: true,
+  });
+  box(0.12, 0.035, 16, aluminum, -8.8, 0, 0.4, scene, {
+    cast: false,
+    receive: true,
+  });
+  box(0.12, 0.035, 16, aluminum, 8.8, 0, 0.4, scene, {
+    cast: false,
+    receive: true,
+  });
+  box(20, 0.9, 0.25, ink, 0, 4.65, -7.5, scene, {
+    cast: true,
+    receive: true,
+  });
+  box(0.3, 4.7, 17, plaster, -10, 2.3, 0.5, scene, {
+    cast: true,
+    receive: true,
+  });
+  box(0.3, 4.7, 17, plaster, 10, 2.3, 0.5, scene, {
+    cast: true,
+    receive: true,
+  });
   for (const x of [-9.4, -5, 0, 5, 9.4]) {
-    box(0.14, 4.5, 0.18, aluminum, x, 2.25, -7.45);
-    box(0.18, 0.24, 16.5, ink, x, 4.35, 0.3);
+    box(0.14, 4.5, 0.18, aluminum, x, 2.25, -7.45, scene, {
+      cast: true,
+      receive: false,
+    });
+    box(0.18, 0.24, 16.5, ink, x, 4.35, 0.3, scene, {
+      cast: false,
+      receive: false,
+    });
     box(0.06, 0.025, 14, warmGlow, x, 4.2, 0.1);
   }
-  for (const z of [-6.8, 0, 6.8]) box(19.8, 0.22, 0.18, aluminum, 0, 4.4, z);
-  const glass = new THREE.MeshPhysicalMaterial({
+  for (const z of [-6.8, 0, 6.8]) {
+    box(19.8, 0.22, 0.18, aluminum, 0, 4.4, z, scene, {
+      cast: false,
+      receive: false,
+    });
+  }
+
+  // Non-shadow-casting architectural glass keeps moonlight and courtyard views crisp.
+  const glass = new THREE.MeshStandardMaterial({
     color: 0x8adcd0,
     transparent: true,
-    opacity: 0.075,
-    roughness: 0.05,
+    opacity: 0.06,
+    roughness: 0.08,
     metalness: 0.14,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  mesh(new THREE.PlaneGeometry(19.2, 4.1), glass, 0, 2.25, -7.48);
+  mesh(getPlaneGeometry(19.2, 4.1), glass, 0, 2.25, -7.48, scene, {
+    cast: false,
+    receive: false,
+  });
   for (const x of [-9.8, 9.8]) {
-    const pane = mesh(new THREE.PlaneGeometry(15, 4), glass, x, 2.3, 0);
+    const pane = mesh(getPlaneGeometry(15, 4), glass, x, 2.3, 0, scene, {
+      cast: false,
+      receive: false,
+    });
     pane.rotation.y = Math.PI / 2;
-    for (const z of [-6, -2, 2, 6]) box(0.15, 4.5, 0.13, aluminum, x, 2.25, z);
+    for (const z of [-6, -2, 2, 6]) {
+      box(0.15, 4.5, 0.13, aluminum, x, 2.25, z, scene, {
+        cast: false,
+        receive: false,
+      });
+    }
   }
+
   // Moonlit campus courtyard visible through the north glass.
-  box(100, 0.2, 100, material(0x0b1210, 0.92), 0, -0.35, -25);
-  box(26, 0.08, 3.3, material(0x151d1b, 0.7), 0, -0.18, -11);
+  box(100, 0.2, 100, material(0x0b1210, 0.92), 0, -0.35, -25, scene, {
+    cast: false,
+    receive: true,
+  });
+  box(26, 0.08, 3.3, material(0x151d1b, 0.7), 0, -0.18, -11, scene, {
+    cast: false,
+    receive: true,
+  });
   box(19.4, 0.015, 0.08, coolTrim, 0, -0.12, -9.4);
+  const treeCrownGeo = new THREE.IcosahedronGeometry(2.4, 1);
+  const treeCrownMat = material(0x1a332a, 0.82);
   for (const x of [-12, -6.8, 1.6, 11.8, 18]) {
     plant(x, -13 - Math.abs(x % 3), 2, true);
-    cylinder(0.14, 0.22, 4.5, wood, x, 2, -19);
-    const crown = mesh(
-      new THREE.IcosahedronGeometry(2.4, 1),
-      material(0x1a332a, 0.82),
-      x,
-      5,
-      -19
-    );
+    cylinder(0.14, 0.22, 4.5, wood, x, 2, -19, scene, {
+      cast: false,
+      receive: false,
+    });
+    const crown = mesh(treeCrownGeo, treeCrownMat, x, 5, -19, scene, {
+      cast: false,
+      receive: false,
+    });
     crown.scale.y = 1.3;
   }
   const nightWindow = new THREE.MeshStandardMaterial({
@@ -546,14 +661,41 @@ export function buildWorld(
     metalness: 0.45,
   });
   for (const x of [-16, 16]) {
-    box(7, 5, 12, material(0x111817, 0.75), x, 2, -25);
-    box(7.1, 0.2, 12.1, ink, x, 4.6, -25);
-    for (let i = 0; i < 5; i++)
-      box(0.9, 2.5, 0.07, nightWindow, x - 2.5 + i * 1.25, 2.6, -18.94);
+    box(7, 5, 12, material(0x111817, 0.75), x, 2, -25, scene, {
+      cast: false,
+      receive: false,
+    });
+    box(7.1, 0.2, 12.1, ink, x, 4.6, -25, scene, {
+      cast: false,
+      receive: false,
+    });
+    for (let i = 0; i < 5; i++) {
+      box(
+        0.9,
+        2.5,
+        0.07,
+        nightWindow,
+        x - 2.5 + i * 1.25,
+        2.6,
+        -18.94,
+        scene,
+        {
+          cast: false,
+          receive: false,
+        }
+      );
+    }
   }
+
   // Back-wall fascia with canonical dark logo fallback and lazy-loaded extruded 3D GLB.
-  rounded(5.26, 1.06, 0.1, 0.11, green, 0, 3.55, -7.17);
-  rounded(5.2, 1, 0.12, 0.1, fasciaCharcoal, 0, 3.55, -7.15);
+  rounded(5.26, 1.06, 0.1, 0.11, green, 0, 3.55, -7.17, scene, {
+    cast: false,
+    receive: true,
+  });
+  rounded(5.2, 1, 0.12, 0.1, fasciaCharcoal, 0, 3.55, -7.15, scene, {
+    cast: true,
+    receive: true,
+  });
   let alive = true;
   let fallbackLogoMesh: THREE.Mesh | null = null;
   let extrudedLogoLoaded = false;
@@ -566,17 +708,17 @@ export function buildWorld(
     const context = logoCanvas.getContext('2d');
     if (!context) return;
     context.drawImage(logoImage, 0, 0, 1512, 252);
-    const texture = new THREE.CanvasTexture(logoCanvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    textures.add(texture);
+    const texture = textureRegistry.track(new THREE.CanvasTexture(logoCanvas));
     fallbackLogoMesh = mesh(
+      // The replaceable fallback owns this geometry; never dispose a cache entry.
       new THREE.PlaneGeometry(4.5, 0.75),
       new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
       0,
       3.55,
-      -7.03
+      -7.03,
+      scene,
+      { cast: false, receive: false }
     );
-    fallbackLogoMesh.castShadow = false;
     onInvalidate?.();
   };
   logoImage.src = logoUrl;
@@ -590,14 +732,19 @@ export function buildWorld(
         (gltf) => {
           const root = gltf.scene;
           if (!alive) {
+            // Never attached: the callback owns cleanup, deduplicating shared GLB resources.
+            const geometries = new Set<THREE.BufferGeometry>();
+            const materials = new Set<THREE.Material>();
             root.traverse((node) => {
               if (node instanceof THREE.Mesh) {
-                node.geometry.dispose();
+                geometries.add(node.geometry);
                 if (Array.isArray(node.material))
-                  node.material.forEach((m) => m.dispose());
-                else if (node.material) node.material.dispose();
+                  node.material.forEach((mat) => materials.add(mat));
+                else materials.add(node.material);
               }
             });
+            geometries.forEach((geometry) => geometry.dispose());
+            materials.forEach((mat) => mat.dispose());
             return;
           }
           extrudedLogoLoaded = true;
@@ -607,9 +754,7 @@ export function buildWorld(
             if (node instanceof THREE.Mesh) {
               node.castShadow = true;
               node.receiveShadow = true;
-              extraGeometries.add(node.geometry);
               const configureMat = (mat: THREE.Material) => {
-                extraMaterials.add(mat);
                 if (mat instanceof THREE.MeshStandardMaterial) {
                   mat.emissive.copy(mat.color);
                   mat.emissiveIntensity = 0.34;
@@ -647,10 +792,19 @@ export function buildWorld(
   library.position.set(-6, 0, -5.4);
   scene.add(library);
   interactive(library, 'recipes');
-  rounded(4.3, 2.8, 0.28, 0.15, ink, 0, 1.4, 0, library);
-  box(3.95, 2.45, 0.06, wood, 0, 1.43, 0.18, library);
+  rounded(4.3, 2.8, 0.28, 0.15, ink, 0, 1.4, 0, library, {
+    cast: true,
+    receive: true,
+  });
+  box(3.95, 2.45, 0.06, wood, 0, 1.43, 0.18, library, {
+    cast: false,
+    receive: true,
+  });
   for (const y of [0.24, 1.15, 2.1, 2.68]) {
-    box(4.2, 0.1, 0.85, wood, 0, y, 0.45, library);
+    box(4.2, 0.1, 0.85, wood, 0, y, 0.45, library, {
+      cast: true,
+      receive: true,
+    });
     box(3.95, 0.035, 0.04, warmGlow, 0, y - 0.07, 0.78, library);
   }
   const covers = [
@@ -666,20 +820,31 @@ export function buildWorld(
     'FIELD NOTES',
   ];
   const pageBlock = material(0xdce5df, 0.75);
-  for (let row = 0; row < 2; row++)
+  for (let row = 0; row < 2; row++) {
     for (let i = 0; i < 12; i++) {
-      const color = covers[(i + row * 3) % covers.length] ?? mint;
+      const bookIndex = (i + row * 3) % covers.length;
+      const color = covers[bookIndex] ?? mint;
       const height = 0.62 + (i % 3) * 0.06;
       const b = new THREE.Group();
       b.position.set(-1.78 + i * 0.32, 0.31 + row * 0.94 + height / 2, 0.53);
       library.add(b);
       if (i === 3 || i === 9) b.rotation.z = -0.08;
-      box(0.265, height, 0.46, material(color), 0, 0, 0, b);
-      box(0.22, height - 0.05, 0.435, pageBlock, 0, 0, -0.01, b);
-      box(0.265, height, 0.055, material(color), 0, 0, 0.24, b);
+      const coverMat = material(color);
+      box(0.265, height, 0.46, coverMat, 0, 0, 0, b, {
+        cast: false,
+        receive: true,
+      });
+      box(0.22, height - 0.05, 0.435, pageBlock, 0, 0, -0.01, b, {
+        cast: false,
+        receive: false,
+      });
+      box(0.265, height, 0.055, coverMat, 0, 0, 0.24, b, {
+        cast: false,
+        receive: true,
+      });
       const spine = label(
-        titles[(i + row) % titles.length] ?? 'RECIPES',
-        height - 0.12,
+        titles[bookIndex] ?? 'RECIPES',
+        0.5,
         0.12,
         0,
         0,
@@ -687,74 +852,58 @@ export function buildWorld(
         {
           background: `#${new THREE.Color(color).getHexString()}`,
           color: '#10261f',
+          resolution: 512,
           parent: b,
         }
       );
       if (spine) spine.rotation.z = Math.PI / 2;
-      box(0.16, 0.018, 0.015, ink, 0, -height / 2 + 0.1, 0.28, b);
+      box(0.16, 0.018, 0.015, ink, 0, -height / 2 + 0.1, 0.28, b, {
+        cast: false,
+        receive: false,
+      });
     }
+  }
   stationSign('recipes', 'RECIPE LIBRARY', '01', -6, -4.9);
   collisions.push({ minX: -8.4, maxX: -3.6, minZ: -6.1, maxZ: -4.15 });
+
   // Main bench with suspended monitors and a small physical compute rack.
   const bench = new THREE.Group();
   scene.add(bench);
   bench.position.set(-0.6, 0, -4.3);
   interactive(bench, 'workbench');
-  rounded(4.6, 0.22, 1.75, 0.1, deskCharcoal, 0, 1.04, 0, bench);
-  rounded(4.35, 0.12, 1.55, 0.05, green, 0, 0.87, 0, bench);
+  rounded(4.6, 0.22, 1.75, 0.1, deskCharcoal, 0, 1.04, 0, bench, {
+    cast: true,
+    receive: true,
+  });
+  rounded(4.35, 0.12, 1.55, 0.05, green, 0, 0.87, 0, bench, {
+    cast: false,
+    receive: true,
+  });
   for (const x of [-1.75, 1.75]) {
-    box(0.16, 0.85, 1.2, ink, x, 0.43, 0, bench);
-    box(0.6, 0.07, 1.4, aluminum, x, 0.05, 0, bench);
-  }
-  const screenCanvas = document.createElement('canvas');
-  screenCanvas.width = 1024;
-  screenCanvas.height = 640;
-  const ctx = screenCanvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#071411';
-    ctx.fillRect(0, 0, 1024, 640);
-    ctx.fillStyle = '#17b897';
-    ctx.fillRect(0, 0, 1024, 9);
-    ctx.font = '24px monospace';
-    ctx.fillText('TIM\u2019S EXPERIMENTS   /   WORKBENCH', 42, 65);
-    ctx.fillStyle = '#fafafa';
-    ctx.font = 'bold 58px sans-serif';
-    ctx.fillText('Ideas into systems.', 42, 164);
-    ctx.font = '23px monospace';
-    ctx.fillStyle = '#92f1de';
-    ctx.fillText('SOFTWARE ENGINEERING / OPEN FOR COLLABORATION', 42, 213);
-    const code = [
-      'const experiment = {',
-      '  curiosity: Infinity,',
-      '  craft: "carefully considered",',
-      '  status: "building"',
-      '};',
-    ];
-    ctx.font = '27px monospace';
-    code.forEach((line, i) => {
-      ctx.fillStyle = i % 2 ? '#17b897' : '#d5e6df';
-      ctx.fillText(line, 45, 305 + i * 49);
+    box(0.16, 0.85, 1.2, ink, x, 0.43, 0, bench, {
+      cast: true,
+      receive: true,
     });
-    ctx.fillStyle = '#17b897';
-    ctx.fillRect(750, 285, 210, 210);
-    ctx.fillStyle = '#061c16';
-    ctx.font = 'bold 100px monospace';
-    ctx.fillText('{ }', 766, 419);
+    box(0.6, 0.07, 1.4, aluminum, x, 0.05, 0, bench, {
+      cast: false,
+      receive: true,
+    });
   }
-  const screenTexture = new THREE.CanvasTexture(screenCanvas);
-  screenTexture.colorSpace = THREE.SRGBColorSpace;
-  textures.add(screenTexture);
+  const screenTexture = textureRegistry.createWorkbenchScreenTexture();
+  const screenMat = new THREE.MeshBasicMaterial({ map: screenTexture });
   for (const x of [-1.05, 1.05]) {
-    cylinder(0.06, 0.06, 0.65, aluminum, x, 1.4, -0.38, bench);
-    rounded(1.96, 1.25, 0.12, 0.07, ink, x, 1.95, -0.36, bench);
-    mesh(
-      new THREE.PlaneGeometry(1.81, 1.1),
-      new THREE.MeshBasicMaterial({ map: screenTexture }),
-      x,
-      1.95,
-      -0.25,
-      bench
-    );
+    cylinder(0.06, 0.06, 0.65, aluminum, x, 1.4, -0.38, bench, {
+      cast: false,
+      receive: true,
+    });
+    rounded(1.96, 1.25, 0.12, 0.07, ink, x, 1.95, -0.36, bench, {
+      cast: true,
+      receive: true,
+    });
+    mesh(getPlaneGeometry(1.81, 1.1), screenMat, x, 1.95, -0.25, bench, {
+      cast: false,
+      receive: false,
+    });
   }
   const keyboard = rounded(
     1.4,
@@ -765,34 +914,59 @@ export function buildWorld(
     -0.35,
     1.19,
     0.43,
-    bench
+    bench,
+    { cast: false, receive: true }
   );
-  for (let row = 0; row < 4; row++)
-    for (let i = 0; i < 13; i++)
-      box(
-        0.075,
-        0.015,
-        0.065,
-        aluminum,
+  keyboard.rotation.x = 0.04;
+
+  const keyGeo = getBoxGeometry(0.075, 0.015, 0.065);
+  const keyInstances = new THREE.InstancedMesh(keyGeo, aluminum, 4 * 13);
+  keyInstances.castShadow = false;
+  keyInstances.receiveShadow = false;
+  const keyMatrix = new THREE.Matrix4();
+  let keyIdx = 0;
+  for (let row = 0; row < 4; row++) {
+    for (let i = 0; i < 13; i++) {
+      keyMatrix.makeTranslation(
         -0.92 + i * 0.095,
         1.225,
-        0.27 + row * 0.09,
-        bench
+        0.27 + row * 0.09
       );
-  keyboard.rotation.x = 0.04;
-  cylinder(0.14, 0.12, 0.22, green, 1.7, 1.27, 0.5, bench);
+      keyInstances.setMatrixAt(keyIdx++, keyMatrix);
+    }
+  }
+  keyInstances.instanceMatrix.needsUpdate = true;
+  bench.add(keyInstances);
+
+  cylinder(0.14, 0.12, 0.22, green, 1.7, 1.27, 0.5, bench, {
+    cast: false,
+    receive: true,
+  });
   stationSign('workbench', 'THE WORKBENCH', '02', -0.6, -5.2);
   collisions.push({ minX: -3.2, maxX: 2, minZ: -5.5, maxZ: -3 });
+
   // Friendly small host: floating head, mint enamel shell, expressive optical face.
   const robot = new THREE.Group();
   scene.add(robot);
   robot.position.set(3.4, 0, -0.8);
   interactive(robot, 'robot');
-  cylinder(0.9, 1, 0.13, ink, 0, 0.07, 0, robot);
+  cylinder(0.9, 1, 0.13, ink, 0, 0.07, 0, robot, {
+    cast: true,
+    receive: true,
+  });
   cylinder(0.87, 0.87, 0.025, glow, 0, 0.15, 0, robot);
-  cylinder(0.3, 0.45, 0.35, aluminum, 0, 0.42, 0, robot);
-  rounded(0.85, 0.76, 0.6, 0.2, green, 0, 0.88, 0, robot);
-  rounded(0.56, 0.3, 0.035, 0.08, ceramic, 0, 0.9, 0.33, robot);
+  cylinder(0.3, 0.45, 0.35, aluminum, 0, 0.42, 0, robot, {
+    cast: true,
+    receive: true,
+  });
+  rounded(0.85, 0.76, 0.6, 0.2, green, 0, 0.88, 0, robot, {
+    cast: true,
+    receive: true,
+  });
+  rounded(0.56, 0.3, 0.035, 0.08, ceramic, 0, 0.9, 0.33, robot, {
+    cast: false,
+    receive: true,
+  });
   label('HELLO, HUMAN', 0.46, 0.12, 0, 0.92, 0.356, {
     background: '#eef5f2',
     color: '#0e6d5a',
@@ -801,10 +975,18 @@ export function buildWorld(
   const head = new THREE.Group();
   head.position.y = 1.58;
   robot.add(head);
-  rounded(1.18, 0.76, 0.73, 0.21, ceramic, 0, 0, 0, head);
-  rounded(0.99, 0.48, 0.06, 0.17, ink, 0, 0.01, 0.4, head);
-  for (const x of [-0.23, 0.23])
+  rounded(1.18, 0.76, 0.73, 0.21, ceramic, 0, 0, 0, head, {
+    // The head animates; only the stationary body/base belong in the frozen bake.
+    cast: false,
+    receive: true,
+  });
+  rounded(0.99, 0.48, 0.06, 0.17, ink, 0, 0.01, 0.4, head, {
+    cast: false,
+    receive: true,
+  });
+  for (const x of [-0.23, 0.23]) {
     rounded(0.13, 0.2, 0.035, 0.06, glow, x, 0.045, 0.445, head);
+  }
   const smile = mesh(
     new THREE.TorusGeometry(0.11, 0.015, 6, 20, Math.PI),
     glow,
@@ -814,8 +996,12 @@ export function buildWorld(
     head
   );
   smile.rotation.z = Math.PI;
-  cylinder(0.025, 0.025, 0.24, aluminum, 0.34, 0.49, 0, head);
+  cylinder(0.025, 0.025, 0.24, aluminum, 0.34, 0.49, 0, head, {
+    cast: false,
+    receive: false,
+  });
   mesh(new THREE.SphereGeometry(0.065, 12, 8), glow, 0.34, 0.63, 0, head);
+  const handGeo = new THREE.SphereGeometry(0.12, 12, 8);
   for (const side of [-1, 1]) {
     const arm = rounded(
       0.18,
@@ -826,46 +1012,67 @@ export function buildWorld(
       side * 0.59,
       1.0,
       0,
-      robot
+      robot,
+      { cast: true, receive: true }
     );
     arm.rotation.z = side * 0.24;
-    mesh(
-      new THREE.SphereGeometry(0.12, 12, 8),
-      ink,
-      side * 0.66,
-      0.72,
-      0,
-      robot
-    );
+    mesh(handGeo, ink, side * 0.66, 0.72, 0, robot, {
+      cast: false,
+      receive: true,
+    });
   }
   label('03 / MEET YOUR HOST', 2, 0.26, 3.4, 0.3, 0.22, {
     background: '#111b18',
   });
   collisions.push({ minX: 2.25, maxX: 4.55, minZ: -1.9, maxZ: 0.35 });
+
   // Correspondence desk, angled letter and a real mail-slot silhouette.
   const post = new THREE.Group();
   scene.add(post);
   post.position.set(6.5, 0, -4.2);
   interactive(post, 'contact');
-  rounded(3.2, 0.18, 1.5, 0.09, deskCharcoal, 0, 1.03, 0, post);
-  rounded(3.02, 0.08, 1.34, 0.05, wood, 0, 0.91, 0, post);
-  for (const x of [-1.2, 1.2]) box(0.1, 1, 1.15, ink, x, 0.5, 0, post);
-  rounded(1, 1.13, 0.65, 0.15, green, 0.8, 1.65, -0.23, post);
-  rounded(0.78, 0.11, 0.05, 0.035, ink, 0.8, 1.69, 0.12, post);
+  rounded(3.2, 0.18, 1.5, 0.09, deskCharcoal, 0, 1.03, 0, post, {
+    cast: true,
+    receive: true,
+  });
+  rounded(3.02, 0.08, 1.34, 0.05, wood, 0, 0.91, 0, post, {
+    cast: false,
+    receive: true,
+  });
+  for (const x of [-1.2, 1.2]) {
+    box(0.1, 1, 1.15, ink, x, 0.5, 0, post, {
+      cast: true,
+      receive: true,
+    });
+  }
+  rounded(1, 1.13, 0.65, 0.15, green, 0.8, 1.65, -0.23, post, {
+    cast: true,
+    receive: true,
+  });
+  rounded(0.78, 0.11, 0.05, 0.035, ink, 0.8, 1.69, 0.12, post, {
+    cast: false,
+    receive: true,
+  });
   label('POST / TIM', 0.75, 0.18, 0.8, 1.98, 0.115, {
     background: '#17b897',
     color: '#061c16',
     parent: post,
   });
-  rounded(0.85, 0.43, 0.025, 0.03, ceramic, 0.8, 1.38, 0.12, post);
+  rounded(0.85, 0.43, 0.025, 0.03, ceramic, 0.8, 1.38, 0.12, post, {
+    cast: false,
+    receive: true,
+  });
   label('LET\u2019S MAKE SOMETHING.', 0.74, 0.1, 0.8, 1.4, 0.14, {
     background: '#eef5f2',
     color: '#10221d',
     parent: post,
   });
-  const paper = box(0.86, 0.018, 1.05, ceramic, -0.65, 1.14, 0.1, post);
+  const paper = box(0.86, 0.018, 1.05, ceramic, -0.65, 1.14, 0.1, post, {
+    cast: false,
+    receive: true,
+  });
   paper.rotation.y = -0.15;
-  for (let i = 0; i < 7; i++)
+  for (let i = 0; i < 7; i++) {
     box(
       i === 0 ? 0.28 : 0.6,
       0.003,
@@ -874,44 +1081,64 @@ export function buildWorld(
       -0.66,
       1.154,
       -0.22 + i * 0.09,
-      post
+      post,
+      { cast: false, receive: false }
     );
-  const pen = cylinder(0.018, 0.018, 0.6, ink, -0.05, 1.17, 0.25, post);
+  }
+  const pen = cylinder(0.018, 0.018, 0.6, ink, -0.05, 1.17, 0.25, post, {
+    cast: false,
+    receive: false,
+  });
   pen.rotation.z = Math.PI / 2;
   pen.rotation.y = 0.3;
   stationSign('contact', 'CORRESPONDENCE', '04', 6.5, -5.2);
   collisions.push({ minX: 4.6, maxX: 8.4, minZ: -5.3, maxZ: -3.1 });
+
   plant(-9, -3, 1.25);
   plant(9, -6, 1.4);
   plant(9, 4, 1.2);
   plant(-9, 5, 1.1);
+
   // Ceiling pendants are structural fixtures rather than floating light strips.
+  const pendantRingGeo = new THREE.TorusGeometry(
+    1.1,
+    0.055,
+    8,
+    mobile ? 36 : 64
+  );
+  const pendantDiffuserGeo = new THREE.TorusGeometry(
+    1.09,
+    0.028,
+    6,
+    mobile ? 36 : 64
+  );
   for (const x of [-6, 0, 6]) {
-    cylinder(0.018, 0.018, 0.7, ink, x, 3.9, -3);
-    const ring = mesh(
-      new THREE.TorusGeometry(1.1, 0.055, 8, 64),
-      aluminum,
-      x,
-      3.55,
-      -3
-    );
+    cylinder(0.018, 0.018, 0.7, ink, x, 3.9, -3, scene, {
+      cast: false,
+      receive: false,
+    });
+    const ring = mesh(pendantRingGeo, aluminum, x, 3.55, -3, scene, {
+      cast: false,
+      receive: false,
+    });
     ring.rotation.x = Math.PI / 2;
-    const diffuser = mesh(
-      new THREE.TorusGeometry(1.09, 0.028, 6, 64),
-      warmGlow,
-      x,
-      3.51,
-      -3
-    );
+    const diffuser = mesh(pendantDiffuserGeo, warmGlow, x, 3.51, -3);
     diffuser.rotation.x = Math.PI / 2;
   }
+
   // A restrained mint guide line leads into the room.
   box(0.04, 0.007, 5.8, glow, 0, 0.007, 4.8);
-  for (const x of [-2.3, 2.3]) box(0.025, 0.008, 2.4, aluminum, x, 0.008, 6.2);
+  for (const x of [-2.3, 2.3]) {
+    box(0.025, 0.008, 2.4, aluminum, x, 0.008, 6.2, scene, {
+      cast: false,
+      receive: true,
+    });
+  }
   label('THE LAB / CURIOUS BY DESIGN', 3.3, 0.34, -6.2, 3.85, -7.3, {
     background: '#111b18',
     color: '#92f1de',
   });
+
   return {
     targets,
     collisions,
@@ -924,9 +1151,8 @@ export function buildWorld(
     dispose() {
       alive = false;
       logoImage.onload = null;
-      textures.forEach((texture) => texture.dispose());
-      extraGeometries.forEach((geometry) => geometry.dispose());
-      extraMaterials.forEach((mat) => mat.dispose());
+      textureRegistry.dispose();
+      // Attached geometries/materials and instance buffers belong to the controller.
     },
   };
 }

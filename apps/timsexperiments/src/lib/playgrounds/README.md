@@ -5,6 +5,13 @@ Import `src/components/campus/SerializationBench.astro` and render
 when the article and dialog appear on the same page. Its own bundled Astro
 script registers `serialization-bench` once. No parent initialization call,
 visibility observer, dependency installation, or layout measurement is needed.
+The default is a four-step lesson: predict, change a concrete record, measure,
+then inspect the return trip. Three challenges cover an emoji, repeated hobbies,
+and proto3 defaults. Every step is directly accessible. Predictions are optional;
+Sandbox and Skip lesson open the freeform editor immediately. Byte inspectors
+and the shared schema are opt-in details. Reconnecting starts a fresh lesson,
+clears results, and preserves the textarea draft.
+
 Connecting inside a closed native dialog works. The parent owns opening,
 closing, initial focus, Escape behavior, and focus restoration.
 
@@ -22,15 +29,17 @@ Listen on the rendered `serialization-bench` element for
 - A deeply frozen completed result includes both byte counts, decoded values,
   input, compact JSON, full hex dumps, run ID, and three named checks.
 - `null` clears the previous result on edits, reset, invalid input, disconnect,
-  and before replacing it with a completed result.
+  mode changes, and before replacing it with a completed result.
 
 This is a local element event, not a window event. Subscribers should clear
 scene measurements on `null` and use actual byte lengths for any graphics.
 `kind: "completed"` can include failed checks; inspect all check statuses
-before calling a run passed. Each connected instance has its own monotonic
+before calling a run passed. Each connection has its own monotonic
 run counter. A completed run does not steal focus. Input errors mark and focus
-the editor with an associated explanation; the polite status announces only
-completed comparisons.
+the editor with an associated explanation; the polite status announces record changes and completed comparisons.
+Returning from the sandbox republishes the lesson snapshot only when its record
+is still unchanged. A sandbox draft is kept separately and always needs a new run
+after a mode switch.
 
 ## Execution and measurement
 
@@ -59,29 +68,29 @@ preserved. Lone UTF-16 surrogates are rejected.
 
 ## Checks performed
 
-Run serializer fixtures with:
-
 ```sh
-bun test apps/timsexperiments/src/lib/playgrounds/serialization.test.ts
+bun test apps/timsexperiments/src/lib/playgrounds
 ```
 
-51 tests pass, including an independently transcribed complete wire fixture,
-int32 endpoints and negative values, Unicode, default restoration, unknown
-fields, malformed wire data, input boundaries, and deliberate check failures.
-The Pixel starter measures 107 JSON bytes and 68 Protobuf bytes. All-default
-data measures 43 and 0.
+58 tests cover the original codec fixtures and lesson transitions. The lesson
+fixtures use the actual evaluator: one additional emoji measures 111/72 bytes,
+one additional stargazing hobby 120/80, and defaults 43/0. Starting bytes remain
+107/68. Tests cover skipped predictions, direct navigation without a result,
+back/edit invalidation, next/restart/replay, and frozen snapshots.
 
-Strict standalone TypeScript checking and `astro check --root
-apps/timsexperiments` passed, with 25 existing hints elsewhere in the app.
-The actual Astro component was rendered with scoped CSS and the bundled
-browser script in a temporary standalone verification document, without
-starting a server. Headless Chrome 154.0.8037.92 checks at 1,050px and 320px
-passed recipes, error recovery, edit invalidation, confirmed/cancelled reset,
-literal HTML-looking text, zero-width zero-byte bars, ten disconnect/reconnect
-cycles with one completed event per submit, unique editor IDs, initially hidden
-dialog initialization, and absence of horizontal overflow. The document
-recorded no resource requests. Wide and narrow screenshots were reviewed.
+For DOM and lifecycle checks, open the local Astro page in a browser and run:
 
-The parent still needs to verify the integrated article/dialog and actual
-Astro asset loading. Firefox, Safari, real keyboard traversal, screen readers,
-and enlarged-text browsing were not tested in this standalone check.
+```js
+const { verifySerializationBench } =
+  await import('/src/scripts/playgrounds/serialization-bench.browser.ts');
+verifySerializationBench(document.querySelector('serialization-bench'));
+```
+
+This test-only module is not imported by the component. It clones the real Astro
+markup, exercises the registered custom element, and removes its fixtures. Its
+27 assertions cover the lesson, sandbox errors, clear/reset, stale byte clearing,
+mode handoffs, duplicate instances, closed-dialog mounting, reconnect listeners,
+draft retention, and null on disconnect.
+
+See `docs/planning/guided-experiment-v2.md` for the exact browser sizes,
+screenshots, keyboard checks, strict TypeScript command, and verification limits.

@@ -1,11 +1,13 @@
 import { createConversationView } from '../chat-view/presentation';
-import { getEvidence } from './mcp';
+import {
+  retrieveInBrowser,
+  type BrowserTopic,
+} from '../../lib/resume/browser-answer';
+import { renderAnswer, textNode as node } from '../chat-view/evidence';
 import { selectGpuModel } from './gpu';
 import {
   checkGeneratedAnswer,
   groundedContext,
-  safeSourceLink,
-  type Brief,
   type EvidenceRecord,
 } from './evidence';
 import { workerReply } from './protocol';
@@ -40,6 +42,8 @@ export function setupRobotHost(root: HTMLElement) {
     : undefined;
   const chips = root.querySelectorAll<HTMLButtonElement>('[data-question]');
   const dialog = root.closest('dialog');
+  const lifecycle = new AbortController();
+  const listenerOptions = { signal: lifecycle.signal };
   let state: LocalState = 'off';
   let worker: Worker | undefined;
   let request: AbortController | undefined;
@@ -47,7 +51,7 @@ export function setupRobotHost(root: HTMLElement) {
   let deadline: ReturnType<typeof setTimeout> | undefined;
   let run = 0;
   let turns = 0;
-  let previousQuestion = '';
+  let topic: BrowserTopic | undefined;
   let pending:
     | { target: HTMLElement; brief: { evidence: EvidenceRecord[] } }
     | undefined;
@@ -95,17 +99,18 @@ export function setupRobotHost(root: HTMLElement) {
     }
   }
   function release(
-    message = 'Local AI is off. Published evidence is still available.'
+    message = 'Local AI is off. Answers still work on this device.'
   ) {
     worker?.terminate();
     worker = undefined;
     if (deadline) clearTimeout(deadline);
     deadline = undefined;
-    finishPending('AI answer stopped. The published evidence remains below.');
+    finishPending(
+      'Local model stopped. The answer and sources remain available.'
+    );
     state = 'off';
     aiStatus.textContent = message;
-    status.textContent =
-      'Local AI is off. You can search the published records.';
+    status.textContent = 'Questions stay on this device.';
     const restoreFocus = document.activeElement === stop;
     sync();
     if (restoreFocus && dialog?.open) input.focus();
@@ -116,84 +121,11 @@ export function setupRobotHost(root: HTMLElement) {
     request = undefined;
     if (retrievalTarget)
       retrievalTarget.textContent =
-        'Evidence search stopped. Submit the question again to retry.';
+        'Stopped. Send the question again to retry.';
     retrievalTarget = undefined;
     release();
     status.textContent = 'Stopped. You can ask another question.';
     sync();
-  }
-  function node(tag: string, text: string, className?: string) {
-    const value = document.createElement(tag);
-    value.textContent = text;
-    if (className) value.className = className;
-    return value;
-  }
-  function recordCard(record: EvidenceRecord) {
-    const disclosure = document.createElement('details');
-    disclosure.className = 'robot-source';
-    const summary = document.createElement('summary');
-    summary.append(
-      node('span', record.title),
-      node('small', `${record.company} · ${record.dates}`)
-    );
-    disclosure.append(summary, node('p', record.summary));
-    const details = document.createElement('ul');
-    record.details.forEach((detail) => details.append(node('li', detail)));
-    disclosure.append(details, node('h5', 'Qualifications'));
-    if (record.qualifications.length) {
-      const qualifications = document.createElement('ul');
-      record.qualifications.forEach((item) =>
-        qualifications.append(node('li', item))
-      );
-      disclosure.append(qualifications);
-    } else
-      disclosure.append(
-        node('p', 'No additional qualifications are listed in this record.')
-      );
-    disclosure.append(
-      node('p', `Source: ${record.source}`, 'robot-source-note'),
-      node('code', record.url)
-    );
-    record.links.forEach((link) => {
-      const href = safeSourceLink(link);
-      if (!href) return;
-      const anchor = document.createElement('a');
-      anchor.href = href;
-      anchor.textContent = href;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      disclosure.append(anchor);
-    });
-    return disclosure;
-  }
-  function renderBrief(container: HTMLElement, brief: Brief) {
-    container.append(
-      node('h4', 'Published evidence'),
-      node('p', brief.opening, 'robot-opening')
-    );
-    if (brief.status === 'evidence_found') {
-      container.append(
-        node(
-          'p',
-          "Search matches may not confirm your question's premise. Open each source for full details, dates, and qualifications.",
-          'robot-source-note'
-        )
-      );
-      brief.evidence.forEach((record) => container.append(recordCard(record)));
-    } else
-      container.append(
-        node(
-          'p',
-          'I could not establish that detail from the published records. Ask about a specific project, or confirm the detail with Tim.'
-        )
-      );
-    container.append(
-      node(
-        'p',
-        `Retrieved ${new Date().toLocaleString()}. Source dates and qualifications apply.`,
-        'robot-source-note'
-      )
-    );
   }
   async function load() {
     if (state !== 'off') return;
@@ -310,7 +242,7 @@ export function setupRobotHost(root: HTMLElement) {
       node('h3', 'Lab robot', 'robot-speaker')
     );
     const result = document.createElement('div');
-    result.textContent = 'Reading published evidence…';
+    result.textContent = 'Reading the public records on this device…';
     retrievalTarget = result;
     turn.append(result);
     conversation?.beforeTurn();
@@ -320,43 +252,40 @@ export function setupRobotHost(root: HTMLElement) {
     const controller = new AbortController();
     request = controller;
     const token = ++run;
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    status.textContent = 'Reading the published experience records…';
+    status.textContent = 'Finding an answer on this device…';
     sync();
-    // Carry only the last visitor question for explicit short follow-ups, never model output.
-    const followup =
-      /^(and\b|what about\b|how about\b|tell me more\b|why\??$|what else\??$)/i.test(
-        trimmed
-      );
-    const retrievalQuestion =
-      followup && previousQuestion
-        ? `${trimmed}\nPrevious topic: ${previousQuestion.slice(0, 300)}`
-        : trimmed;
     try {
-      const brief = await getEvidence(retrievalQuestion, controller.signal);
+      const answer = await retrieveInBrowser({
+        question: trimmed,
+        previous: topic,
+        signal: controller.signal,
+      });
       if (token !== run) return;
-      if (!followup) previousQuestion = trimmed;
+      // Unknown questions do not erase the last supported topic.
+      if (answer.topic) topic = answer.topic;
       retrievalTarget = undefined;
       result.replaceChildren();
-      const evidence = document.createElement('section');
-      evidence.className = 'robot-evidence';
-      renderBrief(evidence, brief);
-      result.append(evidence);
-      status.textContent = 'Published evidence is ready.';
+      renderAnswer(result, answer);
+      const brief = answer.brief;
+      input.value = '';
+      status.textContent = 'Questions stay on this device.';
       const context = groundedContext(brief);
       if (state === 'ready' && worker && context) {
         const ai = document.createElement('section');
         ai.className = 'robot-ai-answer';
         const answer = node('p', 'Preparing a short answer on your device…');
         ai.append(
-          node('h4', 'AI answer · generated on this device'),
+          node('h4', 'Optional model selection'),
           answer,
           node(
             'small',
-            'Experimental. A source ID does not prove a claim. Check the complete records below.'
+            'Exact source extract, checked against the records. Context and limits still apply.'
           )
         );
-        result.prepend(ai);
+        const selection = document.createElement('details');
+        selection.className = 'robot-model-selection';
+        selection.append(node('summary', 'Optional model selection'), ai);
+        result.append(selection);
         pending = {
           target: answer,
           brief: {
@@ -368,7 +297,7 @@ export function setupRobotHost(root: HTMLElement) {
         state = 'generating';
         worker.postMessage({
           kind: 'generate',
-          question: retrievalQuestion,
+          question: trimmed,
           context: context.text,
           allowedIds: context.ids,
         });
@@ -396,59 +325,80 @@ export function setupRobotHost(root: HTMLElement) {
       result.append(
         node(
           'p',
-          'I could not retrieve the published evidence. Check your connection and submit this question again.'
+          'I could not select an answer from the local records. Try a more specific project question.'
         )
       );
-      status.textContent = 'Evidence unavailable. Retry your question.';
+      status.textContent = 'Local answer unavailable. Try another question.';
     } finally {
-      clearTimeout(timeout);
       if (request === controller) request = undefined;
       if (token === run && !conversation) transcript.scrollTop = turn.offsetTop;
       sync();
     }
   }
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    void ask(input.value);
-  });
-  input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+  form.addEventListener(
+    'submit',
+    (event) => {
       event.preventDefault();
-      form.requestSubmit();
-    }
-  });
-  chips.forEach((chip) =>
-    chip.addEventListener('click', () => {
-      input.value = chip.dataset.prompt ?? chip.textContent?.trim() ?? '';
       void ask(input.value);
-    })
+    },
+    listenerOptions
   );
-  enable.addEventListener('click', () => {
-    void load();
-  });
-  stop.addEventListener('click', cancel);
-  clear.addEventListener('click', () => {
-    cancel();
-    if (conversation) conversation.clear();
-    else transcript.replaceChildren();
-    turns = 0;
-    previousQuestion = '';
-    input.value = '';
-    status.textContent =
-      "Conversation cleared. Ask me about Tim's engineering work.";
-    sync();
-    input.focus();
-  });
-  dialog?.addEventListener('close', cancel);
-  window.addEventListener('pagehide', cancel);
+  input.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    },
+    listenerOptions
+  );
+  chips.forEach((chip) =>
+    chip.addEventListener(
+      'click',
+      () => {
+        input.value = chip.dataset.prompt ?? chip.textContent?.trim() ?? '';
+        void ask(input.value);
+        input.focus();
+      },
+      listenerOptions
+    )
+  );
+  enable.addEventListener(
+    'click',
+    () => {
+      void load();
+    },
+    listenerOptions
+  );
+  stop.addEventListener('click', cancel, listenerOptions);
+  clear.addEventListener(
+    'click',
+    () => {
+      cancel();
+      if (conversation) conversation.clear();
+      else transcript.replaceChildren();
+      turns = 0;
+      topic = undefined;
+      input.value = '';
+      status.textContent =
+        "Conversation cleared. Ask me about Tim's engineering work.";
+      sync();
+      input.focus();
+    },
+    listenerOptions
+  );
+  dialog?.addEventListener('close', cancel, listenerOptions);
+  window.addEventListener('pagehide', cancel, listenerOptions);
   document.addEventListener(
     'astro:before-swap',
     () => {
       cancel();
       conversation?.destroy();
-      window.removeEventListener('pagehide', cancel);
+      lifecycle.abort();
+      instances.delete(root);
     },
-    { once: true }
+    { once: true, signal: lifecycle.signal }
   );
   sync();
 }
