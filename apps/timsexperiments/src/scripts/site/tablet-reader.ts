@@ -194,6 +194,25 @@ export function createTabletReader(options: {
     content.replaceChildren();
   }
 
+  const books = [
+    ...shelf.querySelectorAll<HTMLAnchorElement>('a[data-recipe]'),
+  ];
+  function open(slug: string) {
+    const trigger = books.find((book) => book.dataset.recipe === slug);
+    const title = trigger?.querySelector('h3')?.textContent?.trim();
+    if (!trigger || !title) return false;
+    selectedBook = trigger;
+    root.dataset.recipeSlug = slug;
+    shell.show(
+      root,
+      undefined,
+      root.querySelector<HTMLElement>('#reader-back')
+    );
+    void load({ slug, title });
+    void moveTablet(false);
+    return true;
+  }
+
   for (const trigger of shelf.querySelectorAll<HTMLAnchorElement>(
     'a[data-recipe]'
   )) {
@@ -211,14 +230,7 @@ export function createTabletReader(options: {
       const title = trigger.querySelector('h3')?.textContent?.trim();
       if (!slug || !title) return;
       event.preventDefault();
-      selectedBook = trigger;
-      shell.show(
-        root,
-        undefined,
-        root.querySelector<HTMLElement>('#reader-back')
-      );
-      void load({ slug, title });
-      void moveTablet(false);
+      open(slug);
     });
   }
 
@@ -251,6 +263,7 @@ export function createTabletReader(options: {
   reducedMotion.addEventListener('change', () => animation?.cancel());
 
   return {
+    open,
     dismiss: (reason: 'close' | 'escape') =>
       void putDown(reason === 'escape' ? 'shelf' : 'room'),
     sync: () => {

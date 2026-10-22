@@ -15,6 +15,7 @@ const { id = 'robot-conversation' } = Astro.props;
       <button type="button" data-chat-back>Back to conversation</button>
       <div class="robot-local"><slot name="consent" /></div>
       <div class="robot-about"><slot name="about" /></div>
+      <button type="button" data-copy-lab-link>Copy link to chat</button>
       <button type="button" data-clear>Clear conversation</button>
     </section>
     <button class="chat-new" type="button" data-chat-new hidden>New reply ↓</button>

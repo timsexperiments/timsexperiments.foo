@@ -228,6 +228,7 @@
   background: #1b2b24;
 }
 .tablet-toolbar button,
+.reader-navigation > button,
 .reader-footer button {
   border: 0;
   border-radius: 4px;
@@ -614,4 +615,11 @@
   .recipe-cover { padding:22px; }
   .cover-title { font-size:28px; }
   .recipe-card-meta { font-size:10px; }
+}
+
+@media(max-width:700px) {
+  .reader-navigation { display:grid; grid-template-columns:auto minmax(0,1fr); }
+  .reader-navigation select { width:100%; }
+  .reader-navigation > button { justify-self:start; padding-left:0; }
+  .reader-navigation > a { width:auto; justify-self:end; min-height:44px; display:flex; align-items:center; }
 }
