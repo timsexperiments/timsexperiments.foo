@@ -56,14 +56,14 @@ const stations = [
       <div class="scene-status" id="scene-status" role="status">Preparing the lab…</div>
       <div class="explore-note" id="explore-note" hidden><span class="live-dot"></span><span id="location-label">Arrival</span><span class="note-divider"></span><span>Drag to look · WASD walk · IJKL look · E select</span></div>
       <div class="scene-walk-pad" id="scene-walk-pad" role="group" aria-label="Hold to walk; drag the room to look" hidden>
-        <button type="button" data-walk="KeyW" aria-label="Walk forward">↑</button>
-        <button type="button" data-walk="KeyA" aria-label="Walk left">←</button>
-        <button type="button" data-walk="KeyS" aria-label="Walk backward">↓</button>
-        <button type="button" data-walk="KeyD" aria-label="Walk right">→</button>
+        <button type="button" data-walk="KeyW" aria-label="Walk forward"><span aria-hidden="true">↑</span></button>
+        <button type="button" data-walk="KeyA" aria-label="Walk left"><span aria-hidden="true">←</span></button>
+        <button type="button" data-walk="KeyS" aria-label="Walk backward"><span aria-hidden="true">↓</span></button>
+        <button type="button" data-walk="KeyD" aria-label="Walk right"><span aria-hidden="true">→</span></button>
         <span>Hold to walk · Drag room to look</span>
       </div>
       <section class="lab-directory" id="lab-directory" aria-label="Lab directory">
-        <div class="directory-heading"><span>LAB DIRECTORY</span><button type="button" id="toggle-touch-controls" aria-pressed="false" aria-controls="scene-walk-pad">Walk pad</button><button id="toggle-scene" aria-pressed="false" title="Pause the 3D scene">Pause scene</button></div>
+        <div class="directory-heading"><span>LAB DIRECTORY</span><button type="button" id="toggle-touch-controls" aria-pressed="false" aria-controls="scene-walk-pad"><span>Walk pad</span></button><button id="toggle-scene" aria-pressed="false" title="Pause the 3D scene"><span>Pause scene</span></button></div>
         <nav class="station-dock" aria-label="Explore the lab">
           {stations.map(station => <button class="station-button" data-open-station={station.id}><span class="station-icon"><svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d={station.icon} /></svg></span><span class="station-button-copy"><span class="station-number">{station.number}</span><span class="station-name">{station.name}</span><span class="station-description">{station.description}</span></span><span class="station-arrow" aria-hidden="true">↗</span></button>)}
         </nav>

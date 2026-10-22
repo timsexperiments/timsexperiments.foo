@@ -44,7 +44,31 @@ html:has(>.campus-page),html:has(>body.campus-page){height:100%;overflow:hidden;
 .scene-walk-pad button:first-child{grid-column:2}
 .scene-walk-pad button:nth-child(2){grid-column:1}
 .scene-walk-pad button.is-held{background:#17b897;color:#051b14}
-.scene-walk-pad span{grid-column:1/-1;font-size:9px;color:#d9e6dd;white-space:nowrap}
+.scene-walk-pad>span{grid-column:1/-1;font-size:9px;color:#d9e6dd;white-space:nowrap}
 .directory-heading #toggle-touch-controls{margin-left:auto;margin-right:8px}
 @media(max-width:700px){.is-exploring .explore-note{padding:8px;gap:6px}.is-exploring .explore-note>span:last-child{flex-basis:100%}}
 @media(max-height:500px){.scene-walk-pad{grid-template-columns:repeat(4,44px);padding:4px}.scene-walk-pad button:first-child,.scene-walk-pad button:nth-child(2){grid-column:auto}.is-exploring:has(.scene-walk-pad:not([hidden])) .explore-note{display:none}}
+
+/* Keep the room visible between controls; only labels need a backdrop. */
+.campus-page{--hud-label-bg:rgba(5,14,12,.88)}
+.station-dock{background:transparent;backdrop-filter:none;border:0;overflow:visible;gap:4px}
+.station-button,.station-button:nth-child(-n+2){border:0;border-radius:5px}
+.station-button:hover,.station-button:focus-visible{background:transparent}
+.station-button:hover .station-button-copy,.station-button:focus-visible .station-button-copy{background:#173c30}
+.station-button-copy{align-items:flex-start;gap:2px}
+.station-number,.station-name,.station-description{width:fit-content;max-width:100%;margin:0;padding:3px 6px;border-radius:3px;background:var(--hud-label-bg)}
+.station-icon,.station-arrow{filter:drop-shadow(0 1px 2px #000)}
+.scene-walk-pad{background:transparent;border:0;padding:0}
+.scene-walk-pad button{background:transparent;border-color:#c5e5d3;filter:drop-shadow(0 1px 2px #000)}
+.scene-walk-pad button span{display:inline-block;padding:0 5px;border-radius:3px;background:var(--hud-label-bg);line-height:1.2}
+.scene-walk-pad button.is-held{background:#17b89755;color:#fff}
+.scene-walk-pad>span{width:fit-content;padding:4px 6px;border-radius:3px;background:var(--hud-label-bg)}
+.directory-heading button{background:transparent}
+.directory-heading button span,.directory-heading>span{padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
+.explore-note{background:transparent;border:0;backdrop-filter:none;padding:0;gap:6px}
+.explore-note #location-label,.explore-note>span:last-child{padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
+.explore-note .note-divider{display:none}
+.is-exploring .lab-header{background:transparent}
+.is-exploring .header-center,.is-exploring .lab-brand,.room-caption>span{width:fit-content;padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
+.lab-footer>a,.lab-footer>span{width:fit-content;padding:3px 5px;border-radius:3px;background:var(--hud-label-bg)}
+@media(max-width:700px){.is-exploring .explore-note{padding:0;gap:6px}.is-exploring .explore-note>span:last-child{flex-basis:auto}.station-button{padding-left:6px;padding-right:6px}.station-number,.station-name,.station-description{padding:3px 5px}}

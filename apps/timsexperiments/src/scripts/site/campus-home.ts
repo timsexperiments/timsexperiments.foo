@@ -63,8 +63,9 @@ function syncSceneAccessibility() {
 function updatePause() {
   controller?.setPaused(userPaused || document.hidden || shell.anyOpen());
   pauseButton?.setAttribute('aria-pressed', String(userPaused));
-  if (pauseButton)
-    pauseButton.textContent = userPaused ? 'Resume scene' : 'Pause scene';
+  const pauseLabel = pauseButton?.querySelector('span') ?? pauseButton;
+  if (pauseLabel)
+    pauseLabel.textContent = userPaused ? 'Resume scene' : 'Pause scene';
 }
 
 function enterLab() {
