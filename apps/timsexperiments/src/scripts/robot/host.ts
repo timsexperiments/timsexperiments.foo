@@ -106,7 +106,7 @@ export function setupRobotHost(root: HTMLElement) {
     if (deadline) clearTimeout(deadline);
     deadline = undefined;
     finishPending(
-      'Local model stopped. The answer and sources remain available.'
+      'I stopped the local model. My answer and references are still here.'
     );
     state = 'off';
     aiStatus.textContent = message;
@@ -186,14 +186,16 @@ export function setupRobotHost(root: HTMLElement) {
               const answer = checkGeneratedAnswer(message.text, pending.brief);
               accepted = answer !== undefined;
               pending.target.textContent =
-                answer ??
-                'The local AI could not support its answer with these sources. Read the published evidence below.';
+                (answer
+                  ? `Here's a detail from that experience: ${answer.replace(/\s*\[[a-z0-9-]+\]\s*$/, '')}`
+                  : undefined) ??
+                "I couldn't find a useful passage with the local model. You can still use my answer above.";
               pending = undefined;
             }
             state = 'ready';
             status.textContent = accepted
-              ? 'Answer complete. Check the source qualifications below.'
-              : 'AI answer withheld. The published evidence is available below.';
+              ? 'Done. Please confirm important details with Tim.'
+              : "The model couldn't find a useful passage. My answer is above.";
             sync();
             break;
           }
@@ -242,7 +244,7 @@ export function setupRobotHost(root: HTMLElement) {
       node('h3', 'Lab robot', 'robot-speaker')
     );
     const result = document.createElement('div');
-    result.textContent = 'Reading the public records on this device…';
+    result.textContent = "Let me check Tim's experience…";
     retrievalTarget = result;
     turn.append(result);
     conversation?.beforeTurn();
@@ -275,16 +277,19 @@ export function setupRobotHost(root: HTMLElement) {
         ai.className = 'robot-ai-answer';
         const answer = node('p', 'Preparing a short answer on your device…');
         ai.append(
-          node('h4', 'Optional model selection'),
+          node('h4', 'Another detail'),
           answer,
           node(
             'small',
-            'Exact source extract, checked against the records. Context and limits still apply.'
+            'A passage from the referenced experience. Confirm important details with Tim.'
           )
         );
         const selection = document.createElement('details');
         selection.className = 'robot-model-selection';
-        selection.append(node('summary', 'Optional model selection'), ai);
+        selection.append(
+          node('summary', 'Another detail from the local model'),
+          ai
+        );
         result.append(selection);
         pending = {
           target: answer,
@@ -313,7 +318,7 @@ export function setupRobotHost(root: HTMLElement) {
         result.prepend(
           node(
             'p',
-            "These records exceed the local model's context budget. The full evidence is available below; try a narrower project question.",
+            'I have too much context for this small model. Try asking about one project; my answer above still works.',
             'robot-source-note'
           )
         );
