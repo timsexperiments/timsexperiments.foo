@@ -1,4 +1,3 @@
-import { safeSourceLink, type EvidenceRecord } from '../robot/evidence';
 import type { BrowserAnswer } from '../../lib/resume/browser-answer';
 
 export function textNode(tag: string, text: string, className?: string) {
@@ -8,55 +7,43 @@ export function textNode(tag: string, text: string, className?: string) {
   return node;
 }
 
-function source(record: EvidenceRecord) {
-  const disclosure = document.createElement('details');
-  disclosure.className = 'robot-source';
-  const summary = document.createElement('summary');
-  summary.append(
-    textNode('span', record.title),
-    textNode('small', `${record.company} · ${record.dates}`)
-  );
-  disclosure.append(summary, textNode('p', record.summary));
-  const facts = document.createElement('ul');
-  record.details.forEach((detail) => facts.append(textNode('li', detail)));
-  disclosure.append(facts);
-  if (record.qualifications.length) {
-    disclosure.append(textNode('h5', 'Context and limits'));
-    const limits = document.createElement('ul');
-    record.qualifications.forEach((detail) =>
-      limits.append(textNode('li', detail))
-    );
-    disclosure.append(limits);
-  }
-  disclosure.append(textNode('p', record.source, 'robot-source-note'));
-  record.links.forEach((link) => {
-    const href = safeSourceLink(link);
-    if (!href) return;
-    const anchor = document.createElement('a');
-    anchor.href = href;
-    anchor.textContent = new URL(href).hostname;
-    anchor.target = '_blank';
-    anchor.rel = 'noopener noreferrer';
-    disclosure.append(anchor);
-  });
-  return disclosure;
+/** Conversational framing never rewrites the selected facts or their qualifications. */
+export function conversationalParagraphs(answer: BrowserAnswer): string[] {
+  const first = answer.paragraphs[0];
+  const record = answer.brief.evidence[0];
+  if (!first || !record || /^I\b|^Those are\b/.test(first))
+    return answer.paragraphs;
+  const introduction =
+    record.company === 'Career overview'
+      ? "Here's what I have about his background."
+      : `I'd point you to his work at ${record.company}.`;
+  return [
+    `${introduction} ${first.replace(/^Tim's\b/, 'His').replace(/^Tim\b/, 'He')}`,
+    ...answer.paragraphs.slice(1),
+  ];
 }
 
 export function renderAnswer(container: HTMLElement, answer: BrowserAnswer) {
-  answer.paragraphs.forEach((paragraph) =>
+  conversationalParagraphs(answer).forEach((paragraph) =>
     container.append(textNode('p', paragraph))
   );
   if (!answer.brief.evidence.length) return;
-  const evidence = document.createElement('details');
-  evidence.className = 'robot-evidence';
-  evidence.append(
-    textNode(
-      'summary',
-      answer.brief.evidence.length === 1
-        ? 'Source and context'
-        : 'Sources and context'
-    )
-  );
-  answer.brief.evidence.forEach((record) => evidence.append(source(record)));
-  container.append(evidence);
+  const references = document.createElement('section');
+  references.className = 'robot-evidence';
+  references.setAttribute('aria-label', 'Experiences referenced');
+  references.append(textNode('h4', 'Experiences referenced'));
+  const list = document.createElement('ul');
+  const seen = new Set<string>();
+  for (const record of answer.brief.evidence) {
+    if (seen.has(record.id)) continue;
+    seen.add(record.id);
+    const item = document.createElement('li');
+    item.append(
+      textNode('span', record.title),
+      textNode('small', `${record.company} · ${record.dates}`)
+    );
+    list.append(item);
+  }
+  references.append(list);
+  container.append(references);
 }

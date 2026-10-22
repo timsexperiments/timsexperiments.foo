@@ -5,7 +5,7 @@ import RobotConversation from './RobotConversation.astro';
   <Fragment slot="consent">
     <details data-ai-consent>
       <summary>Optional local model</summary>
-      <p>The conversation already works on your device. This experiment lets a small model select an exact passage from the same sources. It cannot add facts.</p>
+      <p>I can answer without a model download. You can also try a small local model that picks a passage from the same experience records. It may fail to find a useful passage.</p>
       <p>Enabling it downloads about 204 MB plus runtime files from model hosts. They receive download requests, never your questions. A compatible GPU is required. Files may stay in your browser cache.</p>
       <button type="button" data-enable>Download and enable AI</button>
     </details>
@@ -14,10 +14,12 @@ import RobotConversation from './RobotConversation.astro';
   <details class="robot-about">
     <summary>About this conversation</summary>
     <p>
-      Answers select published resume statements using local search and fixed rules.
-      This is a bounded guide to Tim's work, not an open-ended generative chat.
-      Sources are self-reported and include historical claims. Each answer's
-      source disclosure includes dates, ownership, and limits.
+      The replies are AI-written using Tim's published experience. Without the optional
+      model, local search selects prepared answers. This is not live AI generation.
+      The optional model selects exact passages rather than writing new claims.
+      Either mode can misunderstand a question or miss context. Ask Tim to confirm
+      anything that matters to a hiring or project decision. The reference list names
+      the experiences used, without displaying their full records.
     </p>
     <p>
       The page downloads public records with its code. Searching and answering
