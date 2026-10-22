@@ -1,4 +1,6 @@
 import type { BrowserAnswer } from '../../lib/resume/browser-answer';
+import { experiences } from '../../lib/resume/knowledge';
+import type { ConversationTurn } from '../../lib/conversations/protocol';
 
 export function textNode(tag: string, text: string, className?: string) {
   const node = document.createElement(tag);
@@ -24,17 +26,31 @@ export function conversationalParagraphs(answer: BrowserAnswer): string[] {
 }
 
 export function renderAnswer(container: HTMLElement, answer: BrowserAnswer) {
-  conversationalParagraphs(answer).forEach((paragraph) =>
+  renderSavedAnswer(container, {
+    question: '',
+    paragraphs: conversationalParagraphs(answer),
+    experienceIds: answer.brief.evidence.map((record) => record.id),
+  });
+}
+
+export function renderSavedAnswer(
+  container: HTMLElement,
+  answer: ConversationTurn
+) {
+  answer.paragraphs.forEach((paragraph) =>
     container.append(textNode('p', paragraph))
   );
-  if (!answer.brief.evidence.length) return;
+  const records = experiences.filter((record) =>
+    answer.experienceIds.includes(record.id)
+  );
+  if (!records.length) return;
   const references = document.createElement('section');
   references.className = 'robot-evidence';
   references.setAttribute('aria-label', 'Experiences referenced');
   references.append(textNode('h4', 'Experiences referenced'));
   const list = document.createElement('ul');
   const seen = new Set<string>();
-  for (const record of answer.brief.evidence) {
+  for (const record of records) {
     if (seen.has(record.id)) continue;
     seen.add(record.id);
     const item = document.createElement('li');

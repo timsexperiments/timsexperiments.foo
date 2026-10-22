@@ -22,10 +22,13 @@ import RobotConversation from './RobotConversation.astro';
       the experiences used, without displaying their full records.
     </p>
     <p>
-      The page downloads public records with its code. Searching and answering
-      happen in your browser. Questions are never sent to a resume service or
-      inference server. Conversation stays in page memory, up to 12 questions.
-      Clear starts over. Closing stops pending work and unloads the optional model.
+      Searching and answering happen in your browser, up to 12 questions per chat.
+      Completed questions and replies are automatically archived for Tim to read.
+      No account is needed. This browser keeps the active chat through refreshes.
+      Closing the panel or choosing Clear removes that local copy and starts a new
+      chat. Tim's archive remains and is never loaded into this conversation.
+      Archiving is best effort and may fail if you leave before a request finishes.
+      Closing the panel also stops the optional local model.
     </p>
     <p>
       The optional model runs on your device with <a
