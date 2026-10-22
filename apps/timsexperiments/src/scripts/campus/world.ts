@@ -100,11 +100,7 @@ export function buildWorld(
     emissiveIntensity: 0.65,
     roughness: 0.3,
   });
-  const emissiveMaterials = new Set<THREE.Material>([
-    glow,
-    warmGlow,
-    coolTrim,
-  ]);
+  const emissiveMaterials = new Set<THREE.Material>([glow, warmGlow, coolTrim]);
 
   const q = (v: number) => Math.round(v * 1000) / 1000;
 
@@ -531,6 +527,10 @@ export function buildWorld(
   }
   buildNightSky();
 
+  // Keep the wall logo above the station signs in the first-person arrival view.
+  const ceilingRise = 0.75;
+  const logoHeight = 3.55 + ceilingRise;
+
   // Continuous architectural shell, instanced dark terrazzo tiles, and exposed roof ribs.
   box(21, 0.24, 19, material(0x090d0c, 0.85), 0, -0.16, 0, scene, {
     cast: false,
@@ -571,31 +571,61 @@ export function buildWorld(
     cast: false,
     receive: true,
   });
-  box(20, 0.9, 0.25, ink, 0, 4.65, -7.5, scene, {
+  box(20, 0.9, 0.25, ink, 0, 4.65 + ceilingRise, -7.5, scene, {
     cast: true,
     receive: true,
   });
-  box(0.3, 4.7, 17, plaster, -10, 2.3, 0.5, scene, {
-    cast: true,
-    receive: true,
-  });
-  box(0.3, 4.7, 17, plaster, 10, 2.3, 0.5, scene, {
-    cast: true,
-    receive: true,
-  });
-  for (const x of [-9.4, -5, 0, 5, 9.4]) {
-    box(0.14, 4.5, 0.18, aluminum, x, 2.25, -7.45, scene, {
+  box(
+    0.3,
+    4.7 + ceilingRise,
+    17,
+    plaster,
+    -10,
+    2.3 + ceilingRise / 2,
+    0.5,
+    scene,
+    {
       cast: true,
-      receive: false,
-    });
-    box(0.18, 0.24, 16.5, ink, x, 4.35, 0.3, scene, {
+      receive: true,
+    }
+  );
+  box(
+    0.3,
+    4.7 + ceilingRise,
+    17,
+    plaster,
+    10,
+    2.3 + ceilingRise / 2,
+    0.5,
+    scene,
+    {
+      cast: true,
+      receive: true,
+    }
+  );
+  for (const x of [-9.4, -5, 0, 5, 9.4]) {
+    box(
+      0.14,
+      4.5 + ceilingRise,
+      0.18,
+      aluminum,
+      x,
+      2.25 + ceilingRise / 2,
+      -7.45,
+      scene,
+      {
+        cast: true,
+        receive: false,
+      }
+    );
+    box(0.18, 0.24, 16.5, ink, x, 4.35 + ceilingRise, 0.3, scene, {
       cast: false,
       receive: false,
     });
-    box(0.06, 0.025, 14, warmGlow, x, 4.2, 0.1);
+    box(0.06, 0.025, 14, warmGlow, x, 4.2 + ceilingRise, 0.1);
   }
   for (const z of [-6.8, 0, 6.8]) {
-    box(19.8, 0.22, 0.18, aluminum, 0, 4.4, z, scene, {
+    box(19.8, 0.22, 0.18, aluminum, 0, 4.4 + ceilingRise, z, scene, {
       cast: false,
       receive: false,
     });
@@ -611,21 +641,47 @@ export function buildWorld(
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  mesh(getPlaneGeometry(19.2, 4.1), glass, 0, 2.25, -7.48, scene, {
-    cast: false,
-    receive: false,
-  });
-  for (const x of [-9.8, 9.8]) {
-    const pane = mesh(getPlaneGeometry(15, 4), glass, x, 2.3, 0, scene, {
+  mesh(
+    getPlaneGeometry(19.2, 4.1 + ceilingRise),
+    glass,
+    0,
+    2.25 + ceilingRise / 2,
+    -7.48,
+    scene,
+    {
       cast: false,
       receive: false,
-    });
-    pane.rotation.y = Math.PI / 2;
-    for (const z of [-6, -2, 2, 6]) {
-      box(0.15, 4.5, 0.13, aluminum, x, 2.25, z, scene, {
+    }
+  );
+  for (const x of [-9.8, 9.8]) {
+    const pane = mesh(
+      getPlaneGeometry(15, 4 + ceilingRise),
+      glass,
+      x,
+      2.3 + ceilingRise / 2,
+      0,
+      scene,
+      {
         cast: false,
         receive: false,
-      });
+      }
+    );
+    pane.rotation.y = Math.PI / 2;
+    for (const z of [-6, -2, 2, 6]) {
+      box(
+        0.15,
+        4.5 + ceilingRise,
+        0.13,
+        aluminum,
+        x,
+        2.25 + ceilingRise / 2,
+        z,
+        scene,
+        {
+          cast: false,
+          receive: false,
+        }
+      );
     }
   }
 
@@ -670,29 +726,19 @@ export function buildWorld(
       receive: false,
     });
     for (let i = 0; i < 5; i++) {
-      box(
-        0.9,
-        2.5,
-        0.07,
-        nightWindow,
-        x - 2.5 + i * 1.25,
-        2.6,
-        -18.94,
-        scene,
-        {
-          cast: false,
-          receive: false,
-        }
-      );
+      box(0.9, 2.5, 0.07, nightWindow, x - 2.5 + i * 1.25, 2.6, -18.94, scene, {
+        cast: false,
+        receive: false,
+      });
     }
   }
 
   // Back-wall fascia with canonical dark logo fallback and lazy-loaded extruded 3D GLB.
-  rounded(5.26, 1.06, 0.1, 0.11, green, 0, 3.55, -7.17, scene, {
+  rounded(5.26, 1.06, 0.1, 0.11, green, 0, logoHeight, -7.17, scene, {
     cast: false,
     receive: true,
   });
-  rounded(5.2, 1, 0.12, 0.1, fasciaCharcoal, 0, 3.55, -7.15, scene, {
+  rounded(5.2, 1, 0.12, 0.1, fasciaCharcoal, 0, logoHeight, -7.15, scene, {
     cast: true,
     receive: true,
   });
@@ -714,7 +760,7 @@ export function buildWorld(
       new THREE.PlaneGeometry(4.5, 0.75),
       new THREE.MeshBasicMaterial({ map: texture, transparent: true }),
       0,
-      3.55,
+      logoHeight,
       -7.03,
       scene,
       { cast: false, receive: false }
@@ -748,7 +794,7 @@ export function buildWorld(
             return;
           }
           extrudedLogoLoaded = true;
-          root.position.set(0, 3.55, -7.03);
+          root.position.set(0, logoHeight, -7.03);
           root.scale.setScalar(0.75);
           root.traverse((node) => {
             if (node instanceof THREE.Mesh) {
@@ -927,11 +973,7 @@ export function buildWorld(
   let keyIdx = 0;
   for (let row = 0; row < 4; row++) {
     for (let i = 0; i < 13; i++) {
-      keyMatrix.makeTranslation(
-        -0.92 + i * 0.095,
-        1.225,
-        0.27 + row * 0.09
-      );
+      keyMatrix.makeTranslation(-0.92 + i * 0.095, 1.225, 0.27 + row * 0.09);
       keyInstances.setMatrixAt(keyIdx++, keyMatrix);
     }
   }
@@ -1113,16 +1155,30 @@ export function buildWorld(
     mobile ? 36 : 64
   );
   for (const x of [-6, 0, 6]) {
-    cylinder(0.018, 0.018, 0.7, ink, x, 3.9, -3, scene, {
+    cylinder(0.018, 0.018, 0.7, ink, x, 3.9 + ceilingRise, -3, scene, {
       cast: false,
       receive: false,
     });
-    const ring = mesh(pendantRingGeo, aluminum, x, 3.55, -3, scene, {
-      cast: false,
-      receive: false,
-    });
+    const ring = mesh(
+      pendantRingGeo,
+      aluminum,
+      x,
+      3.55 + ceilingRise,
+      -3,
+      scene,
+      {
+        cast: false,
+        receive: false,
+      }
+    );
     ring.rotation.x = Math.PI / 2;
-    const diffuser = mesh(pendantDiffuserGeo, warmGlow, x, 3.51, -3);
+    const diffuser = mesh(
+      pendantDiffuserGeo,
+      warmGlow,
+      x,
+      3.51 + ceilingRise,
+      -3
+    );
     diffuser.rotation.x = Math.PI / 2;
   }
 
