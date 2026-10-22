@@ -9,7 +9,7 @@ const { id = 'robot-conversation' } = Astro.props;
   </header>
   <div class="chat-body">
     <div data-transcript class="robot-transcript" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text" tabindex="0">
-      <article class="chat-greeting"><h3 class="robot-speaker">Lab robot</h3><p>Hi, I'm the lab robot. What would you like to know about Tim's work?</p></article>
+      <article class="chat-greeting"><h3 class="robot-speaker">Lab robot</h3><p>Hi, I'm the lab robot. What would you like to know about Tim's work?</p><p class="chat-disclaimer">These answers are AI-written and can be wrong. Confirm important details with Tim.</p></article>
     </div>
     <section class="chat-options" id={`${id}-options`} aria-label="Conversation options" hidden>
       <button type="button" data-chat-back>Back to conversation</button>
@@ -25,7 +25,6 @@ const { id = 'robot-conversation' } = Astro.props;
     <progress max="1" value="0" aria-label="Local model loading progress" hidden></progress>
     <p data-ai-status role="status" aria-live="polite" hidden></p>
   </div>
-  <p class="chat-disclaimer">These answers are AI-written and can be wrong. Confirm important details with Tim.</p>
   <p class="chat-mcp-link">Same experience records as <a href="/resume/mcp" target="_blank" rel="noopener noreferrer">TimsExperiments Resume MCP · integration guide ↗</a></p>
   <div class="chat-suggestions" aria-label="Suggested questions">
     <button type="button" data-question data-prompt="What platform architecture has Tim led?">Platform work</button>
@@ -80,7 +79,7 @@ const { id = 'robot-conversation' } = Astro.props;
 .robot-conversation .robot-evidence li { font-size:12px; }
 .robot-conversation .robot-evidence li small { display:block; font-size:11px; }
 .robot-conversation .chat-mcp-link { flex-shrink:0; margin:0; padding:0 12px 8px; color:var(--chat-muted); font-size:11px; line-height:1.4; }
-.robot-conversation .chat-disclaimer { flex-shrink:0; margin:0; padding:4px 12px 8px; color:var(--chat-muted); font-size:11px; line-height:1.4; }
+.robot-conversation .chat-greeting .chat-disclaimer { margin:8px 0 0; color:var(--chat-muted); font-size:11px; line-height:1.4; }
 .robot-conversation .robot-evidence>summary,.robot-conversation .robot-model-selection>summary { color:var(--chat-muted); font-size:12px; }
 .robot-conversation summary { min-height:44px; padding:11px 0; cursor:pointer; }
 .robot-conversation .robot-source summary small { display:block; padding-left:16px; }
