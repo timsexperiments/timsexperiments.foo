@@ -7,6 +7,7 @@ import {
   isCompactViewport,
 } from './quality';
 import { computeFrameSchedule, easeInOutCubic } from './scheduler';
+import { readStick, walkStep } from './locomotion';
 import type {
   CampusCallbacks,
   CampusController,
@@ -190,6 +191,7 @@ export async function createCampus(
   let frame = 0;
   let idleTimer = 0;
   let lastTime = 0;
+  let lastRenderedTime = 0;
   let elapsed = 0;
   let invalidated = true;
   let lastActiveTime = performance.now();
@@ -269,8 +271,25 @@ export async function createCampus(
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const euler = new THREE.Euler(0, 0, 0, 'YXZ');
-  const direction = new THREE.Vector3();
-  const right = new THREE.Vector3();
+  const velocity = new THREE.Vector2();
+  let gamepadSelectHeld = true;
+  const controllerHint =
+    controlsScope.querySelector<HTMLElement>('#controller-hint');
+
+  function readController() {
+    try {
+      const pads = navigator.getGamepads?.() ?? [];
+      const pad = Array.from(pads).find(
+        (pad) => pad?.connected && pad.mapping === 'standard'
+      );
+      if (controllerHint) controllerHint.hidden = !pad;
+      return pad ?? null;
+    } catch {
+      // Browsers or embedded previews may deny Gamepad API access.
+      if (controllerHint) controllerHint.hidden = true;
+      return null;
+    }
+  }
   let drag: {
     id: number;
     x: number;
@@ -295,6 +314,8 @@ export async function createCampus(
       ));
 
   function resetInput() {
+    velocity.set(0, 0);
+    gamepadSelectHeld = true;
     keys.clear();
     for (const [id, { button }] of heldPointers) {
       heldPointers.delete(id);
@@ -606,6 +627,20 @@ export async function createCampus(
     { signal: events.signal }
   );
   canvas.addEventListener('blur', resetInput, { signal: events.signal });
+  for (const event of ['gamepadconnected', 'gamepaddisconnected']) {
+    window.addEventListener(
+      event,
+      () => {
+        resetInput();
+        readController();
+        invalidate(false, true);
+      },
+      { signal: events.signal }
+    );
+  }
+  canvas.addEventListener('focus', () => invalidate(false, true), {
+    signal: events.signal,
+  });
 
   function stop() {
     resetInput();
@@ -704,9 +739,24 @@ export async function createCampus(
     lastTime = time;
     elapsed += dt;
 
-    const hasMovementInput = keys.size > 0 || heldPointers.size > 0;
+    const gamepad = document.activeElement === canvas ? readController() : null;
+    const moveStick = readStick(gamepad?.axes ?? [], 0);
+    const lookStick = readStick(gamepad?.axes ?? [], 2);
+    const selecting = gamepad?.buttons[0]?.pressed ?? false;
+    const selectPressed = selecting && !gamepadSelectHeld;
+    gamepadSelectHeld = selecting;
+    const hasMovementInput =
+      keys.size > 0 ||
+      heldPointers.size > 0 ||
+      moveStick.x !== 0 ||
+      moveStick.y !== 0 ||
+      lookStick.x !== 0 ||
+      lookStick.y !== 0;
+    const isCoasting = velocity.lengthSq() > 0;
     const isDragging = drag !== null && drag.moved;
-    const activeInput = hasMovementInput || isDragging;
+    const activeInput =
+      hasMovementInput || isDragging || isCoasting || selectPressed;
+    if (hasMovementInput) transition = null;
     if (activeInput || transition !== null) {
       lastActiveTime = time;
     }
@@ -732,47 +782,69 @@ export async function createCampus(
         eased
       );
       if (progress === 1) transition = null;
-    } else if (hasMovementInput) {
+    } else if (hasMovementInput || isCoasting) {
       euler.setFromQuaternion(camera.quaternion);
-      euler.y += (Number(held('KeyJ')) - Number(held('KeyL'))) * dt * 1.25;
+      const turn =
+        Number(held('KeyJ') || held('ArrowLeft')) -
+        Number(held('KeyL') || held('ArrowRight')) -
+        lookStick.x;
+      const tilt =
+        Number(held('KeyI') || held('ArrowUp')) -
+        Number(held('KeyK') || held('ArrowDown')) -
+        lookStick.y;
+      euler.y += THREE.MathUtils.clamp(turn, -1, 1) * dt * 1.5;
       euler.x = THREE.MathUtils.clamp(
-        euler.x + (Number(held('KeyI')) - Number(held('KeyK'))) * dt * 1.25,
+        euler.x + THREE.MathUtils.clamp(tilt, -1, 1) * dt * 1.5,
         -1.12,
         1.12
       );
       camera.quaternion.setFromEuler(euler);
-      const forward =
-        Number(held('KeyW') || held('ArrowUp')) -
-        Number(held('KeyS') || held('ArrowDown'));
-      const lateral =
-        Number(held('KeyD') || held('ArrowRight')) -
-        Number(held('KeyA') || held('ArrowLeft'));
-      camera.getWorldDirection(direction);
-      direction.y = 0;
-      direction.normalize();
-      right.crossVectors(direction, camera.up);
-      direction.multiplyScalar(forward).addScaledVector(right, lateral);
-      if (direction.lengthSq())
-        direction
-          .normalize()
-          .multiplyScalar(
-            dt * (keys.has('ShiftLeft') || keys.has('ShiftRight') ? 3.7 : 2.4)
-          );
+      const forward = Number(held('KeyW')) - Number(held('KeyS')) - moveStick.y;
+      const lateral = Number(held('KeyD')) - Number(held('KeyA')) + moveStick.x;
+      const magnitude = Math.max(1, Math.hypot(forward, lateral));
+      const speed =
+        held('ShiftLeft') || held('ShiftRight') || gamepad?.buttons[10]?.pressed
+          ? 3.7
+          : 2.4;
+      // Heading stays horizontal even when looking up or down. No head bob or camera roll.
+      const targetX =
+        ((Math.cos(euler.y) * lateral - Math.sin(euler.y) * forward) * speed) /
+        magnitude;
+      const targetZ =
+        ((-Math.sin(euler.y) * lateral - Math.cos(euler.y) * forward) * speed) /
+        magnitude;
+      const stepX = walkStep(velocity.x, targetX, dt);
+      const stepZ = walkStep(velocity.y, targetZ, dt);
+      velocity.set(stepX.velocity, stepZ.velocity);
       const x = THREE.MathUtils.clamp(
-        camera.position.x + direction.x,
+        camera.position.x + stepX.distance,
         -9.15,
         9.15
       );
       const z = THREE.MathUtils.clamp(
-        camera.position.z + direction.z,
+        camera.position.z + stepZ.distance,
         -6.8,
         8.3
       );
       if (!blocked(x, camera.position.z)) camera.position.x = x;
+      else velocity.x = 0;
       if (!blocked(camera.position.x, z)) camera.position.z = z;
+      else velocity.y = 0;
     }
 
-    if (schedule.shouldRender) {
+    if (selectPressed) {
+      const rect = canvas.getBoundingClientRect();
+      interact(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      // Opening a station can pause the controller synchronously.
+      if (!running()) return;
+    }
+
+    const drawDue =
+      schedule.nextMode !== 'idle-timeout' ||
+      gamepad === null ||
+      time - lastRenderedTime >= schedule.idleDelayMs;
+    if (schedule.shouldRender && drawDue) {
+      lastRenderedTime = time;
       world.update(elapsed, motion.matches);
       renderer.render(scene, camera);
     }
@@ -790,7 +862,8 @@ export async function createCampus(
           timeSinceActiveMs: Math.max(0, time - lastActiveTime),
         });
 
-    if (nextSchedule.nextMode === 'raf') {
+    // A focused connected controller must be polled even when its sticks are idle.
+    if (nextSchedule.nextMode === 'raf' || gamepad !== null) {
       if (!frame) frame = window.requestAnimationFrame(render);
     } else if (nextSchedule.nextMode === 'idle-timeout') {
       if (!idleTimer) {

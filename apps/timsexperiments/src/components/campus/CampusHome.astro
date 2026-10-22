@@ -38,7 +38,7 @@ const stations = [
   <body class="campus-page">
     <a class="campus-skip" href="#lab-directory">Skip to lab directory</a>
     <div class="lab-scene"><canvas id="campus-canvas" inert tabindex="-1" aria-hidden="true" aria-label="Explore the lab in first person" aria-describedby="scene-controls"></canvas><div class="scene-vignette" aria-hidden="true"></div></div>
-    <p id="scene-controls" class="sr-only">Drag the room to look around. While the scene is focused, use W, A, S, D or arrows to walk, J and L to turn, I and K to look up and down, and E or Enter to select the station at the center. Hold Shift to walk faster. Tab or Shift+Tab leaves the scene. Touch users can hold the named walk buttons while dragging elsewhere to look. Every activity is also available in the lab directory.</p>
+    <p id="scene-controls" class="sr-only">Drag the room to look around. While the scene is focused, use W, A, S, D to walk, arrows or I, J, K, L to look, and E or Enter to select the station at the center. Hold Shift to walk faster. Tab or Shift+Tab leaves the scene. With a connected standard controller, use the left stick to walk, the right stick to look, the bottom face button to select, and press the left stick to move faster. Pair the controller in your device settings, enter the room, and press a controller button to connect. Touch users can hold the named walk buttons while dragging elsewhere to look. Every activity is also available in the lab directory.</p>
     <header class="lab-header">
       <a href="/" aria-label="Tim's Experiments home" class="lab-brand"><img src={logo} width="252" height="42" alt="Tim's Experiments" /></a>
       <div class="header-center"><span class="live-dot"></span> FREELANCE &amp; FRACTIONAL ENGINEERING</div>
@@ -54,7 +54,7 @@ const stations = [
       </section>
       <div class="room-caption"><img src={labLogo} alt="The lab" width="123" height="26" /><span>ROOM 001</span></div>
       <div class="scene-status" id="scene-status" role="status">Preparing the lab…</div>
-      <div class="explore-note" id="explore-note" hidden><span class="live-dot"></span><span id="location-label">Arrival</span><span class="note-divider"></span><span>Drag to look · WASD walk · IJKL look · E select</span></div>
+      <div class="explore-note" id="explore-note" hidden><span class="live-dot"></span><span id="location-label">Arrival</span><span class="note-divider"></span><span>Drag to look · WASD walk · Arrows look · E select</span><span id="controller-hint" hidden>Controller: left stick walk · right stick look · A / Cross select</span></div>
       <div class="scene-walk-pad" id="scene-walk-pad" role="group" aria-label="Hold to walk; drag the room to look" hidden>
         <button type="button" data-walk="KeyW" aria-label="Walk forward"><span aria-hidden="true">↑</span></button>
         <button type="button" data-walk="KeyA" aria-label="Walk left"><span aria-hidden="true">←</span></button>

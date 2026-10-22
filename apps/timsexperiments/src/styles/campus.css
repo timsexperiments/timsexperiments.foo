@@ -66,7 +66,7 @@ html:has(>.campus-page),html:has(>body.campus-page){height:100%;overflow:hidden;
 .directory-heading button{background:transparent}
 .directory-heading button span,.directory-heading>span{padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
 .explore-note{background:transparent;border:0;backdrop-filter:none;padding:0;gap:6px}
-.explore-note #location-label,.explore-note>span:last-child{padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
+.explore-note #location-label,.explore-note>span:not(.live-dot):not(.note-divider){padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
 .explore-note .note-divider{display:none}
 .is-exploring .lab-header{background:transparent}
 .is-exploring .header-center,.is-exploring .lab-brand,.room-caption>span{width:fit-content;padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
