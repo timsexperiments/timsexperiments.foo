@@ -1,5 +1,6 @@
 import type { DialogShell } from './dialog-shell';
 import { parseReaderContent, wireReaderCopy } from './reader-content';
+import { fetchReaderFragment } from './reader-request';
 
 type Recipe = { slug: string; title: string };
 type Session =
@@ -118,17 +119,7 @@ export function createTabletReader(options: {
         `/article-fragments/${recipe.slug}.html`,
         location.origin
       );
-      const response = await fetch(url, {
-        signal: active.request.signal,
-        credentials: 'same-origin',
-        redirect: 'error',
-      });
-      if (
-        !response.ok ||
-        !response.headers.get('Content-Type')?.includes('text/html')
-      )
-        throw new Error('Recipe unavailable');
-      const html = await response.text();
+      const html = await fetchReaderFragment(url, active.request.signal);
       if (session !== active) return;
       const article = parseReaderContent(
         html,
