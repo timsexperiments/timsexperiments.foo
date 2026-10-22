@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import logoGlbUrl from '../../assets/campus/tims-experiments-dark.glb?url';
 import logoUrl from '../../assets/tim_s_experiments_logo_dark.svg?url';
+import labLogoUrl from '../../assets/the_lab_logo_dark.svg?url';
 import { createTextureRegistry } from './textures';
 import type {
   CollisionBounds,
@@ -1190,10 +1191,35 @@ export function buildWorld(
       receive: true,
     });
   }
-  label('THE LAB / CURIOUS BY DESIGN', 3.3, 0.34, -6.2, 3.85, -7.3, {
-    background: '#111b18',
-    color: '#92f1de',
-  });
+  // Use Tim's original artwork rather than a typeset substitute on the shelf sign.
+  const labLogoImage = new Image();
+  labLogoImage.onload = () => {
+    if (!alive) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1476;
+    canvas.height = 384;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    context.fillStyle = '#111b18';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(labLogoImage, 67, 50, 1342, 284);
+    const texture = textureRegistry.track(new THREE.CanvasTexture(canvas));
+    mesh(
+      getPlaneGeometry(3.3, 0.86),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        toneMapped: false,
+      }),
+      -6.2,
+      4.05,
+      -7.245,
+      scene,
+      { cast: false, receive: false }
+    );
+    onInvalidate?.();
+  };
+  labLogoImage.src = labLogoUrl;
 
   return {
     targets,
@@ -1207,6 +1233,7 @@ export function buildWorld(
     dispose() {
       alive = false;
       logoImage.onload = null;
+      labLogoImage.onload = null;
       textureRegistry.dispose();
       // Attached geometries/materials and instance buffers belong to the controller.
     },
