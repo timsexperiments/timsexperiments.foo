@@ -1,6 +1,7 @@
 import type { StationId } from '../campus';
 import { createDialogShell, type DialogOrigin } from './dialog-shell';
 import { createTabletReader } from './tablet-reader';
+import { setupRecipeSearch } from './recipe-search';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#campus-canvas');
 const status = document.querySelector<HTMLElement>('#scene-status');
@@ -109,6 +110,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(
 const readerDialog =
   document.querySelector<HTMLDialogElement>('#reader-dialog');
 const shelf = document.querySelector<HTMLDialogElement>('#recipes-dialog');
+const shelfSearch = shelf ? setupRecipeSearch(shelf) : undefined;
 if (readerDialog && shelf)
   reader = createTabletReader({
     root: readerDialog,
@@ -209,5 +211,6 @@ window.addEventListener('pagehide', () => {
   disposed = true;
   ++pendingOpen;
   reader?.dispose();
+  shelfSearch?.destroy();
   controller?.dispose();
 });

@@ -19,13 +19,23 @@ const { recipes } = Astro.props;
       Read an article or open its experiment at the workbench.
     </p>
   </div>
-  <div class="recipe-catalog">
+  <div class="recipe-search" role="search" aria-label="Search engineering articles">
+    <label for="recipe-search">Find an article</label>
+    <div class="recipe-search-controls">
+      <input id="recipe-search" type="search" placeholder="Search titles or topics…" maxlength="120" aria-controls="recipe-catalog" autocomplete="off" />
+      <button type="button" data-search-clear hidden>Clear</button>
+    </div>
+    <p data-search-count role="status" aria-live="polite" aria-atomic="true">{recipes.length} articles</p>
+  </div>
+  <p class="recipe-search-empty" data-search-empty hidden>No articles match. Try another search.</p>
+  <div class="recipe-catalog" id="recipe-catalog">
     {
       recipes.map((recipe, i) => (
         <a
           class="recipe-card"
           href={`/lab/${recipe.slug}/`}
           data-recipe={recipe.slug}
+          data-search-text={[recipe.data.title, recipe.data.subtitle, recipe.data.tldr, recipe.slug.replaceAll('-', ' ')].filter(Boolean).join(' ')}
           aria-label={`Open recipe: ${recipe.data.title}`}>
           <div class:list={['recipe-cover', `recipe-cover-${i % 3}`]}>
             <>
