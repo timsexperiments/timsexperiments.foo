@@ -2,6 +2,7 @@ import type { StationId } from '../campus';
 import { createDialogShell, type DialogOrigin } from './dialog-shell';
 import { createTabletReader } from './tablet-reader';
 import { setupRecipeSearch } from './recipe-search';
+import { createLabRouter, parseLabRoute } from './lab-route';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#campus-canvas');
 const status = document.querySelector<HTMLElement>('#scene-status');
@@ -21,6 +22,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let userPaused = reducedMotion.matches;
 let disposed = false;
 let pendingOpen = 0;
+let router: ReturnType<typeof createLabRouter> | undefined;
 let reader: ReturnType<typeof createTabletReader>;
 const shell = createDialogShell({
   dialogs: [...document.querySelectorAll<HTMLDialogElement>('.lab-dialog')],
@@ -33,6 +35,7 @@ const shell = createDialogShell({
     reader?.sync();
     syncSceneAccessibility();
     updatePause();
+    syncRoute();
   },
   onDismiss: (dialog, reason) => {
     if (dialog.id !== 'reader-dialog' || !reader) return false;
@@ -78,9 +81,14 @@ function enterLab() {
   if (locationLabel) locationLabel.textContent = labels.arrival;
   syncSceneAccessibility();
   canvas?.focus({ preventScroll: true });
+  syncRoute();
 }
 
-async function openStation(station: StationId, origin: DialogOrigin) {
+async function openStation(
+  station: StationId,
+  origin: DialogOrigin,
+  immediate = false
+) {
   if (station === 'arrival') {
     shell.closeAll();
     enterLab();
@@ -89,7 +97,13 @@ async function openStation(station: StationId, origin: DialogOrigin) {
   const request = ++pendingOpen;
   controller?.navigate(station);
   if (locationLabel) locationLabel.textContent = labels[station];
-  if (controller && !shell.anyOpen() && !userPaused && !reducedMotion.matches) {
+  if (
+    !immediate &&
+    controller &&
+    !shell.anyOpen() &&
+    !userPaused &&
+    !reducedMotion.matches
+  ) {
     await new Promise((resolve) => setTimeout(resolve, 450));
   }
   if (request !== pendingOpen || disposed) return;
@@ -126,6 +140,76 @@ if (readerDialog && shelf)
       );
     },
   });
+
+const publishedSlugs = new Set(
+  [...document.querySelectorAll<HTMLElement>('[data-recipe]')].flatMap(
+    (book) => (book.dataset.recipe ? [book.dataset.recipe] : [])
+  )
+);
+
+function syncRoute() {
+  if (!router) return;
+  if (readerDialog?.open && readerDialog.dataset.recipeSlug) {
+    router.sync({ kind: 'article', slug: readerDialog.dataset.recipeSlug });
+    return;
+  }
+  for (const station of ['recipes', 'workbench', 'robot', 'contact']) {
+    if (
+      isStation(station) &&
+      station !== 'arrival' &&
+      document.querySelector<HTMLDialogElement>(`#${station}-dialog`)?.open
+    ) {
+      router.sync({ kind: 'station', station });
+      return;
+    }
+  }
+  router.sync({
+    kind: document.body.classList.contains('is-exploring') ? 'room' : 'home',
+  });
+}
+
+router = createLabRouter({
+  publishedSlugs,
+  apply(route) {
+    ++pendingOpen;
+    if (route.kind === 'home') {
+      shell.closeAll();
+      document.body.classList.remove('is-exploring');
+      const note = document.querySelector<HTMLElement>('#explore-note');
+      if (note) note.hidden = true;
+      controller?.navigate('arrival');
+      syncSceneAccessibility();
+      return;
+    }
+    enterLab();
+    if (route.kind === 'room') shell.closeAll();
+    else if (route.kind === 'article') {
+      controller?.navigate('recipes');
+      if (locationLabel) locationLabel.textContent = labels.recipes;
+      reader?.open(route.slug);
+    } else void openStation(route.station, { kind: 'scene' }, true);
+  },
+});
+router.start();
+
+for (const button of document.querySelectorAll<HTMLButtonElement>(
+  '[data-copy-lab-link]'
+)) {
+  button.addEventListener('click', async () => {
+    const panel = button.closest('dialog');
+    const feedback = panel?.querySelector<HTMLElement>(
+      '#reader-status, [data-status]'
+    );
+    try {
+      await navigator.clipboard.writeText(location.href);
+      if (feedback) feedback.textContent = 'Link copied.';
+    } catch {
+      if (feedback)
+        feedback.textContent =
+          'Could not copy. You can copy the address from your browser.';
+    }
+  });
+}
 
 document.addEventListener('keydown', (event) => {
   if (shell.anyOpen() || event.defaultPrevented) return;
@@ -196,6 +280,9 @@ if (canvas) {
       if (disposed) active.dispose();
       else {
         controller = active;
+        const route = parseLabRoute(location.hash, publishedSlugs);
+        if (route?.kind === 'article') active.navigate('recipes');
+        else if (route?.kind === 'station') active.navigate(route.station);
         updatePause();
       }
     })
@@ -212,5 +299,6 @@ window.addEventListener('pagehide', () => {
   ++pendingOpen;
   reader?.dispose();
   shelfSearch?.destroy();
+  router?.destroy();
   controller?.dispose();
 });
