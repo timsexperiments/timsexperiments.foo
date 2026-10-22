@@ -1,9 +1,17 @@
+import { createSavedChat } from './history';
+import type { ConversationTurn } from '../../lib/conversations/protocol';
 import { createConversationView } from '../chat-view/presentation';
 import {
+  answerInBrowser,
   retrieveInBrowser,
   type BrowserTopic,
 } from '../../lib/resume/browser-answer';
-import { renderAnswer, textNode as node } from '../chat-view/evidence';
+import {
+  renderAnswer,
+  renderSavedAnswer,
+  conversationalParagraphs,
+  textNode as node,
+} from '../chat-view/evidence';
 import { selectGpuModel } from './gpu';
 import {
   checkGeneratedAnswer,
@@ -37,6 +45,7 @@ export function setupRobotHost(root: HTMLElement) {
   const aiStatus = element('[data-ai-status]', HTMLElement);
   const progress = element('progress', HTMLProgressElement);
   const transcript = element('[data-transcript]', HTMLElement);
+  const greeting = transcript.firstElementChild?.cloneNode(true);
   const conversation = root.matches('[data-chat-view]')
     ? createConversationView(root)
     : undefined;
@@ -51,28 +60,36 @@ export function setupRobotHost(root: HTMLElement) {
   let deadline: ReturnType<typeof setTimeout> | undefined;
   let run = 0;
   let turns = 0;
+  const savedTurns: ConversationTurn[] = [];
+  let savedChat: ReturnType<typeof createSavedChat> | undefined;
   let topic: BrowserTopic | undefined;
   let pending:
-    | { target: HTMLElement; brief: { evidence: EvidenceRecord[] } }
+    | {
+        target: HTMLElement;
+        brief: { evidence: EvidenceRecord[] };
+        savedTurn: ConversationTurn;
+      }
     | undefined;
 
   function sync() {
-    const busy =
+    const modelBusy =
       Boolean(request) || state === 'generating' || state === 'loading';
-    send.disabled = busy || turns >= 12;
-    input.disabled = turns >= 12;
+    const busy = modelBusy;
+    const atLimit = turns >= 12 && !savedChat?.invalidated;
+    send.disabled = busy || atLimit;
+    input.disabled = atLimit;
     input.readOnly = busy;
     chips.forEach((chip) => {
-      chip.disabled = busy || turns >= 12;
+      chip.disabled = busy || atLimit;
     });
-    enable.disabled = state !== 'off' || busy || turns >= 12;
+    enable.disabled = state !== 'off' || busy || atLimit;
     enable.textContent =
       state === 'off'
         ? 'Download and enable AI'
         : state === 'loading'
           ? 'Loading local AI…'
           : 'Local AI enabled';
-    stop.hidden = !busy && state !== 'loading' && state !== 'ready';
+    stop.hidden = !modelBusy && state !== 'loading' && state !== 'ready';
     stop.textContent =
       state === 'loading'
         ? 'Cancel download'
@@ -84,11 +101,12 @@ export function setupRobotHost(root: HTMLElement) {
     progress.hidden = state !== 'loading';
     aiStatus.hidden = state === 'off' && !aiStatus.dataset.touched;
     clear.hidden = turns === 0;
+    clear.disabled = false;
     transcript.setAttribute(
       'aria-busy',
       String(Boolean(request) || state === 'generating')
     );
-    if (!busy && turns >= 12)
+    if (!busy && atLimit)
       status.textContent =
         'Session limit reached. Clear conversation to ask more questions.';
   }
@@ -110,7 +128,7 @@ export function setupRobotHost(root: HTMLElement) {
     );
     state = 'off';
     aiStatus.textContent = message;
-    status.textContent = 'Questions stay on this device.';
+    status.textContent = 'Answers run on this device.';
     const restoreFocus = document.activeElement === stop;
     sync();
     if (restoreFocus && dialog?.open) input.focus();
@@ -190,6 +208,10 @@ export function setupRobotHost(root: HTMLElement) {
                   ? `Here's a detail from that experience: ${answer.replace(/\s*\[[a-z0-9-]+\]\s*$/, '')}`
                   : undefined) ??
                 "I couldn't find a useful passage with the local model. You can still use my answer above.";
+              if (answer) {
+                pending.savedTurn.paragraphs.push(pending.target.textContent);
+                savedChat?.save(savedTurns);
+              }
               pending = undefined;
             }
             state = 'ready';
@@ -224,32 +246,57 @@ export function setupRobotHost(root: HTMLElement) {
       );
     }
   }
+  function appendTurn(question: string) {
+    const turn = document.createElement('article');
+    turn.className = 'robot-turn';
+    turn.append(
+      node('h3', 'You', 'robot-speaker'),
+      node('p', question, 'robot-question'),
+      node('h3', 'Lab robot', 'robot-speaker')
+    );
+    const result = document.createElement('div');
+    turn.append(result);
+    conversation?.beforeTurn();
+    transcript.append(turn);
+    if (!conversation) transcript.scrollTop = turn.offsetTop;
+    return { turn, result };
+  }
+
+  function restoreSaved(restored: ConversationTurn[]) {
+    cancel();
+    if (conversation) conversation.clear();
+    else transcript.replaceChildren();
+    savedTurns.splice(0, savedTurns.length, ...structuredClone(restored));
+    turns = 0;
+    topic = undefined;
+    for (const saved of restored) {
+      const { result } = appendTurn(saved.question);
+      renderSavedAnswer(result, saved);
+      const selected = answerInBrowser(saved.question, topic);
+      if (selected.topic) topic = selected.topic;
+      turns += 1;
+    }
+    status.textContent = 'Continued your active chat from this browser.';
+    sync();
+  }
+
   async function ask(question: string) {
-    if (request || state === 'generating' || turns >= 12) return;
     const trimmed = question.trim();
     if (!trimmed || trimmed.length > 600) {
       status.textContent = 'Enter a question up to 600 characters.';
       return;
     }
+    if (savedChat?.needsReset()) resetConversation(false);
+    if (request || state === 'generating' || turns >= 12) return;
     if (state === 'loading') {
       status.textContent =
         'Wait for the model or cancel its download, then ask your question.';
       return;
     }
-    const turn = document.createElement('article');
-    turn.className = 'robot-turn';
-    turn.append(
-      node('h3', 'You', 'robot-speaker'),
-      node('p', trimmed, 'robot-question'),
-      node('h3', 'Lab robot', 'robot-speaker')
-    );
-    const result = document.createElement('div');
+    savedChat?.start(() => resetConversation(false));
+    const { turn, result } = appendTurn(trimmed);
     result.textContent = "Let me check Tim's experience…";
     retrievalTarget = result;
-    turn.append(result);
-    conversation?.beforeTurn();
-    transcript.append(turn);
-    if (!conversation) transcript.scrollTop = turn.offsetTop;
     turns += 1;
     const controller = new AbortController();
     request = controller;
@@ -268,9 +315,16 @@ export function setupRobotHost(root: HTMLElement) {
       retrievalTarget = undefined;
       result.replaceChildren();
       renderAnswer(result, answer);
+      const savedTurn: ConversationTurn = {
+        question: trimmed,
+        paragraphs: conversationalParagraphs(answer),
+        experienceIds: answer.brief.evidence.map((record) => record.id),
+      };
+      savedTurns.push(savedTurn);
+      savedChat?.save(savedTurns);
       const brief = answer.brief;
       input.value = '';
-      status.textContent = 'Questions stay on this device.';
+      status.textContent = 'Answers run on this device.';
       const context = groundedContext(brief);
       if (state === 'ready' && worker && context) {
         const ai = document.createElement('section');
@@ -293,6 +347,7 @@ export function setupRobotHost(root: HTMLElement) {
         result.append(selection);
         pending = {
           target: answer,
+          savedTurn,
           brief: {
             evidence: brief.evidence.filter((record) =>
               context.ids.includes(record.id)
@@ -377,34 +432,87 @@ export function setupRobotHost(root: HTMLElement) {
     listenerOptions
   );
   stop.addEventListener('click', cancel, listenerOptions);
+  function resetConversation(clearSaved = true) {
+    cancel();
+    if (clearSaved) savedChat?.clear();
+    if (conversation) conversation.clear();
+    else {
+      transcript.replaceChildren();
+      if (greeting) transcript.append(greeting.cloneNode(true));
+    }
+    turns = 0;
+    savedTurns.splice(0);
+    topic = undefined;
+    input.value = '';
+    delete aiStatus.dataset.touched;
+    aiStatus.textContent = '';
+    progress.value = 0;
+    const consent = root.querySelector('[data-ai-consent]');
+    if (consent instanceof HTMLDetailsElement) consent.open = false;
+    status.textContent = "Ask me about Tim's engineering work.";
+    sync();
+  }
   clear.addEventListener(
     'click',
     () => {
-      cancel();
-      if (conversation) conversation.clear();
-      else transcript.replaceChildren();
-      turns = 0;
-      topic = undefined;
-      input.value = '';
-      status.textContent =
-        "Conversation cleared. Ask me about Tim's engineering work.";
-      sync();
+      resetConversation();
       input.focus();
     },
     listenerOptions
   );
-  dialog?.addEventListener('close', cancel, listenerOptions);
-  window.addEventListener('pagehide', cancel, listenerOptions);
-  document.addEventListener(
-    'astro:before-swap',
-    () => {
+  let away = false;
+  let wasOpen = dialog?.open ?? false;
+  // The shell calls native close() for button, Escape, backdrop and station
+  // switches. Observe removal too, since changing `open` alone emits no close.
+  const observeDialog = () => {
+    if (!dialog) return;
+    if (wasOpen && !dialog.open && !away) resetConversation();
+    wasOpen = dialog.open;
+  };
+  dialog?.addEventListener('close', observeDialog, listenerOptions);
+  const dialogObserver = new MutationObserver(observeDialog);
+  if (dialog)
+    dialogObserver.observe(dialog, {
+      attributes: true,
+      attributeFilter: ['open'],
+    });
+  window.addEventListener(
+    'pagehide',
+    (event) => {
+      away = true;
       cancel();
-      conversation?.destroy();
-      lifecycle.abort();
-      instances.delete(root);
+      if (event.persisted) savedChat?.suspend();
+      else dispose();
     },
-    { once: true, signal: lifecycle.signal }
+    listenerOptions
   );
+  window.addEventListener(
+    'pageshow',
+    (event) => {
+      if (event.persisted) {
+        away = false;
+        wasOpen = dialog?.open ?? false;
+        savedChat?.resume();
+      }
+    },
+    listenerOptions
+  );
+  function dispose() {
+    cancel();
+    dialogObserver.disconnect();
+    conversation?.destroy();
+    savedChat?.destroy();
+    lifecycle.abort();
+    instances.delete(root);
+  }
+  document.addEventListener('astro:before-swap', dispose, {
+    once: true,
+    signal: lifecycle.signal,
+  });
+  savedChat = createSavedChat(root, {
+    restore: restoreSaved,
+    changed: sync,
+  });
   sync();
 }
 
