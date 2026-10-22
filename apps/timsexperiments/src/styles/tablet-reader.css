@@ -22,7 +22,7 @@
 }
 .recipe-catalog {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 30px;
 }
 .recipe-card {
@@ -594,4 +594,24 @@
   .cover-diagram {
     margin: 16px 0;
   }
+}
+
+/* Search stays with the shelf, including when returning from an article. */
+.recipe-search { margin:0 0 24px; }
+.recipe-search label { display:block; margin-bottom:6px; font-size:13px; color:#d5e6dc; }
+.recipe-search-controls { display:flex; gap:8px; }
+.recipe-search input { min-width:0; width:100%; min-height:44px; border:1px solid #60816f; border-radius:5px; padding:10px 12px; background:#081210; color:#ecf6f1; font:inherit; font-size:16px; }
+.recipe-search input::placeholder { color:#a1bbad; }
+.recipe-search button { min-height:44px; border:1px solid #60816f; border-radius:5px; padding:8px 12px; background:#132423; color:#ecf6f1; }
+.recipe-search [data-search-count] { margin:8px 0 0; color:#aec7b9; font-size:12px; }
+.recipe-search-empty { color:#d5e6dc; padding:16px 0; }
+.cover-title { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+@media(max-width:700px) {
+  .recipe-intro { display:block; margin-bottom:24px; }
+  .recipe-intro h2 { font-size:32px; }
+  .recipe-intro p { max-width:none; margin-top:10px; font-size:13px; }
+  .recipe-catalog { grid-template-columns:minmax(0,1fr); gap:28px; }
+  .recipe-cover { padding:22px; }
+  .cover-title { font-size:28px; }
+  .recipe-card-meta { font-size:10px; }
 }
