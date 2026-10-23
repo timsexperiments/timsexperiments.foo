@@ -1,0 +1,132 @@
+/** Native speech is optional. Never let an unset voice select a remote service. */
+export function createRobotVoice(root: HTMLElement) {
+  const toggle = root.querySelector('[data-voice-toggle]');
+  const replay = root.querySelector('[data-voice-replay]');
+  const stop = root.querySelector('[data-voice-stop]');
+  const status = root.querySelector('[data-voice-status]');
+  const synth = window.speechSynthesis;
+  let enabled = false;
+  let current = '';
+  let generation = 0;
+  let active: SpeechSynthesisUtterance | undefined;
+  const dialog = root.closest('dialog');
+  const available = () =>
+    synth
+      ?.getVoices()
+      .find(
+        (voice) => voice.localService === true && /^en(?:-|$)/i.test(voice.lang)
+      );
+  const visible = () => !document.hidden && (!dialog || dialog.open);
+  const sync = () => {
+    const voice = available();
+    if (toggle instanceof HTMLButtonElement) {
+      toggle.disabled = !voice;
+      toggle.textContent = enabled ? 'Mute voice' : 'Enable voice';
+      toggle.setAttribute('aria-pressed', String(enabled));
+    }
+    if (replay instanceof HTMLButtonElement)
+      replay.disabled = !enabled || !voice || !current;
+    if (stop instanceof HTMLButtonElement) stop.hidden = !active;
+    if (status)
+      status.textContent = !voice
+        ? 'No local English voice available on this device.'
+        : active
+          ? 'Reading aloud'
+          : enabled
+            ? 'Local voice on'
+            : 'Voice muted';
+  };
+  const cancel = () => {
+    generation += 1;
+    const speaking = active;
+    active = undefined;
+    if (speaking) synth?.cancel();
+    sync();
+  };
+  const play = () => {
+    cancel();
+    if (!enabled || !current || !visible() || !available()) return;
+    const token = generation;
+    const identity = current;
+    const sentences = current.split(/(?<=[.!?])\s+/);
+    const next = () => {
+      if (
+        token !== generation ||
+        current !== identity ||
+        !enabled ||
+        !visible()
+      )
+        return;
+      const text = sentences.shift();
+      const voice = available();
+      if (!text || !voice) {
+        active = undefined;
+        sync();
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text.trim());
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+      utterance.rate = 1;
+      utterance.onend = () => {
+        if (token !== generation) return;
+        active = undefined;
+        next();
+      };
+      utterance.onerror = () => {
+        if (token !== generation) return;
+        active = undefined;
+        sync();
+        if (status)
+          status.textContent =
+            'Voice could not play. Try Replay; subtitles remain available.';
+      };
+      active = utterance;
+      sync();
+      synth.speak(utterance);
+    };
+    next();
+  };
+  const toggleSound = () => {
+    cancel();
+    enabled = !enabled && Boolean(available());
+    sync();
+  };
+  const hidden = () => {
+    if (document.hidden) cancel();
+  };
+  const voicesChanged = () => {
+    if (!available()) cancel();
+    sync();
+  };
+  toggle?.addEventListener('click', toggleSound);
+  replay?.addEventListener('click', play);
+  stop?.addEventListener('click', cancel);
+  synth?.addEventListener('voiceschanged', voicesChanged);
+  document.addEventListener('visibilitychange', hidden);
+  window.addEventListener('pagehide', cancel);
+  sync();
+  return {
+    cancel,
+    clear() {
+      cancel();
+      current = '';
+      sync();
+    },
+    accept(text: string, speak = true) {
+      cancel();
+      current = text;
+      sync();
+      if (speak && enabled) play();
+    },
+    destroy() {
+      cancel();
+      toggle?.removeEventListener('click', toggleSound);
+      replay?.removeEventListener('click', play);
+      stop?.removeEventListener('click', cancel);
+      synth?.removeEventListener('voiceschanged', voicesChanged);
+      document.removeEventListener('visibilitychange', hidden);
+      window.removeEventListener('pagehide', cancel);
+    },
+  };
+}

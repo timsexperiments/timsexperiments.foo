@@ -1,9 +1,6 @@
+import { localModel } from './model';
 import { workerRequest, type WorkerReply } from './protocol';
-import {
-  generationPrompt,
-  parseModelDraft,
-  robotInstructions,
-} from './evidence';
+import { conversationMessages, conversationalReply } from './conversation';
 import { MLCEngine, prebuiltAppConfig } from '@mlc-ai/web-llm';
 
 let engine: MLCEngine | undefined;
@@ -41,44 +38,23 @@ self.addEventListener('message', async (event: MessageEvent<unknown>) => {
           }),
         logLevel: 'SILENT',
       });
-      await engine.reload(request.model, { context_window_size: 4096 });
+      await engine.reload(request.model, {
+        context_window_size: localModel.contextTokens,
+      });
       reply({ kind: 'ready' });
     } else {
       if (!engine) throw new Error('Model is not loaded.');
-      // No history from previous generations, no autonomous tools, no remote inference.
       await engine.resetChat();
       const result = await engine.chat.completions.create({
-        messages: [
-          { role: 'system', content: robotInstructions },
-          {
-            role: 'user',
-            content: generationPrompt({
-              question: request.question,
-              context: request.context,
-              allowedIds: request.allowedIds,
-            }),
-          },
-        ],
-        max_tokens: 160,
-        temperature: 0,
-        response_format: {
-          type: 'json_object',
-          schema: JSON.stringify({
-            type: 'object',
-            additionalProperties: false,
-            required: ['answer', 'citations'],
-            properties: {
-              answer: { type: 'string', minLength: 1, maxLength: 500 },
-              citations: {
-                type: 'array',
-                minItems: 1,
-                maxItems: 1,
-                uniqueItems: true,
-                items: { type: 'string', enum: request.allowedIds },
-              },
-            },
-          }),
-        },
+        messages: conversationMessages(
+          request.question,
+          request.context,
+          request.turns
+        ),
+        max_tokens: localModel.replyTokens,
+        temperature: 0.2,
+        top_p: 0.9,
+        extra_body: { enable_thinking: false },
         stream: false,
       });
       const choice = result.choices[0];
@@ -86,10 +62,7 @@ self.addEventListener('message', async (event: MessageEvent<unknown>) => {
         kind: 'answer',
         text:
           choice?.finish_reason === 'stop'
-            ? (parseModelDraft(
-                choice.message.content ?? '',
-                request.allowedIds
-              ) ?? '')
+            ? (conversationalReply(choice.message.content ?? '') ?? '')
             : '',
       });
     }

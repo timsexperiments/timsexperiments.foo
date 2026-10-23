@@ -1,23 +1,12 @@
+import { localModel } from './model';
+import { createExperienceExplorer } from './explorer';
 import { createSavedChat } from './history';
 import type { ConversationTurn } from '../../lib/conversations/protocol';
-import { createConversationView } from '../chat-view/presentation';
-import {
-  answerInBrowser,
-  retrieveInBrowser,
-  type BrowserTopic,
-} from '../../lib/resume/browser-answer';
-import {
-  renderAnswer,
-  renderSavedAnswer,
-  conversationalParagraphs,
-  textNode as node,
-} from '../chat-view/evidence';
+import { createDialogueView } from './dialogue-view';
+import { renderSavedAnswer, textNode as node } from '../chat-view/evidence';
 import { selectGpuModel } from './gpu';
-import {
-  checkGeneratedAnswer,
-  groundedContext,
-  type EvidenceRecord,
-} from './evidence';
+import { conversationContext, conversationalReply } from './conversation';
+import { createRobotVoice } from './voice';
 import { workerReply } from './protocol';
 
 type LocalState = 'off' | 'loading' | 'ready' | 'generating';
@@ -40,6 +29,7 @@ export function setupRobotHost(root: HTMLElement) {
   const send = element('[data-send]', HTMLButtonElement);
   const enable = element('[data-enable]', HTMLButtonElement);
   const stop = element('[data-stop]', HTMLButtonElement);
+  const unload = root.querySelector('[data-model-off]');
   const clear = element('[data-clear]', HTMLButtonElement);
   const status = element('[data-status]', HTMLElement);
   const aiStatus = element('[data-ai-status]', HTMLElement);
@@ -47,10 +37,15 @@ export function setupRobotHost(root: HTMLElement) {
   const transcript = element('[data-transcript]', HTMLElement);
   const greeting = transcript.firstElementChild?.cloneNode(true);
   const conversation = root.matches('[data-chat-view]')
-    ? createConversationView(root)
+    ? createDialogueView(root)
     : undefined;
+  const explorer = createExperienceExplorer(root, () => {
+    cancel();
+    conversation?.beforeTurn();
+  });
   const chips = root.querySelectorAll<HTMLButtonElement>('[data-question]');
   const dialog = root.closest('dialog');
+  const voice = createRobotVoice(root);
   const lifecycle = new AbortController();
   const listenerOptions = { signal: lifecycle.signal };
   let state: LocalState = 'off';
@@ -60,23 +55,25 @@ export function setupRobotHost(root: HTMLElement) {
   let deadline: ReturnType<typeof setTimeout> | undefined;
   let run = 0;
   let turns = 0;
+  let activeSessionId: string | undefined;
+  let presentationInvalidated = false;
   const savedTurns: ConversationTurn[] = [];
   let savedChat: ReturnType<typeof createSavedChat> | undefined;
-  let topic: BrowserTopic | undefined;
   let pending:
     | {
         target: HTMLElement;
-        brief: { evidence: EvidenceRecord[] };
         savedTurn: ConversationTurn;
+        sessionId: string;
       }
     | undefined;
 
   function sync() {
+    root.dataset.modelState = state;
     const modelBusy =
       Boolean(request) || state === 'generating' || state === 'loading';
     const busy = modelBusy;
     const atLimit = turns >= 12 && !savedChat?.invalidated;
-    send.disabled = busy || atLimit;
+    send.disabled = state !== 'ready' || busy || atLimit;
     input.disabled = atLimit;
     input.readOnly = busy;
     chips.forEach((chip) => {
@@ -85,11 +82,11 @@ export function setupRobotHost(root: HTMLElement) {
     enable.disabled = state !== 'off' || busy || atLimit;
     enable.textContent =
       state === 'off'
-        ? 'Download and enable AI'
+        ? `Download and start chat · ${localModel.download}`
         : state === 'loading'
           ? 'Loading local AI…'
           : 'Local AI enabled';
-    stop.hidden = !modelBusy && state !== 'loading' && state !== 'ready';
+    stop.hidden = !modelBusy;
     stop.textContent =
       state === 'loading'
         ? 'Cancel download'
@@ -99,8 +96,11 @@ export function setupRobotHost(root: HTMLElement) {
             ? 'Cancel search'
             : 'Turn off local AI';
     progress.hidden = state !== 'loading';
-    aiStatus.hidden = state === 'off' && !aiStatus.dataset.touched;
-    clear.hidden = turns === 0;
+    aiStatus.hidden =
+      state === 'ready' ||
+      state === 'generating' ||
+      (state === 'off' && !aiStatus.dataset.touched);
+    clear.hidden = turns === 0 && !pending && !request;
     clear.disabled = false;
     transcript.setAttribute(
       'aria-busy',
@@ -117,23 +117,28 @@ export function setupRobotHost(root: HTMLElement) {
     }
   }
   function release(
-    message = 'Local AI is off. Answers still work on this device.'
+    message = 'Start the local model to talk. You can also read Tim’s work or contact him below.'
   ) {
     worker?.terminate();
     worker = undefined;
     if (deadline) clearTimeout(deadline);
     deadline = undefined;
     finishPending(
-      'I stopped the local model. My answer and references are still here.'
+      'Stopped. Your question was not saved. Start the model and send it again to retry.'
     );
     state = 'off';
     aiStatus.textContent = message;
-    status.textContent = 'Answers run on this device.';
-    const restoreFocus = document.activeElement === stop;
+    status.textContent = 'Start the local model to talk.';
+    const restoreFocus =
+      document.activeElement === stop || document.activeElement === unload;
     sync();
-    if (restoreFocus && dialog?.open) input.focus();
+    if (restoreFocus && dialog?.open) {
+      conversation?.beforeTurn();
+      enable.focus();
+    }
   }
   function cancel() {
+    voice.cancel();
     run += 1;
     request?.abort();
     request = undefined;
@@ -147,12 +152,13 @@ export function setupRobotHost(root: HTMLElement) {
   }
   async function load() {
     if (state !== 'off') return;
+    explorer?.hide();
     state = 'loading';
     aiStatus.dataset.touched = 'true';
     const consent = root.querySelector('[data-ai-consent]');
     if (consent instanceof HTMLDetailsElement) consent.open = false;
     aiStatus.textContent = "Checking this browser's GPU…";
-    status.textContent = 'Preparing local AI. Cancel to search without it.';
+    status.textContent = 'Preparing local AI. You can cancel the download.';
     progress.value = 0;
     sync();
     stop.focus();
@@ -172,16 +178,14 @@ export function setupRobotHost(root: HTMLElement) {
       current.onerror = (event) => {
         if (worker === current)
           release(
-            `Local AI could not start: ${event.message.slice(0, 500) || 'Worker script or one of its imports failed to load.'} Open Optional local AI to retry, or keep using published evidence.`
+            `Local AI could not start: ${event.message.slice(0, 500) || 'Worker script or one of its imports failed to load.'} Use Start to retry, or read Tim’s work below.`
           );
       };
       current.onmessage = (event: MessageEvent<unknown>) => {
         if (worker !== current) return;
         const result = workerReply.safeParse(event.data);
         if (!result.success) {
-          release(
-            'Local AI returned an invalid response. Retry or use published evidence.'
-          );
+          release('Local AI returned an invalid response. Use Start to retry.');
           return;
         }
         const message = result.data;
@@ -194,46 +198,69 @@ export function setupRobotHost(root: HTMLElement) {
             if (deadline) clearTimeout(deadline);
             state = 'ready';
             status.textContent = 'Local AI is ready. Ask a question.';
-            aiStatus.textContent = `Local AI ready · SmolLM2 360M · ${model.includes('f16') ? 'f16' : 'f32'}. Ask a question to use it.`;
+            aiStatus.textContent = `Local AI ready · ${localModel.name} · f16. Ask a question to use it.`;
             sync();
+            if (document.activeElement === stop) input.focus();
             break;
           case 'answer': {
+            // Read live storage too: cross-tab storage events may arrive late.
+            if (
+              !pending ||
+              savedChat?.needsReset() ||
+              pending.sessionId !== activeSessionId
+            ) {
+              invalidatePresentation();
+              return;
+            }
             if (deadline) clearTimeout(deadline);
             let accepted = false;
             if (pending) {
-              const answer = checkGeneratedAnswer(message.text, pending.brief);
+              const answer = conversationalReply(message.text);
               accepted = answer !== undefined;
-              pending.target.textContent =
-                (answer
-                  ? `Here's a detail from that experience: ${answer.replace(/\s*\[[a-z0-9-]+\]\s*$/, '')}`
-                  : undefined) ??
-                "I couldn't find a useful passage with the local model. You can still use my answer above.";
-              if (answer) {
-                pending.savedTurn.paragraphs.push(pending.target.textContent);
-                savedChat?.save(savedTurns);
-              }
+              const completed = pending;
               pending = undefined;
+              completed.target.replaceChildren();
+              if (answer) {
+                completed.savedTurn.paragraphs = [answer];
+                const updated = [...savedTurns, completed.savedTurn];
+                savedChat?.save(updated);
+                if (
+                  savedChat?.invalidated ||
+                  completed.sessionId !== activeSessionId
+                ) {
+                  invalidatePresentation();
+                  return;
+                }
+                renderReply(completed.target, completed.savedTurn);
+                savedTurns.push(completed.savedTurn);
+                turns += 1;
+                voice.accept(answer);
+                input.value = '';
+              } else {
+                completed.target.textContent =
+                  'The model could not finish a usable reply. Please try again or contact Tim below.';
+              }
             }
             state = 'ready';
             status.textContent = accepted
-              ? 'Done. Please confirm important details with Tim.'
-              : "The model couldn't find a useful passage. My answer is above.";
+              ? 'AI reply · confirm important details with Tim.'
+              : 'Reply unavailable. Your question was not saved. Try again.';
             sync();
             break;
           }
           case 'error':
             release(
-              `Local AI ${message.stage} failed: ${message.message} Open Optional local AI to retry, or use the published evidence.`
+              `Local AI ${message.stage} failed: ${message.message} Use Start to retry, or contact Tim below.`
             );
             break;
         }
       };
-      aiStatus.textContent = `Downloading and preparing SmolLM2 360M ${model.includes('f16') ? 'f16' : 'f32'} on this device…`;
+      aiStatus.textContent = `Downloading and preparing ${localModel.name} f16 on this device…`;
       current.postMessage({ kind: 'load', model });
       deadline = setTimeout(
         () =>
           release(
-            'Model loading timed out. Retry on a faster connection, or use evidence.'
+            'Model loading timed out. Use Start to retry on a faster connection.'
           ),
         10 * 60 * 1000
       );
@@ -242,7 +269,7 @@ export function setupRobotHost(root: HTMLElement) {
       release(
         error instanceof Error
           ? error.message
-          : 'Local AI is unavailable. Published evidence still works.'
+          : 'Local AI is unavailable. Read Tim’s work or contact him below.'
       );
     }
   }
@@ -262,20 +289,34 @@ export function setupRobotHost(root: HTMLElement) {
     return { turn, result };
   }
 
+  function renderReply(container: HTMLElement, turn: ConversationTurn) {
+    renderSavedAnswer(container, turn);
+    const references = container.querySelector('.robot-evidence');
+    if (!(references instanceof HTMLElement)) return;
+    const children = [...container.children].filter(
+      (child) => child !== references
+    );
+    container.replaceChildren(...children);
+    const details = document.createElement('details');
+    details.className = 'robot-reference-list';
+    details.append(node('summary', 'Experiences referenced'), references);
+    container.append(details);
+  }
+
   function restoreSaved(restored: ConversationTurn[]) {
     cancel();
     if (conversation) conversation.clear();
     else transcript.replaceChildren();
     savedTurns.splice(0, savedTurns.length, ...structuredClone(restored));
     turns = 0;
-    topic = undefined;
+    voice.clear();
     for (const saved of restored) {
       const { result } = appendTurn(saved.question);
-      renderSavedAnswer(result, saved);
-      const selected = answerInBrowser(saved.question, topic);
-      if (selected.topic) topic = selected.topic;
+      renderReply(result, saved);
       turns += 1;
     }
+    const latest = restored.at(-1);
+    if (latest) voice.accept(latest.paragraphs.join('\n\n'), false);
     status.textContent = 'Continued your active chat from this browser.';
     sync();
   }
@@ -286,98 +327,59 @@ export function setupRobotHost(root: HTMLElement) {
       status.textContent = 'Enter a question up to 600 characters.';
       return;
     }
-    if (savedChat?.needsReset()) resetConversation(false);
+    if (savedChat?.needsReset()) resetConversation(false, true);
     if (request || state === 'generating' || turns >= 12) return;
+    if (state === 'off') {
+      status.textContent = 'Download and start the local model to talk.';
+      return;
+    }
     if (state === 'loading') {
       status.textContent =
         'Wait for the model or cancel its download, then ask your question.';
       return;
     }
-    savedChat?.start(() => resetConversation(false));
+    activeSessionId = savedChat?.start(() => resetConversation(false, true));
+    if (!activeSessionId || state !== 'ready') return;
+    voice.clear();
     const { turn, result } = appendTurn(trimmed);
     result.textContent = "Let me check Tim's experience…";
     retrievalTarget = result;
-    turns += 1;
     const controller = new AbortController();
     request = controller;
     const token = ++run;
     status.textContent = 'Finding an answer on this device…';
     sync();
     try {
-      const answer = await retrieveInBrowser({
-        question: trimmed,
-        previous: topic,
-        signal: controller.signal,
-      });
-      if (token !== run) return;
-      // Unknown questions do not erase the last supported topic.
-      if (answer.topic) topic = answer.topic;
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      controller.signal.throwIfAborted();
+      if (token !== run || state !== 'ready' || !worker) return;
+      const selected = conversationContext(trimmed, savedTurns);
       retrievalTarget = undefined;
-      result.replaceChildren();
-      renderAnswer(result, answer);
-      const savedTurn: ConversationTurn = {
-        question: trimmed,
-        paragraphs: conversationalParagraphs(answer),
-        experienceIds: answer.brief.evidence.map((record) => record.id),
-      };
-      savedTurns.push(savedTurn);
-      savedChat?.save(savedTurns);
-      const brief = answer.brief;
-      input.value = '';
-      status.textContent = 'Answers run on this device.';
-      const context = groundedContext(brief);
-      if (state === 'ready' && worker && context) {
-        const ai = document.createElement('section');
-        ai.className = 'robot-ai-answer';
-        const answer = node('p', 'Preparing a short answer on your device…');
-        ai.append(
-          node('h4', 'Another detail'),
-          answer,
-          node(
-            'small',
-            'A passage from the referenced experience. Confirm important details with Tim.'
-          )
-        );
-        const selection = document.createElement('details');
-        selection.className = 'robot-model-selection';
-        selection.append(
-          node('summary', 'Another detail from the local model'),
-          ai
-        );
-        result.append(selection);
-        pending = {
-          target: answer,
-          savedTurn,
-          brief: {
-            evidence: brief.evidence.filter((record) =>
-              context.ids.includes(record.id)
-            ),
-          },
-        };
-        state = 'generating';
-        worker.postMessage({
-          kind: 'generate',
+      result.textContent = 'Thinking on your device…';
+      pending = {
+        target: result,
+        sessionId: activeSessionId,
+        savedTurn: {
           question: trimmed,
-          context: context.text,
-          allowedIds: context.ids,
-        });
-        deadline = setTimeout(
-          () =>
-            release(
-              'Generation timed out. Evidence remains available. Open Optional local AI to retry.'
-            ),
-          30000
-        );
-        status.textContent = 'Writing a local AI answer. Stop is available.';
-      } else if (state === 'ready' && brief.status === 'evidence_found') {
-        result.prepend(
-          node(
-            'p',
-            'I have too much context for this small model. Try asking about one project; my answer above still works.',
-            'robot-source-note'
-          )
-        );
-      }
+          paragraphs: [],
+          experienceIds: selected.ids,
+        },
+      };
+      state = 'generating';
+      worker.postMessage({
+        kind: 'generate',
+        question: trimmed,
+        context: selected.context,
+        turns: savedTurns.slice(-3),
+      });
+      deadline = setTimeout(
+        () =>
+          release(
+            'The reply took too long. Use Start to retry, or contact Tim below.'
+          ),
+        120000
+      );
+      status.textContent = 'Thinking on your device. Stop is available.';
     } catch {
       if (token !== run) return;
       retrievalTarget = undefined;
@@ -385,7 +387,7 @@ export function setupRobotHost(root: HTMLElement) {
       result.append(
         node(
           'p',
-          'I could not select an answer from the local records. Try a more specific project question.'
+          'I could not prepare a local reply. Please retry or contact Tim below.'
         )
       );
       status.textContent = 'Local answer unavailable. Try another question.';
@@ -432,8 +434,25 @@ export function setupRobotHost(root: HTMLElement) {
     listenerOptions
   );
   stop.addEventListener('click', cancel, listenerOptions);
-  function resetConversation(clearSaved = true) {
+  unload?.addEventListener('click', cancel, listenerOptions);
+  function invalidatePresentation() {
+    if (presentationInvalidated) return;
+    presentationInvalidated = true;
+    activeSessionId = undefined;
     cancel();
+    voice.clear();
+    savedTurns.splice(0);
+    turns = 0;
+    status.textContent =
+      'Chat cleared or replaced. Start chat again or explore experience.';
+    sync();
+  }
+  function resetConversation(clearSaved = true, keepReady = false) {
+    explorer?.hide();
+    if (!keepReady || state !== 'ready') cancel();
+    voice.clear();
+    activeSessionId = undefined;
+    presentationInvalidated = false;
     if (clearSaved) savedChat?.clear();
     if (conversation) conversation.clear();
     else {
@@ -442,7 +461,6 @@ export function setupRobotHost(root: HTMLElement) {
     }
     turns = 0;
     savedTurns.splice(0);
-    topic = undefined;
     input.value = '';
     delete aiStatus.dataset.touched;
     aiStatus.textContent = '';
@@ -456,7 +474,7 @@ export function setupRobotHost(root: HTMLElement) {
     'click',
     () => {
       resetConversation();
-      input.focus();
+      enable.focus();
     },
     listenerOptions
   );
@@ -501,6 +519,8 @@ export function setupRobotHost(root: HTMLElement) {
     cancel();
     dialogObserver.disconnect();
     conversation?.destroy();
+    explorer?.destroy();
+    voice.destroy();
     savedChat?.destroy();
     lifecycle.abort();
     instances.delete(root);
@@ -511,7 +531,10 @@ export function setupRobotHost(root: HTMLElement) {
   });
   savedChat = createSavedChat(root, {
     restore: restoreSaved,
-    changed: sync,
+    changed: () => {
+      if (savedChat?.invalidated) invalidatePresentation();
+      sync();
+    },
   });
   sync();
 }

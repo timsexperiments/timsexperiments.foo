@@ -1,17 +1,16 @@
+import { localModel } from './model';
 import { z } from 'zod';
+import { conversationTurnSchema } from '../../lib/conversations/protocol';
 export const workerRequest = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('load'),
-    model: z.enum([
-      'SmolLM2-360M-Instruct-q4f16_1-MLC',
-      'SmolLM2-360M-Instruct-q4f32_1-MLC',
-    ]),
+    model: z.literal(localModel.id),
   }),
   z.object({
     kind: z.literal('generate'),
     question: z.string().max(1000),
-    context: z.string().max(6500),
-    allowedIds: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1).max(2),
+    context: z.string().max(18000),
+    turns: z.array(conversationTurnSchema).max(3),
   }),
 ]);
 export const workerReply = z.discriminatedUnion('kind', [
