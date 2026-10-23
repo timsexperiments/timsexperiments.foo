@@ -18,6 +18,7 @@ import {
   type StationId,
 } from './index';
 import { buildWorld, views } from './world';
+import { isWalkBlocked } from './locomotion';
 
 async function withWorldCanvas(run: () => void | Promise<void>): Promise<void> {
   const origDocument = globalThis.document;
@@ -119,7 +120,7 @@ describe('campus night world', () => {
       expect(stationTargets).toEqual(
         new Set(['recipes', 'workbench', 'robot', 'contact'])
       );
-      expect(world.collisions.length).toBe(4);
+      expect(world.collisions.length).toBe(12);
 
       // Verify starfield Points exist and ignore fog so stars remain crisp
       const pointClouds: THREE.Points[] = [];
@@ -186,9 +187,13 @@ describe('campus night world', () => {
         }
       });
 
-      // Instancing merges the 42 floor tiles and 52 keyboard keys into 2 InstancedMeshes
-      expect(instancedMeshCount).toBe(2);
-      expect(instanceCounts.sort((a, b) => a - b)).toEqual([42, 52]);
+      // The envelope and its small details add bounded material batches, not individual draws.
+      expect(instancedMeshCount).toBeLessThanOrEqual(17);
+      expect(instanceCounts).toContain(42);
+      expect(instanceCounts).toContain(52);
+      const architecture = scene.getObjectByName('facility-architecture');
+      expect(architecture).toBeDefined();
+      expect(architecture?.children.length).toBeLessThanOrEqual(16);
       expect(meshCount).toBeLessThan(490);
       // Shadow casters are curated to major architectural/station silhouettes (< 60 vs 577 before)
       expect(castShadowCount).toBeGreaterThan(15);
@@ -273,6 +278,124 @@ describe('campus night world', () => {
       for (const count of disposalCounts.values()) expect(count).toBe(1);
     });
   });
+
+  for (const mobile of [false, true]) {
+    it(`encloses the walls and ceiling and retains station routes (${mobile ? 'mobile' : 'desktop'})`, async () => {
+      await withWorldCanvas(() => {
+        const scene = new THREE.Scene();
+        const world = buildWorld(scene, mobile);
+        try {
+          const architecture = scene.getObjectByName('facility-architecture');
+          expect(architecture).toBeDefined();
+          if (!architecture) throw new Error('Missing facility envelope');
+          scene.updateMatrixWorld(true);
+          const ray = new THREE.Raycaster();
+          // Include glass corners, roof curbs, wall tops, the threshold and closed leaf.
+          for (const x of [
+            -9.8, -9.6, -5.04, -5, -4.98, 0, 4.98, 5, 5.04, 9.6, 9.8,
+          ]) {
+            for (const z of [-7.25, -3.5, 0.5, 4.5, 8.75]) {
+              ray.set(new THREE.Vector3(x, 1.7, z), new THREE.Vector3(0, 1, 0));
+              expect(
+                ray.intersectObject(architecture, true).length
+              ).toBeGreaterThan(0);
+            }
+            for (const y of [0.12, 1.7, 4.9, 5.4]) {
+              for (const direction of [-1, 1]) {
+                ray.set(
+                  new THREE.Vector3(x, y, 0.75),
+                  new THREE.Vector3(0, 0, direction)
+                );
+                expect(
+                  ray.intersectObject(architecture, true).length
+                ).toBeGreaterThan(0);
+              }
+            }
+          }
+          for (const z of [-7.25, -3.5, 0.5, 4.5, 8.75]) {
+            for (const side of [-1, 1]) {
+              ray.set(
+                new THREE.Vector3(0, 1.7, z),
+                new THREE.Vector3(side, 0, 0)
+              );
+              expect(
+                ray.intersectObject(architecture, true).length
+              ).toBeGreaterThan(0);
+            }
+          }
+
+          const clear = (x: number, z: number) =>
+            !isWalkBlocked(world.collisions, x, z);
+          // Every station connects through the open aisle south of the robot, then along
+          // its own approach. Sampling segments catches furniture and camera clearance.
+          const segment = (from: [number, number], to: [number, number]) => {
+            const steps = Math.ceil(
+              Math.hypot(to[0] - from[0], to[1] - from[1]) / 0.08
+            );
+            for (let i = 0; i <= steps; i++) {
+              const t = steps === 0 ? 0 : i / steps;
+              expect(
+                clear(
+                  from[0] + (to[0] - from[0]) * t,
+                  from[1] + (to[1] - from[1]) * t
+                )
+              ).toBe(true);
+            }
+          };
+          for (const { position } of Object.values(views)) {
+            segment([0, 7.6], [position.x, 7.6]);
+            segment([position.x, 7.6], [position.x, position.z]);
+          }
+          // Follow the perimeter with detours around the four solid planters.
+          const perimeter: [number, number][] = [
+            [-9.15, -6.8],
+            [8.1, -6.8],
+            [8.1, -5.7],
+            [9.15, -5.7],
+            [9.15, 3.1],
+            [8.1, 3.1],
+            [8.1, 4.9],
+            [9.15, 4.9],
+            [9.15, 8.3],
+            [-9.15, 8.3],
+            [-9.15, 5.9],
+            [-8.1, 5.9],
+            [-8.1, 4.1],
+            [-9.15, 4.1],
+            [-9.15, -2.1],
+            [-8.1, -2.1],
+            [-8.1, -3.8],
+            [-9.15, -3.8],
+            [-9.15, -6.8],
+          ];
+          for (let i = 1; i < perimeter.length; i++)
+            segment(perimeter[i - 1], perimeter[i]);
+          segment([0, 7.6], [0, 8.3]);
+          for (const [x, z] of [
+            [-9.65, 0],
+            [9.65, 0],
+            [0, -7.4],
+            [0, 8.85],
+            [-9, -3],
+            [9, -6.6],
+            [9, 4],
+            [-9, 5],
+          ])
+            expect(isWalkBlocked(world.collisions, x, z)).toBe(true);
+
+          const wash = scene.getObjectByName('entrance-wash');
+          expect(wash).toBeInstanceOf(THREE.PointLight);
+          if (wash instanceof THREE.PointLight) {
+            expect(wash.castShadow).toBe(false);
+            expect(wash.distance).toBeLessThanOrEqual(7.5);
+          }
+        } finally {
+          world.dispose();
+          disposeSceneResources(scene);
+        }
+      });
+    });
+  }
 
   for (const late of [false, true]) {
     it(`disposes shared GLB resources once when ${late ? 'loaded after disposal' : 'attached before disposal'}`, async () => {

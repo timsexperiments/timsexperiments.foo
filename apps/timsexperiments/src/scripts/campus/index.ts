@@ -7,7 +7,7 @@ import {
   isCompactViewport,
 } from './quality';
 import { computeFrameSchedule, easeInOutCubic } from './scheduler';
-import { readStick, walkStep } from './locomotion';
+import { isWalkBlocked, readStick, walkStep } from './locomotion';
 import type {
   CampusCallbacks,
   CampusController,
@@ -716,13 +716,7 @@ export async function createCampus(
   );
 
   function blocked(x: number, z: number) {
-    return world.collisions.some(
-      (bounds) =>
-        x > bounds.minX - 0.22 &&
-        x < bounds.maxX + 0.22 &&
-        z > bounds.minZ - 0.22 &&
-        z < bounds.maxZ + 0.22
-    );
+    return isWalkBlocked(world.collisions, x, z);
   }
 
   function held(code: string) {

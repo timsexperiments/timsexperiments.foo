@@ -3,6 +3,7 @@ import logoGlbUrl from '../../assets/campus/tims-experiments-dark.glb?url';
 import logoUrl from '../../assets/tim_s_experiments_logo_dark.svg?url';
 import labLogoUrl from '../../assets/the_lab_logo_dark.svg?url';
 import { createTextureRegistry } from './textures';
+import { buildArchitecture } from './architecture';
 import type {
   CollisionBounds,
   StationId,
@@ -313,6 +314,15 @@ export function buildWorld(
     scene.add(group);
     group.position.set(x, 0, z);
     group.scale.setScalar(scale);
+    if (!exterior) {
+      const radius = 0.38 * scale;
+      collisions.push({
+        minX: x - radius,
+        maxX: x + radius,
+        minZ: z - radius,
+        maxZ: z + radius,
+      });
+    }
     cylinder(
       0.38,
       0.27,
@@ -532,8 +542,8 @@ export function buildWorld(
   const ceilingRise = 0.75;
   const logoHeight = 3.55 + ceilingRise;
 
-  // Continuous architectural shell, instanced dark terrazzo tiles, and exposed roof ribs.
-  box(21, 0.24, 19, material(0x090d0c, 0.85), 0, -0.16, 0, scene, {
+  // Continuous foundation and instanced terrazzo flooring inside the completed envelope.
+  box(20.6, 0.24, 17.4, material(0x090d0c, 0.85), 0, -0.16, 0.75, scene, {
     cast: false,
     receive: true,
   });
@@ -553,86 +563,23 @@ export function buildWorld(
   let tileIdx = 0;
   for (const x of tileGridX) {
     for (const z of tileGridZ) {
-      tileMatrix.makeTranslation(x, -0.025, z);
+      // Cut perimeter tiles at the wall and south threshold, inside the foundation.
+      tileMatrix.makeScale(
+        Math.abs(x) === 9 ? 2.47 / 2.97 : 1,
+        1,
+        z === 9 ? 1.47 / 2.97 : 1
+      );
+      tileMatrix.setPosition(
+        Math.abs(x) === 9 ? x - Math.sign(x) * 0.25 : x,
+        -0.025,
+        z === 9 ? 8.25 : z
+      );
       tileInstances.setMatrixAt(tileIdx++, tileMatrix);
     }
   }
   tileInstances.instanceMatrix.needsUpdate = true;
   scene.add(tileInstances);
 
-  box(20, 0.12, 0.12, ink, 0, 0.02, -7.4, scene, {
-    cast: false,
-    receive: true,
-  });
-  box(0.12, 0.035, 16, aluminum, -8.8, 0, 0.4, scene, {
-    cast: false,
-    receive: true,
-  });
-  box(0.12, 0.035, 16, aluminum, 8.8, 0, 0.4, scene, {
-    cast: false,
-    receive: true,
-  });
-  box(20, 0.9, 0.25, ink, 0, 4.65 + ceilingRise, -7.5, scene, {
-    cast: true,
-    receive: true,
-  });
-  box(
-    0.3,
-    4.7 + ceilingRise,
-    17,
-    plaster,
-    -10,
-    2.3 + ceilingRise / 2,
-    0.5,
-    scene,
-    {
-      cast: true,
-      receive: true,
-    }
-  );
-  box(
-    0.3,
-    4.7 + ceilingRise,
-    17,
-    plaster,
-    10,
-    2.3 + ceilingRise / 2,
-    0.5,
-    scene,
-    {
-      cast: true,
-      receive: true,
-    }
-  );
-  for (const x of [-9.4, -5, 0, 5, 9.4]) {
-    box(
-      0.14,
-      4.5 + ceilingRise,
-      0.18,
-      aluminum,
-      x,
-      2.25 + ceilingRise / 2,
-      -7.45,
-      scene,
-      {
-        cast: true,
-        receive: false,
-      }
-    );
-    box(0.18, 0.24, 16.5, ink, x, 4.35 + ceilingRise, 0.3, scene, {
-      cast: false,
-      receive: false,
-    });
-    box(0.06, 0.025, 14, warmGlow, x, 4.2 + ceilingRise, 0.1);
-  }
-  for (const z of [-6.8, 0, 6.8]) {
-    box(19.8, 0.22, 0.18, aluminum, 0, 4.4 + ceilingRise, z, scene, {
-      cast: false,
-      receive: false,
-    });
-  }
-
-  // Non-shadow-casting architectural glass keeps moonlight and courtyard views crisp.
   const glass = new THREE.MeshStandardMaterial({
     color: 0x8adcd0,
     transparent: true,
@@ -642,49 +589,18 @@ export function buildWorld(
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  mesh(
-    getPlaneGeometry(19.2, 4.1 + ceilingRise),
-    glass,
-    0,
-    2.25 + ceilingRise / 2,
-    -7.48,
+  buildArchitecture({
     scene,
-    {
-      cast: false,
-      receive: false,
-    }
-  );
-  for (const x of [-9.8, 9.8]) {
-    const pane = mesh(
-      getPlaneGeometry(15, 4 + ceilingRise),
-      glass,
-      x,
-      2.3 + ceilingRise / 2,
-      0,
-      scene,
-      {
-        cast: false,
-        receive: false,
-      }
-    );
-    pane.rotation.y = Math.PI / 2;
-    for (const z of [-6, -2, 2, 6]) {
-      box(
-        0.15,
-        4.5 + ceilingRise,
-        0.13,
-        aluminum,
-        x,
-        2.25 + ceilingRise / 2,
-        z,
-        scene,
-        {
-          cast: false,
-          receive: false,
-        }
-      );
-    }
-  }
+    collisions,
+    getBoxGeometry,
+    getCylinderGeometry,
+    material,
+    ink,
+    aluminum,
+    glass,
+    warmGlow,
+    coolTrim,
+  });
 
   // Moonlit campus courtyard visible through the north glass.
   box(100, 0.2, 100, material(0x0b1210, 0.92), 0, -0.35, -25, scene, {
@@ -1138,7 +1054,8 @@ export function buildWorld(
   collisions.push({ minX: 4.6, maxX: 8.4, minZ: -5.3, maxZ: -3.1 });
 
   plant(-9, -3, 1.25);
-  plant(9, -6, 1.4);
+  // Set the north-east planter back far enough to leave a passage behind the letter desk.
+  plant(9, -6.6, 1.4);
   plant(9, 4, 1.2);
   plant(-9, 5, 1.1);
 
