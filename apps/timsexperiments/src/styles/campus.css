@@ -72,3 +72,7 @@ html:has(>.campus-page),html:has(>body.campus-page){height:100%;overflow:hidden;
 .is-exploring .header-center,.is-exploring .lab-brand,.room-caption>span{width:fit-content;padding:5px 7px;border-radius:3px;background:var(--hud-label-bg)}
 .lab-footer>a,.lab-footer>span{width:fit-content;padding:3px 5px;border-radius:3px;background:var(--hud-label-bg)}
 @media(max-width:700px){.is-exploring .explore-note{padding:0;gap:6px}.is-exploring .explore-note>span:last-child{flex-basis:auto}.station-button{padding-left:6px;padding-right:6px}.station-number,.station-name,.station-description{padding:3px 5px}}
+
+/* The robot modal owns the controls while the room remains visible.
+   Visibility preserves layout and restores the HUD as soon as it closes. */
+.campus-page:has(.robot-dialog[open]) :is(.lab-header,.arrival-copy,.room-caption,.scene-status,.explore-note,.scene-walk-pad,.lab-directory,.lab-footer){visibility:hidden;pointer-events:none}
