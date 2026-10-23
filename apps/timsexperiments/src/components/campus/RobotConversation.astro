@@ -34,12 +34,9 @@ const { id = 'robot-conversation' } = Astro.props;
       tabindex="0">
       <article class="chat-greeting">
         <h3 class="robot-speaker">Lab robot</h3><p>
-          Hi, I'm the lab robot. Explore Tim's experience, or start local AI
-          chat.
+          What would you like to know about Tim?
         </p><p class="chat-disclaimer">
-          AI can be wrong. Questions and replies are saved for Tim. Refresh
-          keeps your local chat; closing or clearing removes your local copy.
-          Tim's archive remains.
+          AI can be wrong. Chats are saved for Tim.
         </p>
       </article>
     </div>
@@ -64,9 +61,9 @@ const { id = 'robot-conversation' } = Astro.props;
         <h4 id={`${id}-history-title`}>Chat archive</h4>
         <p>
           Completed questions and replies are automatically sent to
-          TimsExperiments for Tim to read. No account is needed. Closing or
-          clearing starts a new chat and removes this browser's copy. Tim's
-          archive remains.
+          TimsExperiments for Tim to read. No account is needed. Refresh keeps
+          your local chat. Closing or clearing starts a new chat and removes
+          this browser's copy. Tim's archive remains.
         </p>
         <p data-history-status role="status" aria-live="polite">
           Completed replies are archived for Tim.
@@ -105,8 +102,6 @@ const { id = 'robot-conversation' } = Astro.props;
       >Read Tim’s work</a
     > · <a href="/classic#contact" target="_blank" rel="noopener noreferrer"
       >Contact Tim</a
-    > · Use the <a href="/resume/mcp" target="_blank" rel="noopener noreferrer"
-      >TimsExperiments MCP in your own agents ↗</a
     >
   </p>
   <div class="chat-suggestions" aria-label="Suggested questions">
@@ -422,11 +417,22 @@ const { id = 'robot-conversation' } = Astro.props;
   .robot-conversation .robot-start p {
     font-size: 12px;
   }
-  .robot-conversation .robot-start [data-model-notice] {
+  .robot-conversation .robot-start-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .robot-conversation:not(:has(.robot-turn)) [data-dialogue-history] {
     display: none;
   }
-  .robot-conversation[data-exploring='true'] .robot-start [data-model-notice] {
-    display: block;
+  .robot-conversation[data-model-state='off']:not(
+      :has(.robot-turn, [data-ai-status][data-touched])
+    )
+    .chat-mcp-link {
+    display: none;
+  }
+  .robot-conversation:has(.chat-options:not([hidden])) .robot-local {
+    display: none;
   }
   .robot-conversation .robot-start small {
     display: block;
@@ -518,7 +524,7 @@ const { id = 'robot-conversation' } = Astro.props;
     > small:not([data-model-notice]) {
     display: none;
   }
-  .robot-conversation .robot-start > button {
+  .robot-conversation .robot-start button {
     font-size: 12px;
   }
   .robot-conversation[data-exploring='true'] [data-explore] {
