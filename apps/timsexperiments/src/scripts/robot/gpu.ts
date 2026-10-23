@@ -1,14 +1,11 @@
 import { z } from 'zod';
 
-export const modelIds = {
-  f16: 'SmolLM2-360M-Instruct-q4f16_1-MLC',
-  f32: 'SmolLM2-360M-Instruct-q4f32_1-MLC',
-} as const;
+import { localModel } from './model';
 
 function object(value: unknown): object {
   if (typeof value !== 'object' || value === null)
     throw new Error(
-      'No compatible GPU was available. Published evidence still works.'
+      "No compatible GPU was available. Read Tim's work or contact him below."
     );
   return value;
 }
@@ -19,7 +16,7 @@ export async function selectGpuModel(gpu: unknown) {
   const requestAdapter: unknown = Reflect.get(api, 'requestAdapter');
   if (typeof requestAdapter !== 'function')
     throw new Error(
-      'This browser does not support WebGPU. Published evidence still works.'
+      "This browser does not support WebGPU. Read Tim's work or contact him below."
     );
   const adapter: unknown = await Reflect.apply(requestAdapter, api, []);
   const device = object(adapter);
@@ -27,7 +24,7 @@ export async function selectGpuModel(gpu: unknown) {
   const bufferSize = z
     .number()
     .parse(Reflect.get(limits, 'maxStorageBufferBindingSize'));
-  if (bufferSize < 128 * 1024 * 1024)
+  if (bufferSize < 256 * 1024 * 1024)
     throw new Error(
       'This GPU has insufficient buffer capacity for the local model.'
     );
@@ -36,5 +33,9 @@ export async function selectGpuModel(gpu: unknown) {
   if (typeof has !== 'function')
     throw new Error('This browser cannot check required GPU features.');
   const f16 = z.boolean().parse(Reflect.apply(has, features, ['shader-f16']));
-  return f16 ? modelIds.f16 : modelIds.f32;
+  if (!f16)
+    throw new Error(
+      'This GPU lacks shader-f16. The f32 model is unverified and will not download. Explore experience below, or use the contact and MCP links.'
+    );
+  return localModel.id;
 }

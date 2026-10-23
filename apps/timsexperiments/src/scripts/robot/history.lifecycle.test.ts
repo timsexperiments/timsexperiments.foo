@@ -2,9 +2,6 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { createSavedChat } from './history';
 import { activeChatKey, parseActiveChat, type ActiveChat } from './active-chat';
 import type { ConversationTurn } from '../../lib/conversations/protocol';
-import { answerInBrowser } from '../../lib/resume/browser-answer';
-import { conversationalParagraphs } from '../chat-view/evidence';
-import { groundedContext } from './evidence';
 import {
   browserEnvironment,
   click,
@@ -615,336 +612,422 @@ describe('local active chat and write-only archive', () => {
   });
 });
 
-describe('actual host refresh, close, Clear, and local inference', () => {
-  for (const action of ['clear', 'close'] satisfies ('clear' | 'close')[])
-    test(`actual host ${action} isolates a delayed 429 body from its next session`, async () => {
-      await startHost();
-      const body = server.delayErrorCancellation();
-      submit(dom, 'Hello');
-      await env.advance(0);
-      const oldId = local()?.id;
-      expect(body.started()).toBe(true);
-      if (action === 'clear') click(dom.clear);
-      else closeNative();
-      await settle();
-      expect(local()).toBeUndefined();
-      dom.dialog.open = true;
-      submit(dom, 'Thanks');
-      await env.advance(0);
-      const newId = local()?.id;
-      expect(newId).not.toBe(oldId);
-      expect(env.timerCount()).toBe(0);
-      body.release();
-      await settle();
-      expect(env.timerCount()).toBe(0);
-      expect(dom.historyStatus.textContent).toBe(
-        'Completed replies archived for Tim.'
-      );
-      await env.advance(2000);
-      submit(dom, 'Hello again');
-      await env.advance(0);
-      expect(server.calls).toHaveLength(3);
-      expect(local()?.id).toBe(newId);
-      expect(local()?.turns.map((turn) => turn.question)).toEqual([
-        'Thanks',
-        'Hello again',
-      ]);
-    });
-  test('an invalidated host keeps answers visible and resets topic and turn limit on its next explicit question', async () => {
-    const question = 'What did Tim build at Included Health?';
-    const answer = answerInBrowser(question);
-    const turn = {
-      question,
-      paragraphs: conversationalParagraphs(answer),
-      experienceIds: answer.brief.evidence.map((record) => record.id),
-    };
-    env.storage.set(
-      activeChatKey,
-      JSON.stringify(envelope(Array(12).fill(turn)))
-    );
-    await startHost();
-    const firstDom = dom;
-    const { controller: other } = startHistory(robotDom());
-    other.clear();
-    expect(firstDom.transcript.textContent).toContain(question);
-    expect(firstDom.input.disabled).toBe(false);
-    submit(firstDom, '   ');
-    await env.advance(0);
-    expect(firstDom.transcript.textContent).toContain(question);
-    expect(local()).toBeUndefined();
-    other.save([another]);
+describe('actual generated conversation lifecycle', () => {
+  async function ready() {
+    click(dom.enable);
     await settle();
-    const otherId = local()?.id;
-    submit(firstDom, 'Tell me more');
+    const worker = TestWorker.instances.at(-1);
+    if (!worker) throw new Error('Expected an inference worker');
+    worker.reply({ kind: 'ready' });
+    return worker;
+  }
+  async function complete(
+    question = 'Hello',
+    text = 'Hi. What are you hoping to build?'
+  ) {
+    submit(dom, question);
     await env.advance(0);
-    expect(local()?.id).not.toBe(id);
-    expect(local()?.id).not.toBe(otherId);
-    expect(local()?.turns.map((turn) => turn.question)).toEqual([
-      'Tell me more',
-    ]);
-    expect(local()?.turns[0]?.paragraphs).toEqual(
-      conversationalParagraphs(answerInBrowser('Tell me more'))
-    );
-    expect(firstDom.transcript.textContent).not.toContain(question);
-    expect(server.methods()).toEqual(['PUT', 'PUT']);
-  });
-  test('a shared identity change while starting a question still resets the actual host safely', async () => {
-    env.storage.set(activeChatKey, JSON.stringify(envelope()));
+    TestWorker.instances.at(-1)?.reply({ kind: 'answer', text });
+    await settle();
+  }
+  test('record explorer is in-panel navigation with no model, fake dialogue or archive writes', async () => {
+    const add = (tag: string, attribute: string) => {
+      const element = document.createElement(tag);
+      element.setAttribute(attribute, '');
+      dom.root.append(element);
+      return element;
+    };
+    const entry = add('button', 'data-explore');
+    const panel = add('section', 'data-explorer');
+    panel.hidden = true;
+    const topics = add('nav', 'data-explorer-topics');
+    const records = add('div', 'data-explorer-content');
     await startHost();
-    const replacement = { ...envelope([another]), id: crypto.randomUUID() };
-    let reads = 0;
-    env.install('localStorage', {
-      getItem(key: string) {
-        reads += 1;
-        if (reads === 2)
-          env.storage.set(activeChatKey, JSON.stringify(replacement));
-        return env.storage.get(key) ?? null;
-      },
-      setItem(key: string, value: string) {
-        env.storage.set(key, value);
-      },
-      removeItem(key: string) {
-        env.storage.delete(key);
+    click(entry);
+    expect(panel.hidden).toBe(false);
+    expect(records.textContent).toContain('Agent Dispatch');
+    const graphql = [...topics.querySelectorAll('button')].find(
+      (button) => button.textContent === 'GraphQL'
+    );
+    if (!graphql) throw new Error('GraphQL topic missing');
+    click(graphql);
+    expect(records.textContent).toContain('Included Health: Extensible practitioner profiles');
+    expect(records.querySelector('details')).toBeNull();
+    expect(records.textContent).not.toContain('federated GraphQL');
+    expect(records.textContent).not.toContain(
+      'No particular GraphQL federation framework'
+    );
+    expect(dom.transcript.querySelector('.robot-turn')).toBeNull();
+    expect(TestWorker.instances).toHaveLength(0);
+    expect(server.calls).toHaveLength(0);
+    expect(local()).toBeUndefined();
+  });
+  test('unsupported f16 GPU never creates a worker or starts an f32 download', async () => {
+    env.install('navigator', {
+      gpu: {
+        requestAdapter: async () => ({
+          limits: { maxStorageBufferBindingSize: 256 * 1024 * 1024 },
+          features: new Set(),
+        }),
       },
     });
-    submit(dom, 'Hello');
-    await env.advance(0);
-    expect(local()?.id).not.toBe(id);
-    expect(local()?.id).not.toBe(replacement.id);
-    expect(local()?.turns.map((turn) => turn.question)).toEqual(['Hello']);
-    expect(dom.transcript.textContent).not.toContain(qualified.question);
-    expect(server.methods()).toEqual(['PUT']);
-  });
-  test('a pending local answer cannot reclaim a UUID cleared by another controller', async () => {
     await startHost();
+    click(dom.enable);
+    await settle();
+    expect(TestWorker.instances).toHaveLength(0);
+    expect(dom.aiStatus.textContent).toContain('f32 model is unverified');
+    expect(dom.aiStatus.textContent).toContain('Explore experience');
+    expect(dom.root.dataset.modelState).toBe('off');
+  });
+  test('requires an explicit model start and never archives prepared or pending replies', async () => {
+    await startHost();
+    expect(dom.send.disabled).toBe(true);
     submit(dom, 'Hello');
-    const { controller: other } = startHistory(robotDom());
-    other.clear();
     await env.advance(0);
-    expect(dom.transcript.textContent).toContain('Hello');
+    expect(server.calls).toHaveLength(0);
+    expect(TestWorker.instances).toHaveLength(0);
+    const worker = await ready();
+    submit(dom, 'I need to hire my boy Tim. Do you think that is a good idea?');
+    await env.advance(0);
     expect(local()).toBeUndefined();
     expect(server.calls).toHaveLength(0);
-    submit(dom, 'Thanks');
-    await env.advance(0);
-    expect(local()?.turns.map((turn) => turn.question)).toEqual(['Thanks']);
-    expect(dom.transcript.textContent).not.toContain('Hello');
+    expect(JSON.stringify(worker.messages)).toContain(
+      'Agent Dispatch platform'
+    );
+    worker.reply({
+      kind: 'answer',
+      text: 'His platform work looks relevant. What does your team need?',
+    });
+    expect(local()?.turns[0]?.paragraphs).toEqual([
+      'His platform work looks relevant. What does your team need?',
+    ]);
+    await settle();
     expect(server.methods()).toEqual(['PUT']);
   });
-  test('refresh restores exact paragraphs safely and never reads the remote archive', async () => {
-    env.storage.set(activeChatKey, JSON.stringify(envelope()));
-    server.archives.set(id, envelope([another], 10));
+  test('refresh restores generated text exactly and only completed turns enter follow-up context', async () => {
     await startHost();
-    for (const paragraph of qualified.paragraphs)
-      expect(dom.transcript.textContent).toContain(paragraph);
-    expect(dom.transcript.querySelector('script')).toBeNull();
-    expect(dom.transcript.querySelector('a')).toBeNull();
-    expect(dom.transcript.textContent).not.toContain(another.question);
-    expect(server.calls).toHaveLength(0);
-    submit(dom, 'Hello');
-    await env.advance(0);
-    expect(local()?.turns[0]).toEqual(qualified);
-    expect(dom.transcript.textContent).toContain('Hello');
-  });
-  test('completed replies survive failed archiving and a refresh with the same local identity', async () => {
-    await startHost();
-    server.fail(503);
-    submit(dom, 'What platform architecture has Tim led?');
-    await env.advance(0);
-    const stored = local();
-    expect(stored?.turns).toHaveLength(1);
-    const displayed = dom.transcript.textContent;
+    await ready();
+    await complete(
+      'Can he mentor engineers?',
+      'He coached an intern through implementation at Included Health.'
+    );
+    const before = local();
     env.page('pagehide', false);
     dom = robotDom();
     await startHost();
-    expect(dom.transcript.textContent).toBe(displayed);
-    expect(local()?.id).toBe(stored?.id);
+    expect(dom.transcript.textContent).toContain(
+      before?.turns[0]?.paragraphs[0] ?? 'missing'
+    );
     expect(server.methods()).toEqual(['PUT']);
+    const worker = await ready();
+    submit(dom, 'How did that work?');
+    await env.advance(0);
+    expect(JSON.stringify(worker.messages)).toContain('He coached an intern');
+    expect(local()?.turns).toHaveLength(1);
+    worker.reply({
+      kind: 'answer',
+      text: 'He helped the intern break work into small slices.',
+    });
+    expect(local()?.turns).toHaveLength(2);
   });
   for (const action of ['native close', 'attribute close', 'clear'])
-    test(`${action} resets greeting, controls, local identity, and twelve-turn limit`, async () => {
-      env.storage.set(
-        activeChatKey,
-        JSON.stringify(envelope(Array(12).fill(qualified)))
-      );
+    test(`${action} clears local identity and rejects late generations`, async () => {
       await startHost();
-      expect(dom.input.disabled).toBe(true);
-      click(dom.options);
-      expect(dom.panel.hidden).toBe(false);
+      const worker = await ready();
+      await complete();
+      const id = local()?.id;
+      submit(dom, 'Pending reply');
+      await env.advance(0);
+      const staleCallback = worker.onmessage;
       if (action === 'clear') click(dom.clear);
       else if (action === 'native close') closeNative();
       else dom.dialog.open = false;
       await settle();
+      staleCallback?.({ data: { kind: 'answer', text: 'Stale reply' } });
       expect(local()).toBeUndefined();
+      expect(worker.terminated).toBe(true);
+      expect(dom.transcript.textContent).not.toContain('Stale reply');
       expect(dom.transcript.textContent).toContain("Hi, I'm the lab robot.");
-      expect(dom.transcript.textContent).not.toContain(qualified.question);
-      expect(dom.panel.hidden).toBe(true);
-      expect(dom.input.disabled).toBe(false);
-      expect(dom.clear.hidden).toBe(true);
-      if (action === 'clear') expect(dom.dialog.open).toBe(true);
       dom.dialog.open = true;
-      await settle();
-      expect(local()).toBeUndefined();
-      submit(dom, 'Hello');
-      await env.advance(0);
+      await ready();
+      await complete('New question');
       expect(local()?.id).not.toBe(id);
-      expect(local()?.turns.map((turn) => turn.question)).toEqual(['Hello']);
+      expect(local()?.turns.map((turn) => turn.question)).toEqual([
+        'New question',
+      ]);
     });
-  for (const action of ['close', 'clear'])
-    test(`${action} cancels a pending question without writing it`, async () => {
-      await startHost();
-      submit(dom, 'Pending question');
-      expect(dom.transcript.textContent).toContain('Pending question');
-      expect(local()).toBeUndefined();
-      if (action === 'close') closeNative();
-      else click(dom.clear);
-      await env.advance(0);
-      expect(dom.transcript.textContent).not.toContain('Pending question');
-      expect(server.calls).toHaveLength(0);
-      expect(local()).toBeUndefined();
-    });
-  test('close stops the worker and ignores later answers and archive receipt', async () => {
+  test('cancel download and failed generation keep the typed question and permit retry', async () => {
     await startHost();
     click(dom.enable);
     await settle();
-    const worker = TestWorker.instances[0];
-    worker?.reply({ kind: 'ready' });
-    const release = server.defer(true);
-    submit(dom, 'What did Tim build at Included Health?');
-    await env.advance(0);
-    closeNative();
-    release();
-    await settle();
-    worker?.reply({ kind: 'answer', text: 'Late answer' });
+    const worker = TestWorker.instances.at(-1);
+    click(dom.stop);
+    worker?.onmessage?.({ data: { kind: 'ready' } });
+    expect(dom.send.disabled).toBe(true);
     expect(worker?.terminated).toBe(true);
-    expect(dom.aiStatus.hidden).toBe(true);
-    expect(dom.enable.disabled).toBe(false);
-    expect(dom.transcript.textContent).not.toContain('Included Health');
+    const retry = await ready();
+    submit(dom, 'Keep this question');
+    await env.advance(0);
+    retry.reply({ kind: 'error', stage: 'generate', message: 'Device lost' });
+    expect(dom.input.value).toBe('Keep this question');
     expect(local()).toBeUndefined();
-    expect(server.calls).toHaveLength(1);
+    expect(server.calls).toHaveLength(0);
+    await ready();
+    await complete('Keep this question');
+    expect(local()?.turns).toHaveLength(1);
   });
-  test('Clear resets topic context so a follow-up cannot borrow the previous project', async () => {
+  test('BFcache preserves completed turns and cancels pending inference without archiving it', async () => {
     await startHost();
-    submit(dom, 'What did Tim build at Included Health?');
-    await env.advance(0);
-    click(dom.clear);
-    submit(dom, 'Tell me more');
-    await env.advance(0);
-    expect(local()?.turns).toEqual([
-      {
-        question: 'Tell me more',
-        paragraphs: conversationalParagraphs(answerInBrowser('Tell me more')),
-        experienceIds: answerInBrowser('Tell me more').brief.evidence.map(
-          (record) => record.id
-        ),
-      },
-    ]);
-  });
-  test('BFcache cancels pending work, preserves completed replies, and accepts a new question', async () => {
-    await startHost();
-    submit(dom, 'Hello');
-    await env.advance(0);
+    const worker = await ready();
+    await complete();
     const before = local();
-    submit(dom, 'Still pending');
-    env.page('pagehide', true);
+    submit(dom, 'Pending');
     await env.advance(0);
+    env.page('pagehide', true);
+    worker.onmessage?.({ data: { kind: 'answer', text: 'Late answer' } });
     env.page('pageshow', true);
     expect(local()).toEqual(before);
-    expect(dom.input.readOnly).toBe(false);
-    submit(dom, 'Thanks');
-    await env.advance(0);
-    await env.advance(2000);
+    expect(worker.terminated).toBe(true);
+    await ready();
+    await complete('Thanks');
     expect(local()?.turns.map((turn) => turn.question)).toEqual([
       'Hello',
       'Thanks',
     ]);
   });
-  test('archive conflicts leave new local questions usable without reading the archive', async () => {
+  test('shared Clear invalidates a pending answer and the next question has fresh context', async () => {
     await startHost();
-    server.fail(409);
-    submit(dom, 'Hello');
+    const worker = await ready();
+    await complete('Mentoring', 'He coached engineers at Included Health.');
+    submit(dom, 'How did that work?');
     await env.advance(0);
-    submit(dom, 'Thanks');
-    await env.advance(0);
-    expect(local()?.turns.map((turn) => turn.question)).toEqual([
-      'Hello',
-      'Thanks',
-    ]);
-    expect(server.methods()).toEqual(['PUT']);
-    expect(dom.input.readOnly).toBe(false);
-    click(dom.clear);
-    expect(local()).toBeUndefined();
-  });
-  test('accepted WebLLM passage persists exactly before automatic archive retry', async () => {
-    await startHost();
-    click(dom.enable);
-    await settle();
-    const worker = TestWorker.instances[0];
-    worker?.reply({ kind: 'ready' });
-    const question = 'What did Tim build at Included Health?';
-    submit(dom, question);
-    await env.advance(0);
-    const answer = answerInBrowser(question);
-    const context = groundedContext(answer.brief);
-    const record = answer.brief.evidence.find((record) =>
-      context?.ids.includes(record.id)
-    );
-    if (!record) throw new Error('Question must select an extractable source');
-    await env.advance(500);
-    worker?.reply({
+    const { controller: other } = startHistory(robotDom());
+    other.clear();
+    worker.reply({
       kind: 'answer',
-      text: `${record.strength} [${record.id}]`,
+      text: 'This must not reclaim the old identity.',
     });
-    const passage = `Here's a detail from that experience: ${record.strength}`;
-    const expected = [...conversationalParagraphs(answer), passage];
-    expect(local()?.turns[0]?.paragraphs).toEqual(expected);
-    expect(dom.transcript.textContent).toContain(passage);
-    await settle();
-    await env.advance(2000);
-    expect(
-      server.archives.get(local()?.id ?? '')?.turns[0]?.paragraphs
-    ).toEqual(expected);
-    expect(local()?.turns[0]?.experienceIds).toEqual(
-      answer.brief.evidence.map((record) => record.id)
-    );
-  });
-  test('BFcache retains active chat, suspends retries, and keeps listeners usable', async () => {
-    const setup = await startHost();
-    submit(dom, 'Hello');
-    await env.advance(0);
-    submit(dom, 'Thanks');
-    await env.advance(0);
-    const before = local();
-    const text = dom.transcript.textContent;
-    env.page('pagehide', true);
-    await env.advance(3000);
-    expect(local()).toEqual(before);
-    expect(dom.transcript.textContent).toBe(text);
-    expect(server.calls).toHaveLength(2);
-    env.page('pageshow', true);
-    setup(dom.root);
-    await settle();
-    expect(server.methods()).toEqual(['PUT', 'PUT', 'PUT']);
-    expect(local()?.id).toBe(before?.id);
-    submit(dom, 'Hello again');
-    await env.advance(0);
-    await env.advance(2000);
+    expect(local()).toBeUndefined();
+    expect(worker.terminated).toBe(true);
+    expect(dom.transcript.textContent).not.toContain('This must not reclaim');
+    const restarted = await ready();
+    await complete('Hello again');
     expect(local()?.turns.map((turn) => turn.question)).toEqual([
-      'Hello',
-      'Thanks',
       'Hello again',
     ]);
-    click(dom.clear);
-    expect(local()).toBeUndefined();
+    expect(JSON.stringify(restarted.messages.at(-1))).not.toContain(
+      'He coached engineers'
+    );
   });
-  test('pagehide disposal keeps completed local turns and cancels a queued retry', async () => {
+  for (const action of [
+    'shared Clear',
+    'cross-tab Clear',
+    'replacement',
+    'undelivered replacement',
+  ])
+    for (const pending of [false, true])
+      test(`${action} cancels host speech and rejects late display, pending: ${pending}`, async () => {
+        class Utterance {
+          voice: SpeechSynthesisVoice | null = null;
+          lang = '';
+          rate = 1;
+          onend: (() => void) | null = null;
+          onerror: (() => void) | null = null;
+          constructor(readonly text: string) {}
+        }
+        const spoken: Utterance[] = [];
+        let cancels = 0;
+        const synth = Object.assign(new EventTarget(), {
+          getVoices: () => [
+            {
+              voiceURI: 'test',
+              name: 'Local',
+              lang: 'en-US',
+              localService: true,
+              default: false,
+            },
+          ],
+          speak: (utterance: Utterance) => spoken.push(utterance),
+          cancel: () => {
+            cancels += 1;
+          },
+        });
+        Reflect.set(window, 'speechSynthesis', synth);
+        env.install('SpeechSynthesisUtterance', Utterance);
+        await startHost();
+        const worker = await ready();
+        click(dom.voiceToggle);
+        await complete(
+          'Mentoring',
+          'First accepted sentence. Second accepted sentence.'
+        );
+        expect(spoken).toHaveLength(1);
+        const oldSpeech = spoken[0]?.onend;
+        if (pending) {
+          submit(dom, 'How did that work?');
+          await env.advance(0);
+        }
+        const oldMessage = worker.onmessage;
+        const beforeCancel = cancels;
+        if (action === 'shared Clear')
+          startHistory(robotDom()).controller.clear();
+        else {
+          env.storage.delete(activeChatKey);
+          if (action.includes('replacement'))
+            env.storage.set(
+              activeChatKey,
+              JSON.stringify({
+                ...envelope([another]),
+                id: crypto.randomUUID(),
+              })
+            );
+          if (action !== 'undelivered replacement')
+            env.storageEvent(
+              activeChatKey,
+              env.storage.get(activeChatKey) ?? null
+            );
+        }
+        // Invalidation itself must stop playback/inference before a worker can
+        // deliver anything else. The acceptance guard is a separate defense.
+        if (action !== 'undelivered replacement') {
+          expect(worker.terminated).toBe(true);
+          expect(dom.voiceReplay.disabled).toBe(true);
+          expect(dom.root.dataset.modelState).toBe('off');
+          if (!pending) expect(cancels).toBeGreaterThan(beforeCancel);
+        }
+        const retained = env.storage.get(activeChatKey);
+        oldMessage?.({
+          data: { kind: 'answer', text: 'STALE generated reply.' },
+        });
+        oldSpeech?.();
+        click(dom.voiceReplay);
+        expect(worker.terminated).toBe(true);
+        if (!pending) expect(cancels).toBeGreaterThan(beforeCancel);
+        else expect(cancels).toBeGreaterThan(0);
+        expect(dom.transcript.textContent).not.toContain(
+          'STALE generated reply.'
+        );
+        expect(spoken).toHaveLength(1);
+        expect(env.storage.get(activeChatKey)).toBe(retained);
+        expect(server.calls).toHaveLength(1);
+        await ready();
+        await complete('Fresh question', 'Fresh answer.');
+        expect(local()?.turns.map((turn) => turn.question)).toEqual([
+          'Fresh question',
+        ]);
+      });
+
+  test('Clear and unload return focus to visible Start and close Settings', async () => {
     await startHost();
-    server.fail(429);
-    submit(dom, 'Hello');
+    await ready();
+    await complete();
+    click(dom.options);
+    dom.unload.focus();
+    click(dom.unload);
+    expect(document.activeElement).toBe(dom.enable);
+    expect(dom.panel.hidden).toBe(true);
+    await ready();
+    click(dom.options);
+    dom.clear.focus();
+    click(dom.clear);
+    expect(document.activeElement).toBe(dom.enable);
+    expect(dom.panel.hidden).toBe(true);
+    expect(dom.root.dataset.modelState).toBe('off');
+  });
+  test('identity replacement discovered at submission requires a fresh model and context', async () => {
+    await startHost();
+    const worker = await ready();
+    await complete('Mentoring', 'Old session content.');
+    env.storage.set(
+      activeChatKey,
+      JSON.stringify({ ...envelope([another]), id: crypto.randomUUID() })
+    );
+    submit(dom, 'New question');
     await env.advance(0);
-    const before = local();
-    env.page('pagehide', false);
-    await env.advance(5000);
-    expect(local()).toEqual(before);
-    expect(server.calls).toHaveLength(1);
+    expect(worker.terminated).toBe(true);
+    expect(
+      worker.messages.filter((message) =>
+        JSON.stringify(message).includes('New question')
+      )
+    ).toHaveLength(0);
+    const restarted = await ready();
+    await complete('New question');
+    expect(JSON.stringify(restarted.messages)).not.toContain(
+      'Old session content'
+    );
+  });
+  test('restored content uses literal text and never reads the archive', async () => {
+    env.storage.set(activeChatKey, JSON.stringify(envelope([qualified])));
+    await startHost();
+    expect(dom.transcript.textContent).toContain(
+      '<script>literal text</script>'
+    );
+    expect(dom.transcript.querySelector('script')).toBeNull();
+    expect(server.calls).toHaveLength(0);
+  });
+  test('delayed archive receipt cannot reclaim cleared host dialogue or its new session', async () => {
+    await startHost();
+    await ready();
+    const release = server.defer(true);
+    await complete('Old question', 'Old reply.');
+    click(dom.clear);
+    await ready();
+    await complete('New question', 'New reply.');
+    const latest = local();
+    release();
+    await settle();
+    expect(local()).toEqual(latest);
+    expect(dom.transcript.textContent).toContain('New reply.');
+    expect(dom.transcript.textContent).not.toContain('Old reply.');
+  });
+  test('teardown cancels archive retry and pending worker, reinitialization has one handler', async () => {
+    await startHost();
+    const worker = await ready();
+    server.fail(429);
+    await complete();
+    submit(dom, 'Pending');
+    await env.advance(0);
+    const callback = worker.onmessage;
+    document.dispatchEvent(new Event('astro:before-swap'));
+    callback?.({ data: { kind: 'answer', text: 'Stale after teardown.' } });
+    expect(dom.transcript.textContent).not.toContain('Stale after teardown.');
+    expect(env.timerCount()).toBe(0);
+    await startHost();
+    await ready();
+    const before = server.calls.length;
+    click(dom.retry);
+    await env.advance(2000);
+    expect(server.calls.length - before).toBeLessThanOrEqual(1);
+  });
+  test('archive retry preserves the exact generated answer with no remote reads', async () => {
+    await startHost();
+    await ready();
+    server.fail(503);
+    await complete(
+      'What about platform work?',
+      'A useful summary in new words.'
+    );
+    expect(local()?.turns[0]?.paragraphs).toEqual([
+      'A useful summary in new words.',
+    ]);
+    click(dom.retry);
+    await settle();
+    expect(
+      server.archives.get(local()?.id ?? '')?.turns[0]?.paragraphs
+    ).toEqual(['A useful summary in new words.']);
+    expect(server.methods()).toEqual(['PUT', 'PUT']);
+  });
+  test('the completed-turn limit resets on Clear', async () => {
+    env.storage.set(
+      activeChatKey,
+      JSON.stringify(envelope(Array(12).fill(qualified)))
+    );
+    await startHost();
+    expect(dom.input.disabled).toBe(true);
+    click(dom.clear);
+    expect(dom.input.disabled).toBe(false);
+    await ready();
+    await complete();
+    expect(local()?.turns).toHaveLength(1);
   });
 });

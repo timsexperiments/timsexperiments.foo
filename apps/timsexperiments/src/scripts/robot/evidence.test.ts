@@ -8,7 +8,8 @@ import {
   parseToolResult,
   safeSourceLink,
 } from './evidence';
-import { selectGpuModel, modelIds } from './gpu';
+import { selectGpuModel } from './gpu';
+import { localModel } from './model';
 
 export const record = {
   id: 'support',
@@ -171,7 +172,7 @@ describe('browser evidence boundary', () => {
 });
 
 describe('GPU model selection', () => {
-  function gpu(f16: boolean, capacity = 128 * 1024 * 1024) {
+  function gpu(f16: boolean, capacity = 256 * 1024 * 1024) {
     return {
       async requestAdapter() {
         return {
@@ -182,8 +183,10 @@ describe('GPU model selection', () => {
     };
   }
   test('selects only a supported precision before downloading', async () => {
-    expect(await selectGpuModel(gpu(true))).toBe(modelIds.f16);
-    expect(await selectGpuModel(gpu(false))).toBe(modelIds.f32);
+    expect(await selectGpuModel(gpu(true))).toBe(localModel.id);
+    await expect(selectGpuModel(gpu(false))).rejects.toThrow(
+      'f32 model is unverified'
+    );
   });
   test('fails absent adapters and insufficient capacity honestly', async () => {
     await expect(selectGpuModel(undefined)).rejects.toThrow();

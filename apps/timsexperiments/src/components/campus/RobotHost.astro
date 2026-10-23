@@ -1,28 +1,50 @@
 ---
+import { localModel } from '../../scripts/robot/model';
 import RobotConversation from './RobotConversation.astro';
 ---
+
 <RobotConversation>
   <Fragment slot="consent">
-    <details data-ai-consent>
-      <summary>Optional local model</summary>
-      <p>I can answer without a model download. You can also try a small local model that picks a passage from the same experience records. It may fail to find a useful passage.</p>
-      <p>Enabling it downloads about 204 MB plus runtime files from model hosts. They receive download requests, never your questions. A compatible GPU is required. Files may stay in your browser cache.</p>
-      <button type="button" data-enable>Download and enable AI</button>
-    </details>
+    <section
+      data-ai-consent
+      class="robot-start"
+      aria-label="Start local conversation">
+      <button type="button" data-explore
+        >Explore experience · no download</button
+      >
+      <p>
+        Optional chat uses {localModel.name}: {localModel.download} to download and
+        {localModel.memory}. Desktop recommended. Requires shader-f16; mobile
+        chat is untested.
+      </p>
+      <button type="button" data-enable
+        >Download and start chat · {localModel.download}</button
+      >
+      <small data-model-notice
+        >Desktop recommended · {localModel.memory} · mobile chat untested.</small
+      >
+      <small
+        >Model hosts receive downloads, never questions. Files may stay cached.
+        The GPU check cannot measure free memory.</small
+      >
+    </section>
   </Fragment>
   <Fragment slot="about">
-  <details class="robot-about">
-    <summary>About this conversation</summary>
-    <p>
-      This chat uses the same experience records as the TimsExperiments MCP.
-      <a href="/resume/mcp" target="_blank" rel="noopener noreferrer">Follow the guide</a>
-      to use it in your own agents.
-    </p>
-    <p>
-      AI-written answers can be wrong. Replies run in your browser, and completed
-      chats are saved for Tim to read. Closing or clearing removes your local copy.
-    </p>
-  </details>
+    <details class="robot-about">
+      <summary>About this conversation</summary>
+      <p>
+        This chat uses the same experience records as the TimsExperiments MCP.
+        <a href="/resume/mcp" target="_blank" rel="noopener noreferrer"
+          >Follow the guide</a
+        >
+        to use it in your own agents.
+      </p>
+      <p>
+        AI-written answers can be wrong. Replies run in your browser, and
+        completed chats are saved for Tim to read. Closing or clearing removes
+        your local copy.
+      </p>
+    </details>
   </Fragment>
 </RobotConversation>
 

@@ -98,7 +98,9 @@ class TestElement extends EventTarget {
       ? this
       : (this.parentElement?.closest(selector) ?? null);
   }
-  focus() {}
+  focus() {
+    Reflect.set(document, 'activeElement', this);
+  }
   requestSubmit() {
     this.dispatchEvent(new Event('submit', { cancelable: true }));
   }
@@ -325,11 +327,17 @@ export function robotDom() {
     options: add('button', 'data-chat-options'),
     back: add('button', 'data-chat-back'),
     newest: add('button', 'data-chat-new'),
+    dialogueHistory: add('button', 'data-dialogue-history'),
+    voiceToggle: add('button', 'data-voice-toggle'),
+    voiceReplay: add('button', 'data-voice-replay'),
+    voiceStop: add('button', 'data-voice-stop'),
+    voiceStatus: add('small', 'data-voice-status'),
     dialog,
     form: add('form'),
     input: add('textarea'),
     send: add('button', 'data-send'),
     enable: add('button', 'data-enable'),
+    unload: add('button', 'data-model-off'),
     stop: add('button', 'data-stop'),
     clear: add('button', 'data-clear'),
     status: add('div', 'data-status'),
