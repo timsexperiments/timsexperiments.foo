@@ -1,3 +1,5 @@
+import type { CollisionBounds } from './types';
+
 /** Radial dead zone preserves stick direction and slow analog movement. */
 export function readStick(axes: readonly number[], offset: number) {
   const rawX = axes[offset] ?? 0;
@@ -20,4 +22,19 @@ export function walkStep(velocity: number, target: number, dt: number) {
     velocity: Math.abs(nextVelocity) < 0.001 ? 0 : nextVelocity,
     distance: target * dt + ((velocity - target) * (1 - decay)) / response,
   };
+}
+
+/** Camera clearance covers hardware as well as the wall or station silhouette. */
+export function isWalkBlocked(
+  collisions: readonly CollisionBounds[],
+  x: number,
+  z: number
+): boolean {
+  return collisions.some(
+    (bounds) =>
+      x > bounds.minX - 0.22 &&
+      x < bounds.maxX + 0.22 &&
+      z > bounds.minZ - 0.22 &&
+      z < bounds.maxZ + 0.22
+  );
 }
