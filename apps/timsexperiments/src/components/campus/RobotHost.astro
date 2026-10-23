@@ -9,29 +9,28 @@ import RobotConversation from './RobotConversation.astro';
       data-ai-consent
       class="robot-start"
       aria-label="Start local conversation">
-      <button type="button" data-explore
-        >Explore experience · no download</button
-      >
-      <p>
-        Optional chat uses {localModel.name}: {localModel.download} to download and
-        {localModel.memory}. Desktop recommended. Requires shader-f16; mobile
-        chat is untested.
-      </p>
-      <button type="button" data-enable
-        >Download and start chat · {localModel.download}</button
-      >
-      <small data-model-notice
-        >Desktop recommended · {localModel.memory} · mobile chat untested.</small
-      >
-      <small
-        >Model hosts receive downloads, never questions. Files may stay cached.
-        The GPU check cannot measure free memory.</small
-      >
+      <div class="robot-start-choices">
+        <button type="button" data-explore>Explore experience</button>
+        <button type="button" data-enable
+          >Start chat · {localModel.download} download</button
+        >
+      </div>
+      <small data-model-notice>Desktop recommended.</small>
     </section>
   </Fragment>
   <Fragment slot="about">
     <details class="robot-about">
-      <summary>About this conversation</summary>
+      <summary>Local AI details</summary>
+      <p>
+        Chat uses {localModel.name}: {localModel.download} to download and
+        {localModel.memory}. Requires WebGPU with shader-f16. Desktop
+        recommended; mobile chat is untested. The GPU check cannot measure free
+        memory. The model downloads only when you choose Start chat.
+      </p>
+      <p>
+        Replies run in your browser. Model hosts receive downloads, never
+        questions. Files may stay cached after unloading the model.
+      </p>
       <p>
         This chat uses the same experience records as the TimsExperiments MCP.
         <a href="/resume/mcp" target="_blank" rel="noopener noreferrer"
@@ -40,9 +39,7 @@ import RobotConversation from './RobotConversation.astro';
         to use it in your own agents.
       </p>
       <p>
-        AI-written answers can be wrong. Replies run in your browser, and
-        completed chats are saved for Tim to read. Closing or clearing removes
-        your local copy.
+        AI-written answers can be wrong. Confirm important details with Tim.
       </p>
     </details>
   </Fragment>

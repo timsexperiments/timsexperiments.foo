@@ -82,7 +82,7 @@ export function setupRobotHost(root: HTMLElement) {
     enable.disabled = state !== 'off' || busy || atLimit;
     enable.textContent =
       state === 'off'
-        ? `Download and start chat · ${localModel.download}`
+        ? `Start chat · ${localModel.download} download`
         : state === 'loading'
           ? 'Loading local AI…'
           : 'Local AI enabled';
