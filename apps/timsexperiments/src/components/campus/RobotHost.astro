@@ -14,36 +14,13 @@ import RobotConversation from './RobotConversation.astro';
   <details class="robot-about">
     <summary>About this conversation</summary>
     <p>
-      The replies are AI-written using Tim's published experience. Without the optional
-      model, local search selects prepared answers. This is not live AI generation.
-      The optional model selects exact passages rather than writing new claims.
-      Either mode can misunderstand a question or miss context. Ask Tim to confirm
-      anything that matters to a hiring or project decision. The reference list names
-      the experiences used, without displaying their full records.
+      This chat uses the same experience records as the TimsExperiments MCP.
+      <a href="/resume/mcp" target="_blank" rel="noopener noreferrer">Follow the guide</a>
+      to use it in your own agents.
     </p>
     <p>
-      Searching and answering happen in your browser, up to 12 questions per chat.
-      Completed questions and replies are automatically archived for Tim to read.
-      No account is needed. This browser keeps the active chat through refreshes.
-      Closing the panel or choosing Clear removes that local copy and starts a new
-      chat. Tim's archive remains and is never loaded into this conversation.
-      Archiving is best effort and may fail if you leave before a request finishes.
-      Closing the panel also stops the optional local model.
-    </p>
-    <p>
-      The optional model runs on your device with <a
-        href="https://github.com/mlc-ai/web-llm"
-        target="_blank"
-        rel="noopener noreferrer">WebLLM</a
-      >. Model: <a
-        href="https://huggingface.co/mlc-ai/SmolLM2-360M-Instruct-q4f16_1-MLC"
-        target="_blank"
-        rel="noopener noreferrer">MLC SmolLM2 360M</a
-      >, using f16 or f32 according to GPU support. WebLLM and the <a
-        href="https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct"
-        target="_blank"
-        rel="noopener noreferrer">upstream SmolLM2 model</a
-      > use Apache 2.0. See publisher pages for license and provenance.
+      AI-written answers can be wrong. Replies run in your browser, and completed
+      chats are saved for Tim to read. Closing or clearing removes your local copy.
     </p>
   </details>
   </Fragment>
