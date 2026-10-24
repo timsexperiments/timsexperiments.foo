@@ -1,0 +1,39 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+type Props = { post: CollectionEntry<'blog'> };
+const { post } = Astro.props;
+// Preserve Subscribe's existing static link instead of hydrating a portal in the tablet.
+Astro.locals.campusNewsletter = true;
+const { Content } = await post.render();
+---
+
+<template data-reader-fragment={post.slug}>
+  <article class="campus-article">
+    <header class="reader-article-heading">
+      <p class="eyebrow">
+        AN ENGINEERING RECIPE / {post.data.estimate} MIN READ
+      </p>
+      <h2 tabindex="-1">{post.data.title}</h2>
+      {
+        post.data.subtitle && (
+          <p class="article-subtitle">{post.data.subtitle}</p>
+        )
+      }
+    </header>
+    <div class="article-body"><Content /></div>
+    <div class="recipe-end">
+      {
+        post.slug === 'json-vs-protobuf' ? (
+          <button class="mint-button" data-reader-workbench>
+            Try JSON and Protobuf ↗
+          </button>
+        ) : (
+          <a class="mint-button" href="/lab">
+            Explore the article archive ↗
+          </a>
+        )
+      }
+    </div>
+  </article>
+</template>

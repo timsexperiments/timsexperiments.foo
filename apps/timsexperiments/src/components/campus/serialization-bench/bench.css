@@ -1,0 +1,565 @@
+serialization-bench {
+  --bench-bg: #0a0b0a;
+  --bench-panel: #1b1d1c;
+  --bench-text: #fafafa;
+  --bench-muted: #b4bcb7;
+  --bench-line: #414944;
+  --bench-mint: #17b897;
+  display: block;
+  min-width: 0;
+  max-width: 900px;
+  margin-inline: auto;
+  border: 1px solid var(--bench-line);
+  border-radius: 12px;
+  background: var(--bench-bg);
+  color: var(--bench-text);
+  color-scheme: dark;
+  font:
+    400 14px/1.55 system-ui,
+    sans-serif;
+  text-align: left;
+  padding: clamp(16px, 2.5vw, 24px);
+}
+serialization-bench *,
+serialization-bench *::before,
+serialization-bench *::after {
+  box-sizing: border-box;
+}
+serialization-bench [hidden] {
+  display: none !important;
+}
+serialization-bench :is(h2, h3, h4, p, pre, ul, dl, dd) {
+  margin: 0;
+}
+serialization-bench h2 {
+  font:
+    500 clamp(23px, 3vw, 30px)/1.15 system-ui,
+    sans-serif;
+  letter-spacing: -0.035em;
+  margin-top: 7px;
+  color: var(--bench-text);
+}
+serialization-bench h3 {
+  font:
+    500 clamp(19px, 2.5vw, 25px)/1.35 system-ui,
+    sans-serif;
+  letter-spacing: -0.02em;
+  max-width: 31ch;
+  color: var(--bench-text);
+  margin-block: 6px 14px;
+}
+serialization-bench :is(.bench-eyebrow, .bench-label) {
+  color: var(--bench-muted);
+  font:
+    500 10px/1.5 ui-monospace,
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+serialization-bench .bench-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--bench-mint);
+  margin-right: 8px;
+}
+serialization-bench .bench-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--bench-line);
+  padding-bottom: 16px;
+}
+serialization-bench button {
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #68756c;
+  border-radius: 5px;
+  background: var(--bench-panel);
+  color: var(--bench-text);
+  cursor: pointer;
+  font:
+    500 12px/1.4 system-ui,
+    sans-serif;
+}
+serialization-bench button:hover {
+  background: #2e3731;
+  border-color: var(--bench-muted);
+}
+serialization-bench button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+serialization-bench button.primary {
+  background: var(--bench-mint);
+  color: #06100c;
+  border-color: var(--bench-mint);
+  font-weight: 650;
+}
+serialization-bench button.primary:hover {
+  background: #51d2b6;
+}
+serialization-bench button.quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--bench-muted);
+}
+serialization-bench
+  :is(button, a, textarea, summary, pre, [tabindex]):focus-visible {
+  outline: 2px solid #70e5c5;
+  outline-offset: 3px;
+}
+serialization-bench .lesson-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: 0;
+}
+serialization-bench .lesson-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  border-bottom: 1px solid var(--bench-line);
+}
+serialization-bench .lesson-steps button {
+  text-align: left;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  padding: 9px 6px;
+  color: var(--bench-muted);
+}
+serialization-bench .lesson-steps button span {
+  font:
+    10px ui-monospace,
+    monospace;
+  margin-right: 6px;
+}
+serialization-bench .lesson-steps button[aria-current='step'] {
+  border-color: var(--bench-mint);
+  color: var(--bench-text);
+}
+serialization-bench .lesson-steps button[aria-current='step'] span {
+  color: #65dfbf;
+}
+serialization-bench .lesson-stage,
+serialization-bench .bench-results {
+  padding-block: 25px 5px;
+  padding-top: 18px;
+}
+serialization-bench .baseline {
+  display: flex;
+  flex-wrap: wrap;
+  border-left: 2px solid #68756c;
+  background: #141815;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+  color: var(--bench-muted);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  gap: 6px 20px;
+}
+serialization-bench .baseline > span:first-child {
+  font:
+    12px system-ui,
+    sans-serif;
+  width: auto;
+}
+serialization-bench .baseline b {
+  color: var(--bench-text);
+  font-weight: 500;
+}
+serialization-bench .prediction-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+serialization-bench .prediction-options button {
+  flex: 1;
+  padding: 14px 8px;
+  padding-block: 10px;
+}
+serialization-bench .prediction-options button[aria-pressed='true'] {
+  border-color: var(--bench-mint);
+  background: #16352c;
+}
+serialization-bench .bench-hint,
+serialization-bench .editor-help,
+serialization-bench .measurement-note {
+  color: var(--bench-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+serialization-bench .person-record {
+  background: #141815;
+  border-left: 2px solid var(--bench-mint);
+  padding: 12px 16px;
+  display: grid;
+  gap: 9px;
+}
+serialization-bench .person-record > div {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 10px;
+}
+serialization-bench .person-record dt {
+  color: var(--bench-muted);
+  font:
+    11px/1.7 ui-monospace,
+    monospace;
+}
+serialization-bench .person-record dd {
+  color: #e0eee6;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+  overflow-wrap: anywhere;
+}
+serialization-bench .record-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+serialization-bench .record-tools .bench-hint {
+  width: 100%;
+}
+serialization-bench .lesson-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 16px;
+}
+serialization-bench [data-skip] {
+  margin-left: auto;
+}
+serialization-bench .bench-footer {
+  border-top: 1px solid var(--bench-line);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--bench-muted);
+  font-size: 11px;
+  margin-top: 16px;
+  padding-top: 10px;
+}
+serialization-bench a {
+  color: var(--bench-text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+serialization-bench a span {
+  color: #65dfbf;
+  margin-left: 5px;
+}
+serialization-bench .meters {
+  max-width: 650px;
+}
+serialization-bench .meter-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+serialization-bench .meter-row small {
+  color: var(--bench-muted);
+  font:
+    11px system-ui,
+    sans-serif;
+  margin-left: 5px;
+}
+serialization-bench .meter-row strong {
+  font:
+    500 28px/1.4 ui-monospace,
+    monospace;
+  font-variant-numeric: tabular-nums;
+}
+serialization-bench .meter-track {
+  height: 9px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #242b26;
+  margin-top: 5px;
+}
+serialization-bench .meter-fill {
+  height: 100%;
+  width: 0;
+  transform-origin: left;
+}
+serialization-bench .meter-fill.json-fill {
+  background: #c4d0c8;
+}
+serialization-bench .meter-fill.proto-fill {
+  background: var(--bench-mint);
+}
+serialization-bench .byte-delta {
+  min-height: 26px;
+  margin: 5px 0 10px;
+  color: var(--bench-muted);
+  font:
+    11px/1.6 ui-monospace,
+    monospace;
+}
+serialization-bench .comparison {
+  color: #65dfbf;
+  font-size: 14px;
+  margin-top: 8px;
+}
+serialization-bench .prediction-feedback {
+  font-size: 12px;
+  margin-top: 10px;
+}
+serialization-bench [data-explanation] {
+  margin-top: 8px;
+  max-width: 65ch;
+}
+serialization-bench .measurement-note {
+  font-size: 10px;
+  margin-top: 14px;
+}
+serialization-bench .check-summary {
+  color: #65dfbf;
+  margin-bottom: 14px;
+}
+serialization-bench .checks {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--bench-muted);
+}
+serialization-bench .checks li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+serialization-bench .check-pass {
+  color: #65dfbf;
+  font:
+    10px ui-monospace,
+    monospace;
+}
+serialization-bench .check-fail {
+  color: #ffc0b8;
+  font:
+    10px ui-monospace,
+    monospace;
+}
+serialization-bench .decoded-record {
+  margin-block: 18px 12px;
+}
+serialization-bench .explore {
+  margin-top: 20px;
+  border-top: 1px solid var(--bench-line);
+}
+serialization-bench summary {
+  cursor: pointer;
+  padding: 13px 4px;
+  font-size: 12px;
+  color: #e2e7e3;
+}
+serialization-bench summary span {
+  display: inline-block;
+  margin-left: 8px;
+  font:
+    10px ui-monospace,
+    monospace;
+  color: var(--bench-muted);
+}
+serialization-bench .inspectors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 7px;
+}
+serialization-bench .inspectors details {
+  min-width: 0;
+  border: 1px solid var(--bench-line);
+  border-radius: 4px;
+}
+serialization-bench .inspectors summary {
+  padding: 12px;
+}
+serialization-bench pre {
+  max-width: 100%;
+  max-height: 280px;
+  overflow: auto;
+  white-space: pre;
+  overscroll-behavior-x: contain;
+  font:
+    11px/1.8 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  color: #d9e6dd;
+  background: #111411;
+  padding: 14px;
+  margin: 0 10px 10px;
+}
+serialization-bench code {
+  color: inherit;
+  font: inherit;
+  background: none;
+  padding: 0;
+}
+serialization-bench .inspectors p {
+  padding: 0 14px 12px;
+  font-size: 11px;
+  color: var(--bench-muted);
+}
+serialization-bench h4 {
+  font-size: 11px;
+  margin: 8px 14px;
+}
+serialization-bench .sandbox {
+  padding-top: 24px;
+}
+serialization-bench .editor-label {
+  display: block;
+  color: var(--bench-muted);
+  font-size: 12px;
+}
+serialization-bench textarea {
+  display: block;
+  width: 100%;
+  min-height: 190px;
+  max-height: 500px;
+  resize: vertical;
+  margin-block: 7px;
+  padding: 12px;
+  border: 1px solid #68756c;
+  border-radius: 5px;
+  background: #111411;
+  color: #e0eee6;
+  font:
+    12px/1.7 ui-monospace,
+    monospace;
+}
+serialization-bench textarea[aria-invalid='true'] {
+  border-color: #f4aba2;
+}
+serialization-bench .editor-help {
+  font-size: 10px;
+}
+serialization-bench .bench-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+serialization-bench .recipes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-block: 15px 7px;
+}
+serialization-bench .recipes button {
+  background: transparent;
+}
+serialization-bench .sandbox:not([hidden]) + .bench-results .verification {
+  border-top: 1px solid var(--bench-line);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+serialization-bench .bench-error {
+  padding: 10px 12px;
+  margin-top: 12px;
+  border-left: 2px solid #f4aba2;
+  background: #251b19;
+  color: #ffc0b8;
+  font-size: 12px;
+}
+serialization-bench .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 480px) {
+  serialization-bench .bench-heading {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  serialization-bench .bench-heading > button {
+    font-size: 11px;
+    position: static;
+    flex-shrink: 0;
+    max-width: 82px;
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+  serialization-bench .lesson-steps button {
+    font-size: 11px;
+    padding-inline: 2px;
+  }
+  serialization-bench .lesson-steps button span {
+    display: block;
+    margin-bottom: 3px;
+  }
+  serialization-bench .person-record {
+    padding: 12px;
+  }
+  serialization-bench .person-record > div {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 6px;
+  }
+  serialization-bench h3 {
+    font-size: 20px;
+  }
+  serialization-bench .prediction-options {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  serialization-bench .prediction-options button {
+    min-width: 0;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+  serialization-bench [data-skip] {
+    margin-left: 0;
+  }
+  serialization-bench .baseline > span:first-child {
+    width: 100%;
+  }
+  serialization-bench .bench-heading > div {
+    min-width: 0;
+  }
+  serialization-bench .bench-eyebrow {
+    display: none;
+  }
+  serialization-bench h2 {
+    font-size: 18px;
+    margin: 0;
+  }
+  serialization-bench .baseline {
+    column-gap: 8px;
+  }
+  serialization-bench .lesson-footer {
+    gap: 6px;
+  }
+  serialization-bench .lesson-footer button {
+    font-size: 11px;
+    padding-inline: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  serialization-bench .meter-fill {
+    transition: none;
+  }
+}

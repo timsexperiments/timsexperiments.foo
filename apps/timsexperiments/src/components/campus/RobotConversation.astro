@@ -1,0 +1,567 @@
+---
+interface Props {
+  id?: string;
+}
+const { id = 'robot-conversation' } = Astro.props;
+---
+
+<div class="robot-host robot-conversation" data-robot-host data-chat-view>
+  <header class="chat-toolbar">
+    <span>Lab robot <small>· Tim's published work</small></span>
+    <div class="dialogue-controls">
+      <button
+        type="button"
+        data-dialogue-history
+        aria-expanded="false"
+        aria-controls={`${id}-transcript`}>Earlier dialogue</button
+      ><button
+        type="button"
+        data-chat-options
+        aria-expanded="false"
+        aria-controls={`${id}-options`}>Settings</button
+      >
+    </div>
+  </header>
+  <div class="chat-body">
+    <div
+      id={`${id}-transcript`}
+      data-transcript
+      class="robot-transcript"
+      role="log"
+      aria-label="Conversation"
+      aria-live="polite"
+      aria-relevant="additions text"
+      tabindex="0">
+      <article class="chat-greeting">
+        <h3 class="robot-speaker">Lab robot</h3><p>
+          What would you like to know about Tim?
+        </p><p class="chat-disclaimer">
+          AI can be wrong. Chats are saved for Tim.
+        </p>
+      </article>
+    </div>
+    <section
+      class="chat-options"
+      id={`${id}-options`}
+      aria-label="Conversation options"
+      hidden>
+      <button type="button" data-chat-back>Back to conversation</button>
+      <section class="chat-history" aria-labelledby={`${id}-history-title`}>
+        <h4 id={`${id}-history-title`}>Chat archive</h4>
+        <p>
+          Completed questions and replies are automatically sent to
+          TimsExperiments for Tim to read. No account is needed. Refresh keeps
+          your local chat. Closing or clearing starts a new chat and removes
+          this browser's copy. Tim's archive remains.
+        </p>
+        <p data-history-status role="status" aria-live="polite">
+          Completed replies are archived for Tim.
+        </p>
+        <button type="button" data-history-retry hidden>Retry archive</button>
+      </section>
+      <div class="robot-about"><slot name="about" /></div>
+      <button type="button" data-copy-lab-link>Copy link to chat</button>
+      <button type="button" data-model-off>Unload local AI</button>
+      <button type="button" data-clear>Clear conversation</button>
+    </section>
+    <button class="chat-new" type="button" data-chat-new hidden
+      >New reply ↓</button
+    >
+  </div>
+  <div class="robot-local"><slot name="consent" /></div>
+  <div class="dialogue-voice" aria-label="Local voice controls">
+    <button type="button" data-voice-toggle aria-pressed="false"
+      >Enable voice</button
+    >
+    <button type="button" data-voice-replay disabled>Replay reply</button>
+    <button type="button" data-voice-stop hidden>Stop voice</button>
+    <small data-voice-status role="status">Voice muted</small>
+  </div>
+  <div class="chat-feedback">
+    <p data-status role="status" aria-live="polite" aria-atomic="true">
+      Start chat, read Tim’s work, or contact him below.
+    </p>
+    <button type="button" data-stop hidden>Stop</button>
+    <progress max="1" value="0" aria-label="Local model loading progress" hidden
+    ></progress>
+    <p data-ai-status role="status" aria-live="polite" hidden></p>
+  </div>
+  <p class="chat-mcp-link">
+    <a href="/classic" target="_blank" rel="noopener noreferrer"
+      >Read Tim’s work</a
+    > · <a href="/classic#contact" target="_blank" rel="noopener noreferrer"
+      >Contact Tim</a
+    >
+  </p>
+  <div class="chat-suggestions" aria-label="Suggested questions">
+    <button
+      type="button"
+      data-question
+      data-prompt="What platform architecture has Tim led?"
+      >Platform work</button
+    >
+    <button
+      type="button"
+      data-question
+      data-prompt="How has Tim mentored engineers?">Mentoring</button
+    >
+  </div>
+  <form class="robot-form" autocomplete="off">
+    <label for={`${id}-question`}>Your question</label>
+    <div class="chat-compose">
+      <textarea
+        id={`${id}-question`}
+        name="question"
+        rows="1"
+        maxlength="600"
+        placeholder="Ask about Tim…"
+        required
+        disabled
+        aria-describedby={`${id}-help`}></textarea><button
+        type="submit"
+        data-send
+        disabled>Send <span aria-hidden="true">↗</span></button
+      >
+    </div>
+    <small id={`${id}-help`}
+      >Enter to reply · Shift + Enter for a new line</small
+    >
+  </form>
+  <noscript
+    >This conversation needs JavaScript. <a href="/classic"
+      >Read about Tim's work</a
+    >.</noscript
+  >
+</div>
+<style is:global>
+  /* A bottom subtitle panel leaves the lab and its robot visible above it. */
+  .robot-dialog:has(> .robot-conversation) {
+    position: fixed;
+    inset: auto 20px 20px;
+    width: min(720px, calc(100% - 40px));
+    max-width: none;
+    max-height: 70dvh;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: #0c1818;
+    overflow: hidden;
+    color: #ecf6f1;
+    box-shadow: 0 10px 40px #0005;
+  }
+  .robot-dialog:has(> .robot-conversation)::backdrop {
+    background: #00120c26;
+    backdrop-filter: none;
+  }
+  .robot-dialog:has(> .robot-conversation) > .station-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .robot-dialog:has(> .robot-conversation) > .dialog-topbar {
+    position: absolute;
+    inset: 0 12px auto auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .robot-dialog:has(> .robot-conversation) > .dialog-topbar .dialog-close {
+    min-height: 44px;
+    gap: 12px;
+  }
+  .robot-dialog:has(> .robot-conversation) > .dialog-topbar > .eyebrow {
+    display: none;
+  }
+  .robot-conversation {
+    --chat-line: #3c6258;
+    --chat-mint: #a5f3ce;
+    --chat-muted: #b1c9bd;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    max-height: 70dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-block: 100px 12px;
+    scrollbar-width: thin;
+    color: #ecf6f1;
+    font:
+      400 15px/1.55 system-ui,
+      sans-serif;
+  }
+  .robot-conversation * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  .robot-conversation [hidden] {
+    display: none !important;
+  }
+  .robot-conversation p {
+    margin: 0 0 8px;
+  }
+  .robot-conversation button,
+  .robot-conversation textarea {
+    font: inherit;
+  }
+  .robot-conversation button {
+    min-height: 44px;
+    border: 1px solid var(--chat-line);
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #132423;
+    color: #ecf6f1;
+    cursor: pointer;
+  }
+  .robot-conversation button:hover:enabled {
+    border-color: var(--chat-mint);
+  }
+  .robot-conversation button:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .robot-conversation :focus-visible {
+    outline: 2px solid var(--chat-mint);
+    outline-offset: 2px;
+  }
+  .robot-conversation a {
+    color: var(--chat-mint);
+    overflow-wrap: anywhere;
+  }
+  .robot-conversation .chat-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 100px 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #0c1818;
+  }
+  .robot-conversation .chat-toolbar small {
+    color: var(--chat-muted);
+    font-size: 11px;
+  }
+  .robot-conversation .dialogue-controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .robot-conversation .dialogue-controls button {
+    border: 0;
+    background: transparent;
+    font-size: 12px;
+  }
+  .robot-conversation .chat-body {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 0;
+    flex-direction: column;
+  }
+  .robot-conversation .robot-transcript,
+  .robot-conversation .chat-options {
+    width: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 16px;
+    scrollbar-color: #537c69 #0c1818;
+    overflow-wrap: anywhere;
+  }
+  .robot-conversation .robot-transcript {
+    max-height: min(26dvh, 240px);
+  }
+  .robot-conversation .chat-options {
+    overflow-y: visible;
+  }
+  .robot-conversation:not([data-history='true'])
+    .robot-transcript:has(.robot-turn)
+    > :not(:last-child) {
+    display: none;
+  }
+  .robot-conversation:not([data-history='true'])
+    .robot-turn
+    > .robot-speaker:first-child,
+  .robot-conversation:not([data-history='true']) .robot-question {
+    display: none;
+  }
+  .robot-conversation .robot-turn {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .robot-conversation[data-history='true'] .robot-turn {
+    margin-bottom: 20px;
+  }
+  .robot-conversation .robot-speaker {
+    font:
+      600 11px/1.5 system-ui,
+      sans-serif;
+    color: var(--chat-mint);
+    margin: 0 0 5px;
+  }
+  .robot-conversation .robot-question {
+    color: var(--chat-muted);
+    white-space: pre-wrap;
+  }
+  .robot-conversation .robot-turn > div > p {
+    white-space: pre-wrap;
+  }
+  .robot-conversation small {
+    color: var(--chat-muted);
+    font-size: 11px;
+  }
+  .robot-conversation .robot-evidence {
+    font-size: 11px;
+    color: var(--chat-muted);
+    margin-top: 10px;
+  }
+  .robot-conversation .robot-evidence h4 {
+    display: inline;
+    font: inherit;
+  }
+  .robot-conversation .robot-evidence ul {
+    display: inline;
+    padding: 0;
+    list-style: none;
+  }
+  .robot-conversation .robot-evidence li {
+    display: inline;
+    margin-left: 8px;
+  }
+  .robot-conversation .robot-evidence small {
+    display: none;
+  }
+  .robot-conversation .chat-feedback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 4px 16px;
+  }
+  .robot-conversation .chat-feedback p {
+    flex: 1 1 160px;
+    font-size: 11px;
+    color: var(--chat-muted);
+    margin: 0;
+  }
+  .robot-conversation .chat-feedback progress {
+    width: 100%;
+    height: 6px;
+    accent-color: var(--chat-mint);
+  }
+  .robot-conversation .chat-feedback button {
+    font-size: 12px;
+  }
+  .robot-conversation .chat-mcp-link {
+    margin: 0;
+    padding: 4px 16px;
+    font-size: 11px;
+  }
+  .robot-conversation .chat-disclaimer {
+    color: var(--chat-muted);
+    font-size: 11px;
+  }
+  .robot-conversation .robot-form {
+    flex-shrink: 0;
+    padding: 4px 16px 12px;
+  }
+  .robot-conversation .robot-form label {
+    font-size: 12px;
+  }
+  .robot-conversation .chat-compose {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .robot-conversation textarea {
+    flex: 1;
+    width: 100%;
+    resize: vertical;
+    min-height: 44px;
+    max-height: 80px;
+    border: 1px solid #60816f;
+    border-radius: 6px;
+    padding: 10px;
+    background: #081210;
+    color: #ecf6f1;
+    font-size: 16px;
+  }
+  .robot-conversation textarea::placeholder {
+    color: #a1bbad;
+  }
+  .robot-conversation [data-send],
+  .robot-conversation [data-enable] {
+    background: var(--chat-mint);
+    color: #0c1818;
+    font-weight: 650;
+  }
+  .robot-conversation:has(.robot-turn) .chat-suggestions {
+    display: none;
+  }
+  .robot-conversation .chat-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px;
+  }
+  .robot-conversation .chat-suggestions button {
+    border: 0;
+    background: transparent;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .robot-conversation .robot-start {
+    padding: 8px 16px;
+  }
+  .robot-conversation .robot-start p {
+    font-size: 12px;
+  }
+  .robot-conversation:not(:has(.robot-turn)) [data-dialogue-history] {
+    display: none;
+  }
+  .robot-conversation[data-model-state='off']:not(
+      :has(.robot-turn, [data-ai-status][data-touched])
+    )
+    .chat-mcp-link {
+    display: none;
+  }
+  .robot-conversation:has(.chat-options:not([hidden])) .robot-local {
+    display: none;
+  }
+  .robot-conversation .robot-start small {
+    display: block;
+    margin-top: 4px;
+  }
+  .robot-conversation[data-model-state='ready'] .robot-local,
+  .robot-conversation[data-model-state='generating'] .robot-local {
+    display: none;
+  }
+  .robot-conversation[data-model-state='loading'] .robot-start p,
+  .robot-conversation[data-model-state='loading'] .robot-start small {
+    display: none;
+  }
+  .robot-conversation .robot-firmware-copy {
+    display: none;
+  }
+  .robot-conversation[data-model-state='loading'] .robot-firmware-copy {
+    display: block;
+  }
+  .robot-conversation[data-model-state='loading'] .robot-firmware-copy p {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .robot-conversation[data-model-state='loading'] [data-enable],
+  .robot-conversation[data-model-state='loading'] .chat-greeting,
+  .robot-conversation[data-model-state='loading'] [data-status],
+  .robot-conversation[data-model-state='loading'] .chat-mcp-link {
+    display: none;
+  }
+  .robot-conversation [data-robot-explore] {
+    background: var(--chat-mint);
+    color: #0c1818;
+    font-weight: 650;
+  }
+  .robot-conversation .dialogue-voice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px;
+  }
+  .robot-conversation .dialogue-voice button {
+    border: 0;
+    padding: 6px;
+    font-size: 11px;
+    background: transparent;
+  }
+  .robot-conversation[data-model-state='off'] .robot-form,
+  .robot-conversation[data-model-state='loading'] .robot-form,
+  .robot-conversation[data-model-state='off'] .chat-suggestions,
+  .robot-conversation[data-model-state='loading'] .chat-suggestions {
+    display: none;
+  }
+  .robot-conversation .chat-greeting .robot-speaker {
+    display: none;
+  }
+  .robot-conversation[data-model-state='off'] .dialogue-voice,
+  .robot-conversation[data-model-state='loading'] .dialogue-voice,
+  .robot-conversation[data-model-state='off'] [data-status] {
+    display: none;
+  }
+  .robot-conversation .chat-toolbar,
+  .robot-conversation .dialogue-voice,
+  .robot-conversation .chat-feedback,
+  .robot-conversation .chat-mcp-link {
+    flex-shrink: 0;
+  }
+  .robot-conversation .robot-reference-list > summary {
+    min-height: 32px;
+    padding: 6px 0;
+    font-size: 11px;
+    color: var(--chat-muted);
+  }
+  .robot-conversation[data-model-state='off'] [data-model-off],
+  .robot-conversation[data-model-state='loading'] [data-model-off] {
+    display: none;
+  }
+  .robot-conversation summary {
+    min-height: 44px;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+  .robot-conversation .chat-history {
+    margin-bottom: 12px;
+  }
+  .robot-conversation .robot-start button {
+    font-size: 12px;
+  }
+  @media (max-width: 430px) {
+    .robot-conversation:has(.robot-turn) .chat-toolbar {
+      gap: 0;
+      padding: 0 12px;
+    }
+    .robot-conversation:has(.robot-turn) .chat-toolbar > span {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 44px;
+      padding-right: 90px;
+    }
+    .robot-conversation:has(.robot-turn) .dialogue-controls {
+      width: 100%;
+    }
+  }
+  @media (max-width: 700px) {
+    .robot-dialog:has(> .robot-conversation) {
+      inset: auto 8px max(8px, env(safe-area-inset-bottom, 0px));
+      width: calc(100% - 16px);
+      max-height: 52dvh;
+    }
+    .robot-conversation {
+      max-height: 52dvh;
+      font-size: 14px;
+    }
+    .robot-conversation .chat-toolbar small {
+      display: none;
+    }
+  }
+  @media (max-height: 500px) {
+    .robot-dialog:has(> .robot-conversation) {
+      bottom: max(8px, env(safe-area-inset-bottom, 0px));
+      max-height: 46dvh;
+    }
+    .robot-conversation {
+      max-height: 46dvh;
+    }
+  }
+</style>

@@ -1,0 +1,59 @@
+---
+import { localModel } from '../../scripts/robot/model';
+import RobotConversation from './RobotConversation.astro';
+---
+
+<RobotConversation>
+  <Fragment slot="consent">
+    <section
+      data-ai-consent
+      class="robot-start"
+      aria-label="Start local conversation">
+      <button type="button" data-enable
+        >Start chat · {localModel.download} download</button
+      >
+      <small data-model-notice>Desktop recommended.</small>
+      <div class="robot-firmware-copy">
+        <p>
+          A small firmware update first. Do have a look around the lab while I get
+          ready.
+        </p>
+        <button type="button" data-robot-explore hidden>Explore the lab</button>
+      </div>
+    </section>
+  </Fragment>
+  <Fragment slot="about">
+    <details class="robot-about">
+      <summary>Local AI details</summary>
+      <p>
+        Chat uses {localModel.name}: {localModel.download} to download and
+        {localModel.memory}. Requires WebGPU with shader-f16. Desktop
+        recommended; mobile chat is untested. The GPU check cannot measure free
+        memory. The model downloads only when you choose Start chat.
+      </p>
+      <p>
+        Replies run in your browser. Model hosts receive downloads, never
+        questions. Files may stay cached after unloading the model.
+      </p>
+      <p>
+        This chat uses the same experience records as the TimsExperiments MCP.
+        <a href="/resume/mcp" target="_blank" rel="noopener noreferrer"
+          >Follow the guide</a
+        >
+        to use it in your own agents.
+      </p>
+      <p>
+        AI-written answers can be wrong. Confirm important details with Tim.
+      </p>
+      <p>
+        Voice is optional and muted by default. It uses an English voice already
+        on your device, with no extra model download. The voice varies by
+        device; some browsers have no local English voice.
+      </p>
+    </details>
+  </Fragment>
+</RobotConversation>
+
+<script>
+  import '../../scripts/robot/host';
+</script>
