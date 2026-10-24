@@ -35,6 +35,7 @@ export function createDialogShell(options: {
     for (const dialog of options.dialogs) {
       if (!dialog.open || dialog === destination) continue;
       switched.add(dialog);
+      dialog.dispatchEvent(new Event('lab:before-close'));
       dialog.close();
     }
   }
@@ -58,6 +59,7 @@ export function createDialogShell(options: {
   function dismiss(dialog: HTMLDialogElement) {
     if (!dialog.open) return;
     switched.add(dialog);
+    dialog.dispatchEvent(new Event('lab:before-close'));
     dialog.close();
     changed();
   }

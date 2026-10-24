@@ -236,6 +236,10 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.querySelector('#enter-lab')?.addEventListener('click', enterLab);
+document.querySelector('[data-robot-explore]')?.addEventListener('click', () => {
+  shell.closeAll();
+  enterLab();
+});
 pauseButton?.addEventListener('click', () => {
   userPaused = !userPaused;
   updatePause();
@@ -294,11 +298,23 @@ if (canvas) {
     });
 }
 
-window.addEventListener('pagehide', () => {
-  disposed = true;
+window.addEventListener('pagehide', (event) => {
   ++pendingOpen;
+  if (event.persisted) {
+    // BFcache keeps the shell and its listeners. The robot releases its own
+    // worker on every pagehide; the room only needs to stop rendering here.
+    controller?.setPaused(true);
+    return;
+  }
+  disposed = true;
   reader?.dispose();
   shelfSearch?.destroy();
   router?.destroy();
   controller?.dispose();
+});
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    syncSceneAccessibility();
+    updatePause();
+  }
 });

@@ -136,14 +136,15 @@ class TestDetails extends TestElement {
   }
 }
 class TestObserver {
-  private target: TestElement | undefined;
+  private targets = new Set<TestElement>();
   constructor(private readonly callback: () => void) {}
   observe(target: TestElement) {
-    this.target = target;
+    this.targets.add(target);
     target.observers.add(this.callback);
   }
   disconnect() {
-    this.target?.observers.delete(this.callback);
+    this.targets.forEach((target) => target.observers.delete(this.callback));
+    this.targets.clear();
   }
 }
 
@@ -337,6 +338,7 @@ export function robotDom() {
     input: add('textarea'),
     send: add('button', 'data-send'),
     enable: add('button', 'data-enable'),
+    explore: add('button', 'data-robot-explore'),
     unload: add('button', 'data-model-off'),
     stop: add('button', 'data-stop'),
     clear: add('button', 'data-clear'),

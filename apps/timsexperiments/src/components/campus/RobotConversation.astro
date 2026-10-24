@@ -450,6 +450,27 @@ const { id = 'robot-conversation' } = Astro.props;
   .robot-conversation[data-model-state='loading'] .robot-start small {
     display: none;
   }
+  .robot-conversation .robot-firmware-copy {
+    display: none;
+  }
+  .robot-conversation[data-model-state='loading'] .robot-firmware-copy {
+    display: block;
+  }
+  .robot-conversation[data-model-state='loading'] .robot-firmware-copy p {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .robot-conversation[data-model-state='loading'] [data-enable],
+  .robot-conversation[data-model-state='loading'] .chat-greeting,
+  .robot-conversation[data-model-state='loading'] [data-status],
+  .robot-conversation[data-model-state='loading'] .chat-mcp-link {
+    display: none;
+  }
+  .robot-conversation [data-robot-explore] {
+    background: var(--chat-mint);
+    color: #0c1818;
+    font-weight: 650;
+  }
   .robot-conversation .dialogue-voice {
     display: flex;
     flex-wrap: wrap;
