@@ -1,0 +1,69 @@
+<aside
+  class="robot-firmware"
+  data-robot-firmware
+  aria-label="Robot firmware"
+  hidden>
+  <span data-firmware-status role="status" aria-live="polite" aria-atomic="true"
+  ></span>
+  <progress max="1" value="0" aria-label="Robot firmware progress"></progress>
+  <button type="button" data-open-station="robot">Return to robot</button>
+  <button type="button" data-firmware-cancel>Cancel</button>
+  <button
+    type="button"
+    data-firmware-dismiss
+    aria-label="Dismiss robot ready hint"
+    hidden>×</button
+  >
+</aside>
+<style>
+  .robot-firmware {
+    position: fixed;
+    top: 84px;
+    right: 20px;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    max-width: calc(100% - 40px);
+    padding: 8px 12px;
+    border: 1px solid #3c6258;
+    border-radius: 8px;
+    background: #0c1818;
+    color: #ecf6f1;
+    font:
+      400 12px/1.5 system-ui,
+      sans-serif;
+  }
+  .robot-firmware[hidden],
+  .robot-firmware [hidden] {
+    display: none;
+  }
+  .robot-firmware progress {
+    width: 52px;
+    height: 4px;
+    accent-color: #a5f3ce;
+  }
+  .robot-firmware button {
+    min-height: 32px;
+    min-width: 32px;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    color: #a5f3ce;
+    font: inherit;
+    cursor: pointer;
+  }
+  .robot-firmware button:focus-visible {
+    outline: 2px solid #a5f3ce;
+    outline-offset: 2px;
+  }
+  @media (max-width: 700px) {
+    .robot-firmware {
+      top: 140px;
+      right: 12px;
+      max-width: calc(100% - 24px);
+      gap: 4px 8px;
+    }
+  }
+</style>

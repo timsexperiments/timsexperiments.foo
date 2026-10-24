@@ -8,6 +8,7 @@ import '@/styles/campus-fonts.css';
 import '@/styles/campus.css';
 import SerializationBench from './SerializationBench.astro';
 import RobotHost from './RobotHost.astro';
+import RobotFirmware from './RobotFirmware.astro';
 import LetterStation from './LetterStation.astro';
 import TabletReader from './TabletReader.astro';
 import RecipeShelf from './RecipeShelf.astro';
@@ -71,6 +72,7 @@ const stations = [
     </main>
     <footer class="lab-footer"><span>TIM ALTEMUS</span><a href="/lab">Article archive</a><a href="/classic">Classic site <span aria-hidden="true">↗</span></a><span>© {new Date().getFullYear()} TIM'S EXPERIMENTS</span></footer>
     <RecipeShelf recipes={recipes} />
+    <RobotFirmware />
     <TabletReader />
     <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><span class="eyebrow">02 / THE WORKBENCH</span><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><h2 id="workbench-title" class="station-heading">JSON and Protobuf</h2><SerializationBench /></dialog>
     <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><div class="dialog-topbar"><span class="eyebrow">03 / YOUR LAB HOST</span><button class="dialog-close" aria-label="Close robot host">Close <span aria-hidden="true">×</span></button></div><h2 id="robot-title" class="station-heading">Ask about Tim</h2><RobotHost /></dialog>

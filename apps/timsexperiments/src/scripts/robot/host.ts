@@ -40,6 +40,18 @@ export function setupRobotHost(root: HTMLElement) {
     : undefined;
   const chips = root.querySelectorAll<HTMLButtonElement>('[data-question]');
   const dialog = root.closest('dialog');
+  const firmware = document.querySelectorAll<HTMLElement>(
+    '[data-robot-firmware]'
+  )[0];
+  const firmwareText = firmware?.querySelector('[data-firmware-status]');
+  const firmwareProgress = firmware?.querySelector('progress');
+  const firmwareReturn = firmware?.querySelector('[data-open-station]');
+  const firmwareCancel = firmware?.querySelector('[data-firmware-cancel]');
+  const firmwareDismiss = firmware?.querySelector('[data-firmware-dismiss]');
+  const explore = root.querySelector('[data-robot-explore]');
+  const labDialogs = [
+    ...document.querySelectorAll<HTMLDialogElement>('.lab-dialog'),
+  ];
   const voice = createRobotVoice(root);
   const lifecycle = new AbortController();
   const listenerOptions = { signal: lifecycle.signal };
@@ -49,6 +61,10 @@ export function setupRobotHost(root: HTMLElement) {
   let retrievalTarget: HTMLElement | undefined;
   let deadline: ReturnType<typeof setTimeout> | undefined;
   let run = 0;
+  // Loading belongs to the page, independently of dialogue/session invalidation.
+  let loadRun = 0;
+  let readyDismissed = false;
+  let away = false;
   let turns = 0;
   let activeSessionId: string | undefined;
   let presentationInvalidated = false;
@@ -79,7 +95,7 @@ export function setupRobotHost(root: HTMLElement) {
       state === 'off'
         ? `Start chat · ${localModel.download} download`
         : state === 'loading'
-          ? 'Loading local AI…'
+          ? 'Installing firmware…'
           : 'Local AI enabled';
     stop.hidden = !modelBusy;
     stop.textContent =
@@ -91,6 +107,8 @@ export function setupRobotHost(root: HTMLElement) {
             ? 'Cancel search'
             : 'Turn off local AI';
     progress.hidden = state !== 'loading';
+    if (explore instanceof HTMLElement) explore.hidden = state !== 'loading';
+    syncFirmware();
     aiStatus.hidden =
       state === 'ready' ||
       state === 'generating' ||
@@ -105,6 +123,26 @@ export function setupRobotHost(root: HTMLElement) {
       status.textContent =
         'Session limit reached. Clear conversation to ask more questions.';
   }
+  function syncFirmware() {
+    if (!firmware) return;
+    firmware.hidden =
+      away ||
+      labDialogs.some((panel) => panel.open) ||
+      (state !== 'loading' && (state !== 'ready' || readyDismissed));
+    if (firmwareText)
+      firmwareText.textContent =
+        state === 'loading'
+          ? `Robot updating · ${Math.round(progress.value * 100)}%`
+          : 'Robot ready';
+    if (firmwareProgress instanceof HTMLProgressElement) {
+      firmwareProgress.hidden = state !== 'loading';
+      firmwareProgress.value = progress.value;
+    }
+    if (firmwareCancel instanceof HTMLElement)
+      firmwareCancel.hidden = state !== 'loading';
+    if (firmwareDismiss instanceof HTMLElement)
+      firmwareDismiss.hidden = state !== 'ready';
+  }
   function finishPending(message: string) {
     if (pending) {
       pending.target.textContent = message;
@@ -114,6 +152,7 @@ export function setupRobotHost(root: HTMLElement) {
   function release(
     message = 'Start the local model to talk. You can also read Tim’s work or contact him below.'
   ) {
+    ++loadRun;
     worker?.terminate();
     worker = undefined;
     if (deadline) clearTimeout(deadline);
@@ -125,14 +164,21 @@ export function setupRobotHost(root: HTMLElement) {
     aiStatus.textContent = message;
     status.textContent = 'Start the local model to talk.';
     const restoreFocus =
-      document.activeElement === stop || document.activeElement === unload;
+      document.activeElement === stop ||
+      document.activeElement === unload ||
+      document.activeElement === explore;
+    const restoreLabFocus =
+      document.activeElement === firmwareCancel ||
+      document.activeElement === firmwareReturn ||
+      document.activeElement === firmwareDismiss;
     sync();
     if (restoreFocus && dialog?.open) {
       conversation?.beforeTurn();
       enable.focus();
-    }
+    } else if (restoreLabFocus) focusLab();
   }
   function cancel() {
+    const fromFirmware = document.activeElement === firmwareCancel;
     voice.cancel();
     run += 1;
     request?.abort();
@@ -144,26 +190,36 @@ export function setupRobotHost(root: HTMLElement) {
     release();
     status.textContent = 'Stopped. You can ask another question.';
     sync();
+    if (fromFirmware) focusLab();
+  }
+  function focusLab() {
+    const canvas = document.querySelectorAll<HTMLElement>('#campus-canvas')[0];
+    const station = document.querySelectorAll<HTMLElement>(
+      '.station-button[data-open-station="robot"]'
+    )[0];
+    (canvas && !canvas.inert ? canvas : station)?.focus();
   }
   async function load() {
     if (state !== 'off') return;
     state = 'loading';
+    readyDismissed = false;
     aiStatus.dataset.touched = 'true';
     const consent = root.querySelector('[data-ai-consent]');
     if (consent instanceof HTMLDetailsElement) consent.open = false;
-    aiStatus.textContent = "Checking this browser's GPU…";
-    status.textContent = 'Preparing local AI. You can cancel the download.';
+    aiStatus.textContent = 'Installing firmware · 0%';
+    status.textContent = 'Do have a look around while I get ready.';
     progress.value = 0;
     sync();
-    stop.focus();
-    const token = ++run;
+    if (explore instanceof HTMLElement) explore.focus();
+    else stop.focus();
+    const token = ++loadRun;
     try {
       if (!window.isSecureContext || !('gpu' in navigator) || !navigator.gpu)
         throw new Error(
           'WebGPU needs a supported browser and a secure connection.'
         );
       const model = await selectGpuModel(navigator.gpu);
-      if (token !== run) return;
+      if (token !== loadRun) return;
       const current = new Worker(
         new URL('./inference.worker.ts', import.meta.url),
         { type: 'module' }
@@ -185,17 +241,37 @@ export function setupRobotHost(root: HTMLElement) {
         const message = result.data;
         switch (message.kind) {
           case 'progress':
+            if (state !== 'loading') return;
             progress.value = Math.min(1, Math.max(0, message.progress));
-            aiStatus.textContent = `Loading local model · ${Math.round(progress.value * 100)}%. Cancel download stops this.`;
+            aiStatus.textContent = `Installing firmware · ${Math.round(progress.value * 100)}%`;
+            syncFirmware();
             break;
-          case 'ready':
+          case 'ready': {
+            if (state !== 'loading') return;
+            // Capture before sync hides controls and the browser can blur them.
+            const restoreInputFocus =
+              dialog?.open &&
+              (document.activeElement === stop ||
+                document.activeElement === explore);
+            const restoreFirmwareFocus =
+              document.activeElement === firmwareCancel;
             if (deadline) clearTimeout(deadline);
+            deadline = undefined;
             state = 'ready';
-            status.textContent = 'Local AI is ready. Ask a question.';
+            readyDismissed = Boolean(dialog?.open);
+            status.textContent = 'All in order. What would you like to know?';
             aiStatus.textContent = `Local AI ready · ${localModel.name} · f16. Ask a question to use it.`;
             sync();
-            if (document.activeElement === stop) input.focus();
+            if (restoreInputFocus) input.focus();
+            else if (
+              restoreFirmwareFocus &&
+              firmware &&
+              !firmware.hidden &&
+              firmwareReturn instanceof HTMLElement
+            )
+              firmwareReturn.focus();
             break;
+          }
           case 'answer': {
             // Read live storage too: cross-tab storage events may arrive late.
             if (
@@ -249,7 +325,7 @@ export function setupRobotHost(root: HTMLElement) {
             break;
         }
       };
-      aiStatus.textContent = `Downloading and preparing ${localModel.name} f16 on this device…`;
+      aiStatus.textContent = 'Installing firmware · 0%';
       current.postMessage({ kind: 'load', model });
       deadline = setTimeout(
         () =>
@@ -259,7 +335,7 @@ export function setupRobotHost(root: HTMLElement) {
         10 * 60 * 1000
       );
     } catch (error) {
-      if (token !== run) return;
+      if (token !== loadRun) return;
       release(
         error instanceof Error
           ? error.message
@@ -428,21 +504,35 @@ export function setupRobotHost(root: HTMLElement) {
     listenerOptions
   );
   stop.addEventListener('click', cancel, listenerOptions);
+  firmwareCancel?.addEventListener('click', cancel, listenerOptions);
+  firmwareDismiss?.addEventListener(
+    'click',
+    () => {
+      readyDismissed = true;
+      // The dismiss control is about to disappear. Restore a visible lab target.
+      focusLab();
+      syncFirmware();
+    },
+    listenerOptions
+  );
   unload?.addEventListener('click', cancel, listenerOptions);
   function invalidatePresentation() {
     if (presentationInvalidated) return;
     presentationInvalidated = true;
     activeSessionId = undefined;
-    cancel();
+    if (state === 'loading') ++run;
+    else cancel();
     voice.clear();
     savedTurns.splice(0);
     turns = 0;
-    status.textContent =
-      'Chat cleared or replaced. Start chat again.';
+    status.textContent = 'Chat cleared or replaced. Start chat again.';
     sync();
   }
-  function resetConversation(clearSaved = true, keepReady = false) {
-    if (!keepReady || state !== 'ready') cancel();
+  function resetConversation(clearSaved = true, preserveModel = false) {
+    const keepModel =
+      preserveModel && (state === 'ready' || state === 'loading') && !request;
+    if (!keepModel) cancel();
+    else ++run;
     voice.clear();
     activeSessionId = undefined;
     presentationInvalidated = false;
@@ -455,9 +545,11 @@ export function setupRobotHost(root: HTMLElement) {
     turns = 0;
     savedTurns.splice(0);
     input.value = '';
-    delete aiStatus.dataset.touched;
-    aiStatus.textContent = '';
-    progress.value = 0;
+    if (!keepModel) {
+      delete aiStatus.dataset.touched;
+      aiStatus.textContent = '';
+      progress.value = 0;
+    }
     const consent = root.querySelector('[data-ai-consent]');
     if (consent instanceof HTMLDetailsElement) consent.open = false;
     status.textContent = "Ask me about Tim's engineering work.";
@@ -471,15 +563,26 @@ export function setupRobotHost(root: HTMLElement) {
     },
     listenerOptions
   );
-  let away = false;
   let wasOpen = dialog?.open ?? false;
   // The shell calls native close() for button, Escape, backdrop and station
   // switches. Observe removal too, since changing `open` alone emits no close.
   const observeDialog = () => {
     if (!dialog) return;
-    if (wasOpen && !dialog.open && !away) resetConversation();
+    if (wasOpen && !dialog.open && !away) resetConversation(true, true);
     wasOpen = dialog.open;
+    if (wasOpen) readyDismissed = true;
+    syncFirmware();
   };
+  // Native close events are queued. The shell provides a synchronous boundary
+  // so a close/reopen in the same task still clears the old conversation once.
+  dialog?.addEventListener(
+    'lab:before-close',
+    () => {
+      if (!away) resetConversation(true, true);
+      wasOpen = false;
+    },
+    listenerOptions
+  );
   dialog?.addEventListener('close', observeDialog, listenerOptions);
   const dialogObserver = new MutationObserver(observeDialog);
   if (dialog)
@@ -487,6 +590,13 @@ export function setupRobotHost(root: HTMLElement) {
       attributes: true,
       attributeFilter: ['open'],
     });
+  const firmwareObserver = new MutationObserver(syncFirmware);
+  labDialogs.forEach((panel) =>
+    firmwareObserver.observe(panel, {
+      attributes: true,
+      attributeFilter: ['open'],
+    })
+  );
   window.addEventListener(
     'pagehide',
     (event) => {
@@ -504,6 +614,7 @@ export function setupRobotHost(root: HTMLElement) {
         away = false;
         wasOpen = dialog?.open ?? false;
         savedChat?.resume();
+        sync();
       }
     },
     listenerOptions
@@ -511,6 +622,7 @@ export function setupRobotHost(root: HTMLElement) {
   function dispose() {
     cancel();
     dialogObserver.disconnect();
+    firmwareObserver.disconnect();
     conversation?.destroy();
     voice.destroy();
     savedChat?.destroy();

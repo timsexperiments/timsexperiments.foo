@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { browserEnvironment, click, robotDom } from './lifecycle-test-helpers';
-import { createRobotVoice } from './voice';
+import { createRobotVoice, selectRobotVoice } from './voice';
 
 let env: ReturnType<typeof browserEnvironment>;
 let dom: ReturnType<typeof robotDom>;
@@ -10,6 +10,7 @@ class Utterance {
   voice: SpeechSynthesisVoice | null = null;
   lang = '';
   rate = 1;
+  pitch = 1;
   onend: (() => void) | null = null;
   onerror: (() => void) | null = null;
   constructor(readonly text: string) {
@@ -66,6 +67,23 @@ test('starts muted, enabling does not read old replies, replay selects an explic
   click(dom.voiceReplay);
   expect(synth.spoken[0]?.voice).toBe(local);
   expect(synth.spoken[0]?.text).toBe('Current reply.');
+  expect(synth.spoken[0]?.rate).toBe(0.94);
+  expect(synth.spoken[0]?.pitch).toBe(1.02);
+});
+test('voice preference is deterministic across enumeration orders and stays local English only', () => {
+  const preferred = { ...local, name: 'Samantha' };
+  const other = { ...local, name: 'Other', voiceURI: 'other' };
+  const nonEnglish = { ...preferred, lang: 'fr-FR' };
+  expect(selectRobotVoice([remote, other, preferred, nonEnglish])).toBe(
+    preferred
+  );
+  expect(selectRobotVoice([nonEnglish, preferred, other, remote])).toBe(
+    preferred
+  );
+  expect(selectRobotVoice([remote, nonEnglish])).toBeUndefined();
+  expect(selectRobotVoice([other, local])).toBe(
+    selectRobotVoice([local, other])
+  );
 });
 test('replacement, stop, mute and Clear invalidate queued sentence callbacks', () => {
   click(dom.voiceToggle);
@@ -123,4 +141,13 @@ test('voice list changes never fall back to a remote or unset default', () => {
   click(dom.voiceToggle);
   click(dom.voiceReplay);
   expect(synth.spoken[0]?.voice).toBe(local);
+});
+test('a native speech failure leaves written replies and replay available', () => {
+  synth.speak = () => {
+    throw new Error('Native service unavailable');
+  };
+  click(dom.voiceToggle);
+  expect(() => controller.accept('Written reply.')).not.toThrow();
+  expect(dom.voiceStatus.textContent).toContain('Voice could not play');
+  expect(dom.voiceReplay.disabled).toBe(false);
 });

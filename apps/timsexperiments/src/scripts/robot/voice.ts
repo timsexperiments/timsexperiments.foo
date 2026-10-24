@@ -1,3 +1,22 @@
+/** Stable within this device's current voice list, never a remote/default fallback. */
+export function selectRobotVoice(voices: SpeechSynthesisVoice[]) {
+  const preferred = ['Samantha', 'Karen', 'Moira', 'Daniel', 'Alex'];
+  const rank = (voice: SpeechSynthesisVoice) => {
+    const index = preferred.findIndex((name) => voice.name === name);
+    return index < 0 ? preferred.length : index;
+  };
+  const key = (voice: SpeechSynthesisVoice) =>
+    `${voice.lang}\u0000${voice.name}\u0000${voice.voiceURI}`;
+  return voices
+    .filter(
+      (voice) => voice.localService === true && /^en(?:-|$)/i.test(voice.lang)
+    )
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) || (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0)
+    )[0];
+}
+
 /** Native speech is optional. Never let an unset voice select a remote service. */
 export function createRobotVoice(root: HTMLElement) {
   const toggle = root.querySelector('[data-voice-toggle]');
@@ -10,12 +29,7 @@ export function createRobotVoice(root: HTMLElement) {
   let generation = 0;
   let active: SpeechSynthesisUtterance | undefined;
   const dialog = root.closest('dialog');
-  const available = () =>
-    synth
-      ?.getVoices()
-      .find(
-        (voice) => voice.localService === true && /^en(?:-|$)/i.test(voice.lang)
-      );
+  const available = () => selectRobotVoice(synth?.getVoices() ?? []);
   const visible = () => !document.hidden && (!dialog || dialog.open);
   const sync = () => {
     const voice = available();
@@ -67,13 +81,14 @@ export function createRobotVoice(root: HTMLElement) {
       const utterance = new SpeechSynthesisUtterance(text.trim());
       utterance.voice = voice;
       utterance.lang = voice.lang;
-      utterance.rate = 1;
+      utterance.rate = 0.94;
+      utterance.pitch = 1.02;
       utterance.onend = () => {
         if (token !== generation) return;
         active = undefined;
         next();
       };
-      utterance.onerror = () => {
+      const failed = () => {
         if (token !== generation) return;
         active = undefined;
         sync();
@@ -81,9 +96,15 @@ export function createRobotVoice(root: HTMLElement) {
           status.textContent =
             'Voice could not play. Try Replay; subtitles remain available.';
       };
+      utterance.onerror = failed;
       active = utterance;
       sync();
-      synth.speak(utterance);
+      try {
+        synth.speak(utterance);
+      } catch {
+        // Optional native audio must never interrupt accepting a written reply.
+        failed();
+      }
     };
     next();
   };
