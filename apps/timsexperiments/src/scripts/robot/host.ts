@@ -1,5 +1,4 @@
 import { localModel } from './model';
-import { createExperienceExplorer } from './explorer';
 import { createSavedChat } from './history';
 import type { ConversationTurn } from '../../lib/conversations/protocol';
 import { createDialogueView } from './dialogue-view';
@@ -39,10 +38,6 @@ export function setupRobotHost(root: HTMLElement) {
   const conversation = root.matches('[data-chat-view]')
     ? createDialogueView(root)
     : undefined;
-  const explorer = createExperienceExplorer(root, () => {
-    cancel();
-    conversation?.beforeTurn();
-  });
   const chips = root.querySelectorAll<HTMLButtonElement>('[data-question]');
   const dialog = root.closest('dialog');
   const voice = createRobotVoice(root);
@@ -152,7 +147,6 @@ export function setupRobotHost(root: HTMLElement) {
   }
   async function load() {
     if (state !== 'off') return;
-    explorer?.hide();
     state = 'loading';
     aiStatus.dataset.touched = 'true';
     const consent = root.querySelector('[data-ai-consent]');
@@ -444,11 +438,10 @@ export function setupRobotHost(root: HTMLElement) {
     savedTurns.splice(0);
     turns = 0;
     status.textContent =
-      'Chat cleared or replaced. Start chat again or explore experience.';
+      'Chat cleared or replaced. Start chat again.';
     sync();
   }
   function resetConversation(clearSaved = true, keepReady = false) {
-    explorer?.hide();
     if (!keepReady || state !== 'ready') cancel();
     voice.clear();
     activeSessionId = undefined;
@@ -519,7 +512,6 @@ export function setupRobotHost(root: HTMLElement) {
     cancel();
     dialogObserver.disconnect();
     conversation?.destroy();
-    explorer?.destroy();
     voice.destroy();
     savedChat?.destroy();
     lifecycle.abort();
