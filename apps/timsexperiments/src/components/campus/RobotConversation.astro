@@ -41,17 +41,6 @@ const { id = 'robot-conversation' } = Astro.props;
       </article>
     </div>
     <section
-      data-explorer
-      class="robot-explorer"
-      aria-label="Explore experience"
-      hidden>
-      <p>
-        <strong>Explore experience</strong> · Public records, no AI or download
-      </p>
-      <nav data-explorer-topics aria-label="Experience topics"></nav>
-      <div data-explorer-content></div>
-    </section>
-    <section
       class="chat-options"
       id={`${id}-options`}
       aria-label="Conversation options"
@@ -90,7 +79,7 @@ const { id = 'robot-conversation' } = Astro.props;
   </div>
   <div class="chat-feedback">
     <p data-status role="status" aria-live="polite" aria-atomic="true">
-      Explore records or start local AI chat.
+      Start chat, read Tim’s work, or contact him below.
     </p>
     <button type="button" data-stop hidden>Stop</button>
     <progress max="1" value="0" aria-label="Local model loading progress" hidden
@@ -280,8 +269,7 @@ const { id = 'robot-conversation' } = Astro.props;
     flex-direction: column;
   }
   .robot-conversation .robot-transcript,
-  .robot-conversation .chat-options,
-  .robot-conversation .robot-explorer {
+  .robot-conversation .chat-options {
     width: 100%;
     min-height: 0;
     overflow-y: auto;
@@ -292,8 +280,7 @@ const { id = 'robot-conversation' } = Astro.props;
   .robot-conversation .robot-transcript {
     max-height: min(26dvh, 240px);
   }
-  .robot-conversation .chat-options,
-  .robot-conversation .robot-explorer {
+  .robot-conversation .chat-options {
     overflow-y: visible;
   }
   .robot-conversation:not([data-history='true'])
@@ -439,11 +426,6 @@ const { id = 'robot-conversation' } = Astro.props;
   .robot-conversation .robot-start p {
     font-size: 12px;
   }
-  .robot-conversation .robot-start-choices {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
   .robot-conversation:not(:has(.robot-turn)) [data-dialogue-history] {
     display: none;
   }
@@ -519,41 +501,8 @@ const { id = 'robot-conversation' } = Astro.props;
   .robot-conversation .chat-history {
     margin-bottom: 12px;
   }
-  .robot-conversation[data-exploring='true'] .robot-transcript {
-    display: none;
-  }
-  .robot-conversation .robot-explorer nav {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .robot-conversation .robot-explorer nav button {
-    border: 0;
-    background: transparent;
-    padding: 6px;
-    font-size: 12px;
-  }
-  .robot-conversation .robot-explorer nav button[aria-pressed='true'] {
-    color: var(--chat-mint);
-    text-decoration: underline;
-  }
-  .robot-conversation .robot-explorer p {
-    font-size: 12px;
-  }
-  .robot-conversation[data-exploring='true'] .robot-start > p,
-  .robot-conversation[data-exploring='true']
-    .robot-start
-    > small:not([data-model-notice]) {
-    display: none;
-  }
   .robot-conversation .robot-start button {
     font-size: 12px;
-  }
-  .robot-conversation[data-exploring='true'] [data-explore] {
-    display: none;
-  }
-  .robot-conversation:has(.chat-options:not([hidden])) .robot-explorer {
-    display: none;
   }
   @media (max-width: 430px) {
     .robot-conversation:has(.robot-turn) .chat-toolbar {

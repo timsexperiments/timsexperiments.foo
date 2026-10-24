@@ -35,7 +35,7 @@ export async function selectGpuModel(gpu: unknown) {
   const f16 = z.boolean().parse(Reflect.apply(has, features, ['shader-f16']));
   if (!f16)
     throw new Error(
-      'This GPU lacks shader-f16. The f32 model is unverified and will not download. Explore experience below, or use the contact and MCP links.'
+      'This GPU lacks shader-f16. The f32 model is unverified and will not download. Read Tim’s work or contact him below.'
     );
   return localModel.id;
 }

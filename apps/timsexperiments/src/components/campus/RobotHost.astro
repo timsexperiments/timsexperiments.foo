@@ -9,12 +9,9 @@ import RobotConversation from './RobotConversation.astro';
       data-ai-consent
       class="robot-start"
       aria-label="Start local conversation">
-      <div class="robot-start-choices">
-        <button type="button" data-explore>Explore experience</button>
-        <button type="button" data-enable
-          >Start chat · {localModel.download} download</button
-        >
-      </div>
+      <button type="button" data-enable
+        >Start chat · {localModel.download} download</button
+      >
       <small data-model-notice>Desktop recommended.</small>
     </section>
   </Fragment>

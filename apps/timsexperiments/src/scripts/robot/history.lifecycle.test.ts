@@ -630,38 +630,6 @@ describe('actual generated conversation lifecycle', () => {
     TestWorker.instances.at(-1)?.reply({ kind: 'answer', text });
     await settle();
   }
-  test('record explorer is in-panel navigation with no model, fake dialogue or archive writes', async () => {
-    const add = (tag: string, attribute: string) => {
-      const element = document.createElement(tag);
-      element.setAttribute(attribute, '');
-      dom.root.append(element);
-      return element;
-    };
-    const entry = add('button', 'data-explore');
-    const panel = add('section', 'data-explorer');
-    panel.hidden = true;
-    const topics = add('nav', 'data-explorer-topics');
-    const records = add('div', 'data-explorer-content');
-    await startHost();
-    click(entry);
-    expect(panel.hidden).toBe(false);
-    expect(records.textContent).toContain('Agent Dispatch');
-    const graphql = [...topics.querySelectorAll('button')].find(
-      (button) => button.textContent === 'GraphQL'
-    );
-    if (!graphql) throw new Error('GraphQL topic missing');
-    click(graphql);
-    expect(records.textContent).toContain('Included Health: Extensible practitioner profiles');
-    expect(records.querySelector('details')).toBeNull();
-    expect(records.textContent).not.toContain('federated GraphQL');
-    expect(records.textContent).not.toContain(
-      'No particular GraphQL federation framework'
-    );
-    expect(dom.transcript.querySelector('.robot-turn')).toBeNull();
-    expect(TestWorker.instances).toHaveLength(0);
-    expect(server.calls).toHaveLength(0);
-    expect(local()).toBeUndefined();
-  });
   test('unsupported f16 GPU never creates a worker or starts an f32 download', async () => {
     env.install('navigator', {
       gpu: {
@@ -676,7 +644,9 @@ describe('actual generated conversation lifecycle', () => {
     await settle();
     expect(TestWorker.instances).toHaveLength(0);
     expect(dom.aiStatus.textContent).toContain('f32 model is unverified');
-    expect(dom.aiStatus.textContent).toContain('Explore experience');
+    expect(dom.aiStatus.textContent).toContain(
+      'Read Tim’s work or contact him below.'
+    );
     expect(dom.root.dataset.modelState).toBe('off');
   });
   test('requires an explicit model start and never archives prepared or pending replies', async () => {
