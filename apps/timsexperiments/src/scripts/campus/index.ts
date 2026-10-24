@@ -8,6 +8,12 @@ import {
 } from './quality';
 import { computeFrameSchedule, easeInOutCubic } from './scheduler';
 import { isWalkBlocked, readStick, walkStep } from './locomotion';
+import {
+  createAnalogStick,
+  readWalkMode,
+  saveWalkMode,
+  type WalkMode,
+} from './input';
 import type {
   CampusCallbacks,
   CampusController,
@@ -254,10 +260,48 @@ export async function createCampus(
       : controlsScope.querySelector<HTMLButtonElement>(
           '#toggle-touch-controls'
         );
-  let showPad = coarse.matches;
+  const movement = controlsScope.querySelector<HTMLElement>('#scene-movement');
+  const joystickElement =
+    options.joystick !== undefined
+      ? options.joystick
+      : controlsScope.querySelector<HTMLElement>('#scene-joystick');
+  const knob = joystickElement?.querySelector<HTMLElement>('.joystick-knob');
+  // Accessing localStorage itself may throw in restricted contexts.
+  let walkMode: WalkMode = 'joystick';
+  try {
+    walkMode = readWalkMode(window.localStorage);
+  } catch {
+    /* Use default. */
+  }
+  const touchMovement = { x: 0, y: 0 };
+  const joystick = joystickElement
+    ? createAnalogStick({
+        surface: joystickElement,
+        canStart: () => running() && walkMode === 'joystick',
+        onChange(sample) {
+          touchMovement.x = sample.x;
+          touchMovement.y = sample.y;
+          if (knob)
+            knob.style.transform = `translate(${sample.knobX}px, ${sample.knobY}px)`;
+          if (sample.x || sample.y) transition = null;
+          invalidate(false, true);
+        },
+      })
+    : null;
   function updatePad() {
-    if (pad) pad.hidden = !showPad;
-    padToggle?.setAttribute('aria-pressed', String(showPad));
+    if (pad) pad.hidden = walkMode !== 'arrows';
+    if (joystickElement) joystickElement.hidden = walkMode !== 'joystick';
+    if (movement) movement.dataset.walkMode = walkMode;
+    padToggle?.setAttribute('aria-pressed', String(walkMode === 'arrows'));
+    padToggle?.setAttribute(
+      'aria-label',
+      walkMode === 'joystick'
+        ? 'Joystick: switch to arrow buttons to walk'
+        : 'Arrows: switch to joystick to walk'
+    );
+    const label = padToggle?.querySelector('span');
+    if (label)
+      label.textContent = walkMode === 'joystick' ? 'Joystick' : 'Arrows';
   }
   updatePad();
 
@@ -265,8 +309,17 @@ export async function createCampus(
   const originalTouchAction = canvas.style.touchAction;
   const originalCursor = canvas.style.cursor;
   const originalTabIndex = canvas.getAttribute('tabindex');
+  const originalFocusInput = canvas.getAttribute('data-focus-input');
+  canvas.dataset.focusInput = 'pointer';
   canvas.style.touchAction = 'none';
   if (originalTabIndex === null) canvas.tabIndex = 0;
+  window.addEventListener(
+    'pointerdown',
+    () => {
+      canvas.dataset.focusInput = 'pointer';
+    },
+    { capture: true, signal: events.signal }
+  );
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -317,6 +370,9 @@ export async function createCampus(
     velocity.set(0, 0);
     gamepadSelectHeld = true;
     keys.clear();
+    joystick?.reset();
+    for (const button of pad?.querySelectorAll('[data-walk]') ?? [])
+      button.classList.remove('is-held');
     for (const [id, { button }] of heldPointers) {
       heldPointers.delete(id);
       button.classList.remove('is-held');
@@ -442,6 +498,7 @@ export async function createCampus(
   window.addEventListener(
     'keydown',
     (event) => {
+      canvas.dataset.focusInput = 'keyboard';
       if (
         !running() ||
         event.target !== canvas ||
@@ -488,7 +545,12 @@ export async function createCampus(
     'click',
     () => {
       resetInput();
-      showPad = !showPad;
+      walkMode = walkMode === 'joystick' ? 'arrows' : 'joystick';
+      try {
+        saveWalkMode(window.localStorage, walkMode);
+      } catch {
+        /* Use this visit. */
+      }
       updatePad();
     },
     { signal: events.signal }
@@ -498,8 +560,6 @@ export async function createCampus(
     'change',
     () => {
       resetInput();
-      showPad = coarse.matches;
-      updatePad();
       resize();
     },
     { signal: events.signal }
@@ -512,7 +572,9 @@ export async function createCampus(
       'pointerdown',
       (event) => {
         const code = button.dataset.walk;
-        if (!running() || event.button !== 0 || !code) return;
+        if (!running() || event.button !== 0 || !code || walkMode !== 'arrows')
+          return;
+        if (heldPointers.has(event.pointerId)) return;
         event.preventDefault();
         heldPointers.set(event.pointerId, { button, code });
         button.classList.add('is-held');
@@ -522,7 +584,39 @@ export async function createCampus(
       },
       { signal: events.signal }
     );
+    button.addEventListener(
+      'keydown',
+      (event) => {
+        if (
+          !running() ||
+          walkMode !== 'arrows' ||
+          !['Space', 'Enter'].includes(event.code)
+        )
+          return;
+        event.preventDefault();
+        const code = button.dataset.walk;
+        if (code) keys.add(code);
+        button.classList.add('is-held');
+        transition = null;
+        invalidate(false, true);
+      },
+      { signal: events.signal }
+    );
+    const releaseKey = () => {
+      const code = button.dataset.walk;
+      if (code) keys.delete(code);
+      button.classList.remove('is-held');
+    };
+    button.addEventListener(
+      'keyup',
+      (event) => {
+        if (['Space', 'Enter'].includes(event.code)) releaseKey();
+      },
+      { signal: events.signal }
+    );
+    button.addEventListener('blur', releaseKey, { signal: events.signal });
     const release = (event: PointerEvent) => {
+      if (heldPointers.get(event.pointerId)?.button !== button) return;
       heldPointers.delete(event.pointerId);
       if (![...heldPointers.values()].some((held) => held.button === button))
         button.classList.remove('is-held');
@@ -553,6 +647,7 @@ export async function createCampus(
     'pointerdown',
     (event) => {
       if (!running() || event.button !== 0 || drag) return;
+      event.preventDefault();
       canvas.focus({ preventScroll: true });
       drag = {
         id: event.pointerId,
@@ -616,13 +711,24 @@ export async function createCampus(
     { signal: events.signal }
   );
 
-  canvas.addEventListener('pointercancel', resetInput, {
-    signal: events.signal,
-  });
+  canvas.addEventListener(
+    'pointercancel',
+    (event) => {
+      if (drag?.id !== event.pointerId) return;
+      const id = drag.id;
+      drag = null;
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+      canvas.style.cursor = originalCursor;
+    },
+    { signal: events.signal }
+  );
   canvas.addEventListener(
     'lostpointercapture',
-    () => {
-      drag = null;
+    (event) => {
+      if (drag?.id === event.pointerId) {
+        drag = null;
+        canvas.style.cursor = originalCursor;
+      }
     },
     { signal: events.signal }
   );
@@ -742,6 +848,8 @@ export async function createCampus(
     const hasMovementInput =
       keys.size > 0 ||
       heldPointers.size > 0 ||
+      touchMovement.x !== 0 ||
+      touchMovement.y !== 0 ||
       moveStick.x !== 0 ||
       moveStick.y !== 0 ||
       lookStick.x !== 0 ||
@@ -793,8 +901,16 @@ export async function createCampus(
         1.12
       );
       camera.quaternion.setFromEuler(euler);
-      const forward = Number(held('KeyW')) - Number(held('KeyS')) - moveStick.y;
-      const lateral = Number(held('KeyD')) - Number(held('KeyA')) + moveStick.x;
+      const forward =
+        Number(held('KeyW')) -
+        Number(held('KeyS')) -
+        moveStick.y -
+        touchMovement.y;
+      const lateral =
+        Number(held('KeyD')) -
+        Number(held('KeyA')) +
+        moveStick.x +
+        touchMovement.x;
       const magnitude = Math.max(1, Math.hypot(forward, lateral));
       const speed =
         held('ShiftLeft') || held('ShiftRight') || gamepad?.buttons[10]?.pressed
@@ -891,6 +1007,7 @@ export async function createCampus(
       if (disposed) return;
       disposed = true;
       stop();
+      joystick?.dispose();
       events.abort();
       resizeObserver.disconnect();
       world.dispose();
@@ -898,6 +1015,9 @@ export async function createCampus(
       canvas.style.cursor = originalCursor;
       if (originalTabIndex === null) canvas.removeAttribute('tabindex');
       else canvas.setAttribute('tabindex', originalTabIndex);
+      if (originalFocusInput === null)
+        canvas.removeAttribute('data-focus-input');
+      else canvas.setAttribute('data-focus-input', originalFocusInput);
       disposeSceneResources(scene);
       environment?.dispose();
       renderer.dispose();

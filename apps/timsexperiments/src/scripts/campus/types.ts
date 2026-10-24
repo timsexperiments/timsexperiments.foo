@@ -28,6 +28,8 @@ export type CampusCallbacks = {
 export type CampusOptions = {
   controlsRoot?: ParentNode;
   walkPad?: HTMLElement | null;
+  joystick?: HTMLElement | null;
+  /** Switches between the analog joystick and native arrow buttons. */
   walkPadToggle?: HTMLButtonElement | null;
 };
 
