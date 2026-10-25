@@ -720,18 +720,35 @@ html:has(> body.campus-page) {
     margin-top: 8px;
     gap: 4px 12px;
   }
+  .lab-directory {
+    padding: 8px;
+  }
+  .directory-heading {
+    margin-bottom: 6px;
+  }
+  .directory-heading > span {
+    padding: 0;
+    font-size: 13px;
+  }
+  .station-dock {
+    grid-template-columns:
+      minmax(0, 1fr) minmax(74px, 1fr) repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
   .station-dock .station-button {
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
-    min-height: 76px;
-    padding: 8px 4px;
+    gap: 3px;
+    min-height: 64px;
+    padding: 6px 2px;
     text-align: center;
   }
   .station-number {
     display: none;
   }
   .station-name {
+    font-size: 12px;
+    line-height: 15px;
     font-weight: 500;
   }
   .lab-footer {
@@ -770,24 +787,24 @@ html:has(> body.campus-page) {
   }
   .is-exploring .station-dock .station-button {
     flex-direction: column;
-    min-height: 76px;
-    padding: 8px 4px;
+    min-height: 64px;
+    padding: 6px 2px;
   }
   .station-name {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
+    min-height: 30px;
     text-align: center;
   }
   .is-exploring .station-name {
     max-width: 100%;
     text-align: center;
   }
-  .is-exploring .station-icon,
-  .is-exploring .station-icon svg {
-    width: 22px;
-    height: 22px;
+  .station-icon,
+  .station-icon svg {
+    width: 20px;
+    height: 20px;
   }
   .scene-movement {
     gap: 12px;
@@ -959,32 +976,5 @@ html:has(> body.campus-page) {
 @media (max-height: 500px) {
   .workbench-dialog {
     scroll-padding-top: 12px;
-  }
-}
-
-@media (max-width: 420px) {
-  .station-dock {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .station-dock .station-button,
-  .is-exploring .station-dock .station-button {
-    flex-direction: row;
-    min-height: 48px;
-    padding: 6px 8px;
-    gap: 6px;
-  }
-  .station-icon,
-  .station-icon svg {
-    width: 22px;
-    height: 22px;
-  }
-  .station-button-copy {
-    flex: 1;
-  }
-  .station-name,
-  .is-exploring .station-name {
-    min-height: 0;
-    justify-content: flex-start;
-    text-align: left;
   }
 }
