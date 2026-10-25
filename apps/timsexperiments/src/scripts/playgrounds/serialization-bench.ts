@@ -205,7 +205,7 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
     visible('[data-lesson]', guided);
     visible('[data-sandbox]', !guided);
     visible('[data-lesson-footer]', guided);
-    text('[data-mode]', guided ? 'Sandbox ↗' : 'Return to lesson');
+    text('[data-mode]', guided ? 'Open sandbox' : 'Return to lesson');
     host.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
       stage.hidden = !guided || stage.dataset.stage !== lesson.step;
     });
@@ -272,10 +272,16 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
     visible('[data-measure]', !guided || lesson.step === 'measure');
     visible('[data-verification]', !guided || lesson.step === 'check');
     visible('[data-back]', lesson.step !== 'predict');
+    const next = find('[data-next]');
+    const predicting = lesson.step === 'predict';
+    next.classList.toggle('lab-btn--primary', !predicting);
+    next.classList.toggle('primary', !predicting);
+    next.classList.toggle('lab-btn--quiet', predicting);
+    next.classList.toggle('quiet', predicting);
     text(
       '[data-next]',
       lesson.step === 'predict'
-        ? 'Skip prediction →'
+        ? 'Skip prediction'
         : lesson.step === 'change' || !current
           ? 'Run comparison →'
           : lesson.step === 'measure'

@@ -35,7 +35,20 @@ export function createRobotVoice(root: HTMLElement) {
     const voice = available();
     if (toggle instanceof HTMLButtonElement) {
       toggle.disabled = !voice;
-      toggle.textContent = enabled ? 'Mute voice' : 'Enable voice';
+      const label = toggle.querySelector('[data-voice-label]');
+      if (label) label.textContent = enabled ? 'Mute' : 'Voice';
+      else toggle.textContent = enabled ? 'Mute voice' : 'Enable voice';
+      toggle.setAttribute(
+        'aria-label',
+        enabled ? 'Mute voice' : 'Enable voice'
+      );
+      toggle.setAttribute('title', enabled ? 'Mute voice' : 'Enable voice');
+      toggle.hidden = !voice;
+      root.dataset.voiceEnabled = String(enabled);
+      const unavailable = root.querySelector<HTMLElement>(
+        '[data-voice-unavailable]'
+      );
+      if (unavailable) unavailable.hidden = Boolean(voice);
       toggle.setAttribute('aria-pressed', String(enabled));
     }
     if (replay instanceof HTMLButtonElement)
@@ -44,11 +57,7 @@ export function createRobotVoice(root: HTMLElement) {
     if (status)
       status.textContent = !voice
         ? 'No local English voice available on this device.'
-        : active
-          ? 'Reading aloud'
-          : enabled
-            ? 'Local voice on'
-            : 'Voice muted';
+        : '';
   };
   const cancel = () => {
     generation += 1;

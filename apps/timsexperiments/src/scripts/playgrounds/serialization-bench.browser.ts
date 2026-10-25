@@ -51,7 +51,18 @@ export function verifySerializationBench(source: HTMLElement): string[] {
         editor.id !== second.querySelector('textarea')?.id,
       'duplicate roots and editor descriptions have unique IDs'
     );
+    assert(
+      text('[data-mode]') === 'Open sandbox' &&
+        button(clone, '[data-next]').classList.contains('lab-btn--quiet') &&
+        clone.querySelectorAll('[data-prediction].lab-btn--primary').length ===
+          3,
+      'prediction choices carry the emphasis and Skip stays quiet'
+    );
     click('[data-prediction="same"]');
+    assert(
+      button(clone, '[data-next]').classList.contains('lab-btn--primary'),
+      'later steps promote their single next action'
+    );
     click('[data-change="add"]');
     click('[data-next]');
     assert(
@@ -170,6 +181,10 @@ export function verifySerializationBench(source: HTMLElement): string[] {
     assert(
       editor.value === starterJson &&
         text('[data-json-count]') === '107' &&
+        text('[data-protobuf-count]') === '68' &&
+        text('[data-comparison]') ===
+          'Protobuf uses 39 fewer bytes for this record.' &&
+        !!current() &&
         !editor.hasAttribute('aria-invalid'),
       'reset recovers from errors and measures the starter'
     );

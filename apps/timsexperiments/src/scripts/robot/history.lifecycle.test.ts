@@ -383,9 +383,7 @@ describe('local active chat and write-only archive', () => {
     body.release();
     await settle();
     expect(env.timerCount()).toBe(0);
-    expect(dom.historyStatus.textContent).toBe(
-      'Completed replies archived for Tim.'
-    );
+    expect(dom.historyStatus.textContent).toBe('✓ Archived');
     await env.advance(2000);
     controller.save([qualified, another]);
     await settle();
@@ -410,9 +408,7 @@ describe('local active chat and write-only archive', () => {
     body.release();
     await settle();
     expect(env.timerCount()).toBe(0);
-    expect(dom.historyStatus.textContent).toBe(
-      'Completed replies archived for Tim.'
-    );
+    expect(dom.historyStatus.textContent).toBe('✓ Archived');
     controller.save([another, qualified]);
     await settle();
     expect(server.calls).toHaveLength(3);
@@ -541,7 +537,7 @@ describe('local active chat and write-only archive', () => {
     expect(server.archives.get(oldId ?? '')?.turns).toEqual([qualified]);
     expect(server.calls).toHaveLength(1);
     expect(local()).toBeUndefined();
-    expect(dom.historyStatus.textContent).toContain('Previously archived');
+    expect(dom.historyStatus.textContent).toContain('Archive kept.');
     controller.save([another]);
     await settle();
     expect(local()?.id).not.toBe(oldId);

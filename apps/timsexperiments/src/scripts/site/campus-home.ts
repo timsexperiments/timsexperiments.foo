@@ -10,9 +10,9 @@ const pauseButton = document.querySelector<HTMLButtonElement>('#toggle-scene');
 const locationLabel = document.querySelector<HTMLElement>('#location-label');
 const labels = {
   arrival: 'Arrival',
-  recipes: 'The recipe shelf',
-  workbench: 'The workbench',
-  robot: 'Your lab host',
+  recipes: 'Recipe shelf',
+  workbench: 'Workbench',
+  robot: 'Meet the host',
   contact: 'Contact',
 } satisfies Record<StationId, string>;
 let controller:

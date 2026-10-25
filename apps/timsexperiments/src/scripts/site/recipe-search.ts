@@ -4,6 +4,12 @@ export function setupRecipeSearch(shelf: HTMLElement) {
   const clear = shelf.querySelector<HTMLButtonElement>('[data-search-clear]');
   const count = shelf.querySelector<HTMLElement>('[data-search-count]');
   const empty = shelf.querySelector<HTMLElement>('[data-search-empty]');
+  const emptyMessage = shelf.querySelector<HTMLElement>(
+    '[data-search-empty-message]'
+  );
+  const resetButton = shelf.querySelector<HTMLButtonElement>(
+    '[data-search-reset]'
+  );
   const normalize = (text: string) =>
     text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
   const cards = [
@@ -25,6 +31,8 @@ export function setupRecipeSearch(shelf: HTMLElement) {
     if (count)
       count.textContent = `${found} ${found === 1 ? 'article' : 'articles'}${terms.length ? ' found' : ''}`;
     if (empty) empty.hidden = found !== 0;
+    if (emptyMessage)
+      emptyMessage.textContent = `No articles match "${input?.value.trim() ?? ''}".`;
   };
   const reset = () => {
     if (input) {
@@ -36,12 +44,14 @@ export function setupRecipeSearch(shelf: HTMLElement) {
   input?.addEventListener('input', filter);
   input?.addEventListener('search', filter);
   clear?.addEventListener('click', reset);
+  resetButton?.addEventListener('click', reset);
   filter();
   return {
     destroy() {
       input?.removeEventListener('input', filter);
       input?.removeEventListener('search', filter);
       clear?.removeEventListener('click', reset);
+      resetButton?.removeEventListener('click', reset);
     },
   };
 }

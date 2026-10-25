@@ -6,6 +6,7 @@ import labLogo from '@/assets/the_lab_logo_dark.svg?url';
 import '@/styles/global.css';
 import '@/styles/campus-fonts.css';
 import '@/styles/campus.css';
+import '@/styles/lab-ui.css';
 import SerializationBench from './SerializationBench.astro';
 import RobotHost from './RobotHost.astro';
 import RobotFirmware from './RobotFirmware.astro';
@@ -48,18 +49,18 @@ const stations = [
     <main id="lab-main">
       <section class="arrival-copy" id="arrival-copy" aria-labelledby="arrival-title">
         <div class="eyebrow"><span class="tiny-cross">+</span> TIM ALTEMUS</div>
-        <h1 id="arrival-title">Good ideas<br />start with<br /><em>an experiment.</em></h1>
+        <h1 id="arrival-title">Good ideas <br />start with <br /><em>an experiment.</em></h1>
         <p>I'm Tim, a software engineer and technical leader. I bring hands-on experience to help teams turn ideas into working software.</p>
         <button class="enter-lab" id="enter-lab">Explore the room <span aria-hidden="true">↗</span></button>
         <div class="arrival-links"><button data-open-station="recipes">Read articles</button><a href="/resume/mcp">Experience & resume <span aria-hidden="true">↗</span></a></div>
       </section>
       <div class="room-caption"><img src={labLogo} alt="The lab" width="123" height="26" /><span>ROOM 001</span></div>
       <div class="scene-status" id="scene-status" role="status">Preparing the lab…</div>
-      <div class="explore-note" id="explore-note" hidden><span class="live-dot"></span><span id="location-label">Arrival</span><span class="note-divider"></span><span class="keyboard-hint">Drag to look · WASD walk · Arrows look · E select</span><span id="controller-hint" hidden>Controller: left stick walk · right stick look · A / Cross select</span></div>
+      <div class="explore-note" id="explore-note" hidden><span class="lab-chip location-chip"><span class="live-dot" aria-hidden="true"></span><span id="location-label">Arrival</span></span><span class="keyboard-hint">Drag to look · WASD walk · E select</span><span id="controller-hint" hidden>Controller: left stick walk · right stick look · A / Cross select</span></div>
       <section class="lab-directory" id="lab-directory" aria-label="Lab directory">
-        <div class="directory-heading"><span>LAB DIRECTORY</span><button id="toggle-scene" aria-pressed="false" title="Pause the 3D scene"><span>Pause scene</span></button></div>
+        <div class="directory-heading"><span>Lab directory</span><button class="lab-chip" id="toggle-scene" aria-pressed="false" title="Pause the 3D scene"><span>Pause scene</span></button></div>
         <nav class="station-dock" aria-label="Explore the lab">
-          {stations.map(station => <button class="station-button" data-open-station={station.id}><span class="station-icon"><svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d={station.icon} /></svg></span><span class="station-button-copy"><span class="station-number">{station.number}</span><span class="station-name">{station.name}</span><span class="station-description">{station.description}</span></span><span class="station-arrow" aria-hidden="true">↗</span></button>)}
+          {stations.map(station => <button class="lab-chip station-button" data-open-station={station.id}><span class="station-icon"><svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d={station.icon} /></svg></span><span class="station-button-copy"><span class="station-number" aria-hidden="true">{station.number}</span><span class="station-name">{station.name}</span><span class="station-description">{station.description}</span></span></button>)}
         </nav>
       </section>
       <div class="scene-movement" id="scene-movement" data-walk-mode="joystick" role="group" aria-label="Movement controls">
@@ -73,7 +74,7 @@ const stations = [
           </div>
         </div>
         <div class="movement-options">
-          <button type="button" id="toggle-touch-controls" aria-label="Joystick: switch to arrow buttons to walk" aria-pressed="false" aria-controls="scene-walk-pad scene-joystick"><span>Joystick</span><span aria-hidden="true">⇄</span></button>
+          <button type="button" class="lab-chip" id="toggle-touch-controls" aria-label="Joystick: switch to arrow buttons to walk" aria-pressed="false" aria-controls="scene-walk-pad scene-joystick"><span>Joystick</span><span aria-hidden="true">⇄</span></button>
           <span class="touch-hint">Drag room to look</span>
         </div>
       </div>
@@ -82,9 +83,14 @@ const stations = [
     <RecipeShelf recipes={recipes} />
     <RobotFirmware />
     <TabletReader />
-    <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><h2 id="workbench-title" class="workbench-title">JSON and Protobuf</h2><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><SerializationBench /></dialog>
-    <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><div class="dialog-topbar"><span class="eyebrow">03 / YOUR LAB HOST</span><button class="dialog-close" aria-label="Close robot host">Close <span aria-hidden="true">×</span></button></div><h2 id="robot-title" class="station-heading">Ask about Tim</h2><RobotHost /></dialog>
-    <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-station-label"><div class="dialog-topbar"><span id="contact-station-label" class="eyebrow">04 / Contact</span><button class="dialog-close" aria-label="Close contact">Close <span aria-hidden="true">×</span></button></div><LetterStation /></dialog>
+    <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title" data-initial-focus="[data-prediction]">
+      <SerializationBench>
+        <h2 slot="panel-title" id="workbench-title" class="lab-panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 4h18v12H3zM8 20h8M12 16v4M8 8l-3 2 3 2M16 8l3 2-3 2" /></svg>Workbench <small>JSON and Protobuf</small></h2>
+        <button slot="panel-close" type="button" class="dialog-close" aria-label="Close workbench"><span class="lab-close-label">Close</span><span aria-hidden="true">×</span></button>
+      </SerializationBench>
+    </dialog>
+    <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><RobotHost /></dialog>
+    <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-station-label" data-initial-focus="#letter-message"><div class="lab-panel-header"><h2 id="contact-station-label" class="lab-panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 5h18v14H3zM3 5l9 8 9-8" /></svg>Contact</h2><div class="lab-panel-actions"></div><button type="button" class="dialog-close" aria-label="Close contact"><span class="lab-close-label">Close</span><span aria-hidden="true">×</span></button></div><LetterStation /></dialog>
     <noscript><div class="no-script-note">The lab's 3D experience needs JavaScript. You can still <a href="/lab">read the recipes</a>, <a href="/resume/mcp">explore Tim's experience</a>, or <a href="mailto:hello@timsexperiments.foo">send Tim an email</a>.</div></noscript>
     <script src="@/scripts/site/campus-home.ts"></script>
   </body>

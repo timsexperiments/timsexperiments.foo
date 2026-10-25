@@ -84,6 +84,56 @@ export function setupRobotHost(root: HTMLElement) {
       Boolean(request) || state === 'generating' || state === 'loading';
     const busy = modelBusy;
     const atLimit = turns >= 12 && !savedChat?.invalidated;
+    root.dataset.limit = String(atLimit);
+    // Keep keyboard focus in the composer before Send is disabled.
+    const limitClear = root.querySelector<HTMLElement>('[data-limit-clear]');
+    if (
+      atLimit &&
+      (document.activeElement === send || document.activeElement === input)
+    )
+      (limitClear ?? clear).focus({ preventScroll: true });
+    else if (busy && document.activeElement === send)
+      input.focus({ preventScroll: true });
+    enable.removeAttribute('data-initial-focus');
+    input.removeAttribute('data-initial-focus');
+    if (explore instanceof HTMLElement)
+      explore.removeAttribute('data-initial-focus');
+    limitClear?.removeAttribute('data-initial-focus');
+    const initial = atLimit
+      ? (limitClear ?? clear)
+      : state === 'ready' || state === 'generating'
+        ? input
+        : state === 'loading' && explore instanceof HTMLElement
+          ? explore
+          : enable;
+    initial.setAttribute('data-initial-focus', '');
+    if (root.dataset.error === 'true') {
+      enable.removeAttribute('data-initial-focus');
+      root
+        .querySelector('[data-open-station]')
+        ?.setAttribute('data-initial-focus', '');
+    } else
+      root
+        .querySelector('[data-open-station]')
+        ?.removeAttribute('data-initial-focus');
+    const hostLine = root.querySelector('[data-host-line]');
+    const nextHostLine =
+      root.dataset.error === 'true'
+        ? "Oh dear. My language module couldn't start. Tim's articles and contact desk are still open."
+        : state === 'loading'
+          ? 'Installing firmware. Do have a look around the lab while I finish.'
+          : state === 'ready' || state === 'generating'
+            ? 'All in order. What would you like to know about Tim?'
+            : "Good evening. I can tell you about Tim's work once my language module is ready.";
+    if (hostLine && hostLine.textContent !== nextHostLine)
+      hostLine.textContent = nextHostLine;
+    const restoreNotice = root.querySelector<HTMLElement>(
+      '[data-restore-notice]'
+    );
+    if (restoreNotice) restoreNotice.hidden = state !== 'off' || turns === 0;
+    const percentage = root.querySelector('[data-progress-label]');
+    if (percentage)
+      percentage.textContent = `${Math.round(progress.value * 100)}%`;
     send.disabled = state !== 'ready' || busy || atLimit;
     input.disabled = atLimit;
     input.readOnly = busy;
@@ -93,7 +143,7 @@ export function setupRobotHost(root: HTMLElement) {
     enable.disabled = state !== 'off' || busy || atLimit;
     enable.textContent =
       state === 'off'
-        ? `Start chat · ${localModel.download} download`
+        ? 'Start chat'
         : state === 'loading'
           ? 'Installing firmware…'
           : 'Local AI enabled';
@@ -109,10 +159,10 @@ export function setupRobotHost(root: HTMLElement) {
     progress.hidden = state !== 'loading';
     if (explore instanceof HTMLElement) explore.hidden = state !== 'loading';
     syncFirmware();
-    aiStatus.hidden =
-      state === 'ready' ||
-      state === 'generating' ||
-      (state === 'off' && !aiStatus.dataset.touched);
+    // Technical failures belong to Details. This is never a second live region.
+    aiStatus.hidden = root.dataset.error !== 'true';
+    const retryModel = root.querySelector<HTMLElement>('[data-model-retry]');
+    if (retryModel) retryModel.hidden = root.dataset.error !== 'true';
     clear.hidden = turns === 0 && !pending && !request;
     clear.disabled = false;
     transcript.setAttribute(
@@ -121,7 +171,7 @@ export function setupRobotHost(root: HTMLElement) {
     );
     if (!busy && atLimit)
       status.textContent =
-        'Session limit reached. Clear conversation to ask more questions.';
+        "That's twelve questions. Shall we start a fresh chat?";
   }
   function syncFirmware() {
     if (!firmware) return;
@@ -132,8 +182,8 @@ export function setupRobotHost(root: HTMLElement) {
     if (firmwareText)
       firmwareText.textContent =
         state === 'loading'
-          ? `Robot updating · ${Math.round(progress.value * 100)}%`
-          : 'Robot ready';
+          ? `Host firmware · ${Math.round(progress.value * 100)}%`
+          : 'Host ready · Talk';
     if (firmwareProgress instanceof HTMLProgressElement) {
       firmwareProgress.hidden = state !== 'loading';
       firmwareProgress.value = progress.value;
@@ -149,9 +199,8 @@ export function setupRobotHost(root: HTMLElement) {
       pending = undefined;
     }
   }
-  function release(
-    message = 'Start the local model to talk. You can also read Tim’s work or contact him below.'
-  ) {
+  function release(message?: string) {
+    root.dataset.error = String(message !== undefined);
     ++loadRun;
     worker?.terminate();
     worker = undefined;
@@ -161,20 +210,34 @@ export function setupRobotHost(root: HTMLElement) {
       'Stopped. Your question was not saved. Start the model and send it again to retry.'
     );
     state = 'off';
-    aiStatus.textContent = message;
-    status.textContent = 'Start the local model to talk.';
+    aiStatus.textContent = message ?? '';
+    if (message)
+      status.textContent =
+        "My language module couldn't start. Read articles or contact Tim. Technical details are in Settings.";
+    if (!message) status.textContent = 'Start chat when you are ready.';
     const restoreFocus =
       document.activeElement === stop ||
       document.activeElement === unload ||
-      document.activeElement === explore;
+      document.activeElement === explore ||
+      (message !== undefined && document.activeElement === input);
     const restoreLabFocus =
       document.activeElement === firmwareCancel ||
       document.activeElement === firmwareReturn ||
       document.activeElement === firmwareDismiss;
     sync();
-    if (restoreFocus && dialog?.open) {
+    if (
+      restoreFocus &&
+      dialog?.open &&
+      message &&
+      root.dataset.settings === 'true'
+    ) {
+      root
+        .querySelector<HTMLElement>('[data-chat-options]')
+        ?.focus({ preventScroll: true });
+    } else if (restoreFocus && dialog?.open) {
       conversation?.beforeTurn();
-      enable.focus();
+      const recovery = root.querySelector<HTMLElement>('[data-open-station]');
+      (message && recovery ? recovery : enable).focus({ preventScroll: true });
     } else if (restoreLabFocus) focusLab();
   }
   function cancel() {
@@ -202,6 +265,7 @@ export function setupRobotHost(root: HTMLElement) {
   async function load() {
     if (state !== 'off') return;
     state = 'loading';
+    root.dataset.error = 'false';
     readyDismissed = false;
     aiStatus.dataset.touched = 'true';
     const consent = root.querySelector('[data-ai-consent]');
@@ -244,7 +308,7 @@ export function setupRobotHost(root: HTMLElement) {
             if (state !== 'loading') return;
             progress.value = Math.min(1, Math.max(0, message.progress));
             aiStatus.textContent = `Installing firmware · ${Math.round(progress.value * 100)}%`;
-            syncFirmware();
+            sync();
             break;
           case 'ready': {
             if (state !== 'loading') return;
@@ -262,8 +326,14 @@ export function setupRobotHost(root: HTMLElement) {
             status.textContent = 'All in order. What would you like to know?';
             aiStatus.textContent = `Local AI ready · ${localModel.name} · f16. Ask a question to use it.`;
             sync();
-            if (restoreInputFocus) input.focus();
-            else if (
+            if (restoreInputFocus) {
+              if (
+                root.dataset.settings === 'true' &&
+                unload instanceof HTMLElement
+              )
+                unload.focus({ preventScroll: true });
+              else input.focus({ preventScroll: true });
+            } else if (
               restoreFirmwareFocus &&
               firmware &&
               !firmware.hidden &&
@@ -313,7 +383,7 @@ export function setupRobotHost(root: HTMLElement) {
             }
             state = 'ready';
             status.textContent = accepted
-              ? 'AI reply · confirm important details with Tim.'
+              ? ''
               : 'Reply unavailable. Your question was not saved. Try again.';
             sync();
             break;
@@ -349,7 +419,7 @@ export function setupRobotHost(root: HTMLElement) {
     turn.append(
       node('h3', 'You', 'robot-speaker'),
       node('p', question, 'robot-question'),
-      node('h3', 'Lab robot', 'robot-speaker')
+      node('h3', 'Host', 'robot-speaker')
     );
     const result = document.createElement('div');
     turn.append(result);
@@ -387,7 +457,7 @@ export function setupRobotHost(root: HTMLElement) {
     }
     const latest = restored.at(-1);
     if (latest) voice.accept(latest.paragraphs.join('\n\n'), false);
-    status.textContent = 'Continued your active chat from this browser.';
+    status.textContent = 'Welcome back. Shall I start my module again?';
     sync();
   }
 
@@ -412,7 +482,7 @@ export function setupRobotHost(root: HTMLElement) {
     if (!activeSessionId || state !== 'ready') return;
     voice.clear();
     const { turn, result } = appendTurn(trimmed);
-    result.textContent = "Let me check Tim's experience…";
+    result.textContent = "Let me consult Tim's records…";
     retrievalTarget = result;
     const controller = new AbortController();
     request = controller;
@@ -425,7 +495,7 @@ export function setupRobotHost(root: HTMLElement) {
       if (token !== run || state !== 'ready' || !worker) return;
       const selected = conversationContext(trimmed, savedTurns);
       retrievalTarget = undefined;
-      result.textContent = 'Thinking on your device…';
+      result.textContent = "Let me consult Tim's records…";
       pending = {
         target: result,
         sessionId: activeSessionId,
@@ -503,6 +573,14 @@ export function setupRobotHost(root: HTMLElement) {
     },
     listenerOptions
   );
+  root.querySelector('[data-model-retry]')?.addEventListener(
+    'click',
+    () => {
+      conversation?.beforeTurn();
+      void load();
+    },
+    listenerOptions
+  );
   stop.addEventListener('click', cancel, listenerOptions);
   firmwareCancel?.addEventListener('click', cancel, listenerOptions);
   firmwareDismiss?.addEventListener(
@@ -536,6 +614,7 @@ export function setupRobotHost(root: HTMLElement) {
     voice.clear();
     activeSessionId = undefined;
     presentationInvalidated = false;
+    root.dataset.error = 'false';
     if (clearSaved) savedChat?.clear();
     if (conversation) conversation.clear();
     else {
@@ -555,6 +634,14 @@ export function setupRobotHost(root: HTMLElement) {
     status.textContent = "Ask me about Tim's engineering work.";
     sync();
   }
+  root.querySelector('[data-limit-clear]')?.addEventListener(
+    'click',
+    () => {
+      resetConversation();
+      enable.focus();
+    },
+    listenerOptions
+  );
   clear.addEventListener(
     'click',
     () => {

@@ -1,69 +1,103 @@
 <aside
-  class="robot-firmware"
+  class="robot-firmware lab-chip"
   data-robot-firmware
-  aria-label="Robot firmware"
+  aria-label="Host firmware"
   hidden>
-  <span data-firmware-status role="status" aria-live="polite" aria-atomic="true"
-  ></span>
-  <progress max="1" value="0" aria-label="Robot firmware progress"></progress>
-  <button type="button" data-open-station="robot">Return to robot</button>
-  <button type="button" data-firmware-cancel>Cancel</button>
   <button
     type="button"
+    class="firmware-open"
+    data-open-station="robot"
+    title="Return to host">
+    <span
+      data-firmware-status
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"></span>
+    <progress
+      class="lab-meter"
+      max="1"
+      value="0"
+      aria-label="Host firmware progress"></progress>
+  </button>
+  <button
+    type="button"
+    class="firmware-close"
+    data-firmware-cancel
+    aria-label="Cancel download"><span aria-hidden="true">×</span></button
+  >
+  <button
+    type="button"
+    class="firmware-close"
     data-firmware-dismiss
-    aria-label="Dismiss robot ready hint"
-    hidden>×</button
+    aria-label="Dismiss host ready hint"
+    hidden><span aria-hidden="true">×</span></button
   >
 </aside>
 <style>
   .robot-firmware {
     position: fixed;
-    top: 84px;
-    right: 20px;
+    top: calc(128px + env(safe-area-inset-top, 0px));
+    left: calc(5% + env(safe-area-inset-left, 0px));
     z-index: 12;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-    max-width: calc(100% - 40px);
-    padding: 8px 12px;
-    border: 1px solid #3c6258;
-    border-radius: 8px;
-    background: #0c1818;
-    color: #ecf6f1;
-    font:
-      400 12px/1.5 system-ui,
-      sans-serif;
+    height: 44px;
+    max-width: calc(
+      90% - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
+    );
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
   }
   .robot-firmware[hidden],
   .robot-firmware [hidden] {
     display: none;
   }
-  .robot-firmware progress {
-    width: 52px;
-    height: 4px;
-    accent-color: #a5f3ce;
-  }
   .robot-firmware button {
-    min-height: 32px;
-    min-width: 32px;
-    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
     border: 0;
     background: transparent;
-    color: #a5f3ce;
+    color: inherit;
     font: inherit;
-    cursor: pointer;
+  }
+  .robot-firmware button:hover {
+    background: #173c30;
   }
   .robot-firmware button:focus-visible {
-    outline: 2px solid #a5f3ce;
-    outline-offset: 2px;
+    outline: 2px solid var(--labui-focus);
+    outline-offset: -4px;
+  }
+  .firmware-open {
+    padding: 0 12px;
+    white-space: nowrap;
+  }
+  .firmware-close {
+    flex: none;
+    width: 44px;
+    padding: 0;
+  }
+  .firmware-close span {
+    font-size: 20px;
+  }
+  .robot-firmware progress {
+    width: 32px;
+    height: 4px;
   }
   @media (max-width: 700px) {
     .robot-firmware {
-      top: 140px;
-      right: 12px;
-      max-width: calc(100% - 24px);
-      gap: 4px 8px;
+      top: calc(116px + env(safe-area-inset-top, 0px));
+      left: calc(16px + env(safe-area-inset-left, 0px));
+      max-width: calc(
+        100% - 32px - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px)
+      );
+    }
+  }
+  @media (max-height: 500px) {
+    .robot-firmware {
+      top: calc(100px + env(safe-area-inset-top, 0px));
     }
   }
 </style>

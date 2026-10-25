@@ -29,6 +29,11 @@ export function createTabletReader(options: {
   const previous = element<HTMLButtonElement>('#reader-previous');
   const next = element<HTMLButtonElement>('#reader-next');
   const position = element<HTMLElement>('#reader-position');
+  const title = element<HTMLElement>('#reader-title');
+  const menu = element<HTMLDetailsElement>('.reader-menu');
+  const menuToggle = element<HTMLElement>('.reader-menu > summary');
+  const loading = element<HTMLTemplateElement>('#reader-loading');
+  const errorPage = element<HTMLAnchorElement>('[data-reader-error-page]');
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let session: Session = { kind: 'idle' };
@@ -106,13 +111,19 @@ export function createTabletReader(options: {
     contents.replaceChildren(new Option('Article start', '0'));
     contents.disabled = true;
     updateNavigation();
-    content.replaceChildren();
+    content.replaceChildren(loading.content.cloneNode(true));
+    menu.open = false;
+    title.textContent = recipe.title;
+    title.title = recipe.title;
     content.setAttribute('aria-busy', 'true');
     viewport.scrollTop = 0;
+    if (error.contains(document.activeElement))
+      viewport.focus({ preventScroll: true });
     error.hidden = true;
-    status.textContent = `Loading ${recipe.title}…`;
+    status.textContent = `Opening ${recipe.title}…`;
     standalone.href = new URL(`/lab/${recipe.slug}/`, location.origin).href;
-    root.setAttribute('aria-label', `Recipe tablet: ${recipe.title}`);
+    errorPage.href = standalone.href;
+    root.setAttribute('aria-label', `Article reader: ${recipe.title}`);
     const timeout = setTimeout(() => active.request.abort(), 15000);
     try {
       const url = new URL(
@@ -150,6 +161,9 @@ export function createTabletReader(options: {
       article
         .querySelector('[data-reader-workbench]')
         ?.addEventListener('click', options.onWorkbench);
+      article
+        .querySelector('.reader-shelf-back')
+        ?.addEventListener('click', () => void putDown('shelf'));
       article.addEventListener('click', (event) => {
         const link =
           event.target instanceof Element
@@ -171,9 +185,9 @@ export function createTabletReader(options: {
       });
     } catch {
       if (session !== active) return;
+      content.replaceChildren();
       error.hidden = false;
-      status.textContent =
-        'Recipe unavailable. Try again or open the standalone article.';
+      status.textContent = '';
     } finally {
       clearTimeout(timeout);
       if (session === active) content.setAttribute('aria-busy', 'false');
@@ -242,7 +256,21 @@ export function createTabletReader(options: {
   });
   previous.addEventListener('click', () => jump(section - 1));
   next.addEventListener('click', () => jump(section + 1));
-  contents.addEventListener('change', () => jump(Number(contents.value)));
+  contents.addEventListener('change', () => {
+    menu.open = false;
+    jump(Number(contents.value));
+  });
+  root.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !menu.open) return;
+    event.preventDefault();
+    event.stopPropagation();
+    menu.open = false;
+    menuToggle.focus();
+  });
+  root.addEventListener('click', (event) => {
+    if (event.target instanceof Node && !menu.contains(event.target))
+      menu.open = false;
+  });
   viewport.addEventListener(
     'scroll',
     () => {
