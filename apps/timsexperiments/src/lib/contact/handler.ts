@@ -15,8 +15,8 @@ export async function handleContact(request: Request, settings: unknown, send: S
   if (!parsed.success) return contactJson({ message: 'Please check your name, reply email, and message. Messages need at least 10 characters.' }, 400);
   if (parsed.data.website) return contactJson({ message: 'The letter could not be accepted.' }, 400);
   const config = deliveryConfigSchema.safeParse(settings);
-  if (!config.success) return contactJson({ message: 'Direct delivery is not connected yet. You can open your draft in your email app instead.', fallback: 'email-app' }, 503);
+  if (!config.success) return contactJson({ message: 'Sending is temporarily unavailable. Your letter has not been sent. Your draft is still here. Press Send to try again.' }, 503);
   const result = await deliverLetter(parsed.data, config.data, send);
   if (result.kind === 'accepted') return contactJson({ accepted: true });
-  return contactJson({ message: 'Delivery could not be confirmed. Your draft is still here. Retry this letter or use your email app. If the first attempt was accepted, sending through your email app may create a duplicate.' }, 502);
+  return contactJson({ message: 'Delivery could not be confirmed. Your draft is still here. Press Send to retry. Retrying without edits within 24 hours avoids sending the same letter twice.' }, 502);
 }

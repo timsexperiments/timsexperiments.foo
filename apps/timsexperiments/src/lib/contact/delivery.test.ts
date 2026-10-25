@@ -90,11 +90,14 @@ describe('HTTP handler', () => {
     for (const item of cases) expect((await handleContact(item.req, config, transport)).status).toBe(item.status);
     expect(calls).toBe(0);
   });
-  test('missing configuration returns honest fallback without outbound calls', async () => {
+  test('missing configuration returns a retryable error without outbound calls', async () => {
     for (const settings of [{}, { apiKey: config.apiKey }, { from: config.from }, { ...config, apiKey: ' ' }]) {
       const response = await handleContact(request(), settings, async () => { throw new Error('must not send'); });
       expect(response.status).toBe(503);
-      expect(await response.json()).toMatchObject({ fallback: 'email-app' });
+      const body = await response.json();
+      expect(body.fallback).toBeUndefined();
+      expect(body.message).toContain('has not been sent');
+      expect(body.message).toContain('Press Send');
     }
   });
   test('only provider acceptance returns success; all uncertainty preserves draft and avoids success', async () => {
@@ -108,7 +111,7 @@ describe('HTTP handler', () => {
       const body = await failed.json();
       expect(body.accepted).toBeUndefined();
       expect(body.message).toContain('could not be confirmed');
-      expect(body.message).toContain('duplicate');
+      expect(body.message).toContain('Press Send to retry');
     }
   });
 });

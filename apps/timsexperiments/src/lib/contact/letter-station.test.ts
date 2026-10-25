@@ -6,7 +6,7 @@ import { z } from 'zod';
 const source = await Bun.file(new URL('../../scripts/site/letter-station.ts', import.meta.url)).text();
 const script = new Bun.Transpiler({ loader: 'ts' }).transformSync(source.replace("import { z } from 'zod';", ''));
 const settle = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
-function setup(capability = true, capabilityStatus = 200) {
+function setup(capability = true, capabilityStatus = 200, check = async () => Response.json({ available: capability }, { status: capabilityStatus })) {
   const handlers = new Map<string, () => Promise<void>>();
   const classes = new Set<string>();
   const values = { name: 'Ada', email: 'ada@example.com', message: 'Hello from this test.', website: '' };
@@ -26,7 +26,7 @@ function setup(capability = true, capabilityStatus = 200) {
     FormData: class { get(key: string) { return Object.entries(values).find(([name]) => name === key)?.[1] ?? null; } },
     window: { location }, navigator: { clipboard: { writeText: async (text: string) => { copied = text; } } },
     fetch: async (_url: string, init: RequestInit) => {
-      if (init.method !== 'POST') return Response.json({ available: capability }, { status: capabilityStatus });
+      if (init.method !== 'POST') return check();
       calls.push(init);
       return respond();
     },
@@ -37,14 +37,17 @@ function setup(capability = true, capabilityStatus = 200) {
   };
 }
 
-test('unconfigured or unsuccessful capability check uses honest mailto and copy without POST', async () => {
+test('unavailable or unsuccessful capability checks still submit directly and preserve failed drafts', async () => {
   for (const [available, status] of [[false, 200], [true, 503]] as const) {
     const ui = setup(available, status);
+    ui.respond(async () => Response.json({ message: 'Sending is temporarily unavailable. Your draft is still here. Press Send to try again.' }, { status: 503 }));
     await settle();
     await ui.submit();
-    expect(ui.calls).toHaveLength(0);
-    expect(ui.location.href).toStartWith('mailto:hello@timsexperiments.foo?');
-    expect(ui.status.textContent).toContain('It has not been sent yet');
+    expect(ui.calls).toHaveLength(1);
+    expect(ui.location.href).toBe('');
+    expect(ui.status.textContent).toContain('Press Send');
+    expect(ui.values.message).toBe('Hello from this test.');
+    expect(ui.button.textContent).toBe('Send ↗');
     await ui.copy();
     expect(ui.copied()).toContain(ui.values.message);
     expect(ui.status.textContent).toContain('Letter copied');
@@ -98,14 +101,29 @@ test('in-flight duplicate submit is blocked and acceptance preserves newer edits
   expect(ui.status.textContent).toContain('newer edits are still here');
 });
 
-test('server configuration loss switches next submission to email app without claiming success', async () => {
+test('server configuration loss keeps Send retrying directly and succeeds after configuration recovers', async () => {
   const ui = setup();
   await settle();
-  ui.respond(async () => Response.json({ message: 'Direct delivery unavailable.', fallback: 'email-app' }, { status: 503 }));
+  ui.respond(async () => Response.json({ message: 'Sending is temporarily unavailable. Your draft is still here.' }, { status: 503 }));
   await ui.submit();
-  expect(ui.button.textContent).toContain('Open in email app');
+  expect(ui.button.textContent).toBe('Send ↗');
   expect(ui.values.message).toBe('Hello from this test.');
+  ui.respond(async () => Response.json({ accepted: true }));
   await ui.submit();
-  expect(ui.calls).toHaveLength(1);
-  expect(ui.status.textContent).toContain('It has not been sent yet');
+  expect(ui.calls).toHaveLength(2);
+  expect(ui.calls[1]!.body).toBe(ui.calls[0]!.body);
+  expect(ui.location.href).toBe('');
+  expect(ui.status.textContent).toContain('accepted for delivery');
+  expect(ui.values.message).toBe('');
+});
+
+test('a pending or rejected capability check never blocks direct sending', async () => {
+  for (const check of [() => new Promise<Response>(() => {}), async () => { throw new Error('network failure'); }]) {
+    const ui = setup(true, 200, check);
+    await settle();
+    await ui.submit();
+    expect(ui.calls).toHaveLength(1);
+    expect(ui.location.href).toBe('');
+    expect(ui.status.textContent).toContain('accepted for delivery');
+  }
 });
