@@ -94,8 +94,7 @@ const { id = 'robot-conversation' } = Astro.props;
       tabindex="0">
       <article class="chat-greeting">
         <h3 class="robot-speaker">Host</h3><p data-host-line>
-          Good evening. I can tell you about Tim's work once my language module
-          is ready.
+          Good evening. Ask me about Tim's work.
         </p>
       </article>
     </div>
@@ -335,6 +334,24 @@ const { id = 'robot-conversation' } = Astro.props;
     min-height: 120px;
     position: relative;
   }
+  /* The idle NPC speaks a short line; replies and Settings keep their scroll area. */
+  .robot-conversation:not([data-settings='true']):is(
+      :not([data-model-state]),
+      [data-model-state='off']:not(:has(.robot-turn)),
+      [data-model-state='loading']:not(:has(.robot-turn)),
+      [data-error='true']:not([data-history='true'])
+    ) {
+    height: auto;
+  }
+  .robot-conversation:not([data-settings='true']):is(
+      :not([data-model-state]),
+      [data-model-state='off']:not(:has(.robot-turn)),
+      [data-model-state='loading']:not(:has(.robot-turn)),
+      [data-error='true']:not([data-history='true'])
+    ) .chat-body {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
   .robot-conversation .robot-transcript,
   .robot-conversation .chat-options {
     width: 100%;
@@ -524,12 +541,17 @@ const { id = 'robot-conversation' } = Astro.props;
     display: none;
   }
   .robot-conversation:not([data-model-state='off']) .robot-local,
-  .robot-conversation:not([data-model-state='off']) .chat-recovery,
+  .robot-conversation:not([data-error='true']) .chat-recovery,
   .robot-conversation[data-error='true'] .robot-local,
   .robot-conversation:not([data-limit='true']) .chat-limit,
   .robot-conversation:not([data-model-state='loading']) .chat-progress,
   .robot-conversation[data-model-state='off'] [data-model-off],
   .robot-conversation[data-model-state='loading'] [data-model-off] {
+    display: none;
+  }
+  .robot-conversation:not(:is([data-model-state='ready'], [data-model-state='generating']))
+    [data-header-voice],
+  .robot-conversation [data-header-voice]:has([data-voice-toggle]:disabled) {
     display: none;
   }
   .robot-conversation[data-error='true']:not([data-history='true'])
