@@ -15,6 +15,13 @@
       "when": 1789269179150,
       "tag": "0001_left_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792667840277,
+      "tag": "0002_anonymous_conversations",
+      "breakpoints": true
     }
   ]
 }

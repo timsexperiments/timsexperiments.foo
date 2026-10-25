@@ -63,8 +63,27 @@ export const ExperiencePassage = sqliteTable('experience_passages', {
   check('experience_passages_revision_check', sql`${table.storyRevision} > 0`),
 ]);
 
+// Each client-generated UUID is a separate archive. There is no visitor read,
+// deletion, expiry or owner-level replacement path.
+export const AnonymousConversation = sqliteTable('anonymous_conversations', {
+  id: text('id').primaryKey().notNull(),
+  ownerHash: text('owner_hash').notNull(),
+  revision: integer('revision').notNull(),
+  turnsJson: text('turns_json').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  nextWriteAt: integer('next_write_at').notNull(),
+}, table => [
+  index('anonymous_conversations_owner_idx').on(table.ownerHash),
+  check('anonymous_conversations_id_check', sql`length(${table.id}) = 36`),
+  check('anonymous_conversations_owner_check', sql`length(${table.ownerHash}) = 64`),
+  check('anonymous_conversations_revision_check', sql`${table.revision} > 0 AND ${table.revision} <= 9007199254740991`),
+  check('anonymous_conversations_timestamps_check', sql`${table.updatedAt} >= ${table.createdAt} AND ${table.nextWriteAt} >= ${table.updatedAt}`),
+]);
+
 export default {
   Subscription,
   ExperienceStory,
   ExperiencePassage,
+  AnonymousConversation,
 };

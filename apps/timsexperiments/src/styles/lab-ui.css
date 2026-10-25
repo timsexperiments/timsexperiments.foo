@@ -1,0 +1,253 @@
+/* Shared lab controls. Keep tokens distinct from the legacy campus palette. */
+:root {
+  --labui-bg: #0a0b0a;
+  --labui-surface: #0c1818;
+  --labui-raised: #132423;
+  --labui-line: #3c6258;
+  --labui-control-line: #60816f;
+  --labui-ink: #ecf6f1;
+  --labui-muted: #b1c9bd;
+  --labui-accent: #17b897;
+  --labui-accent-ink: #a5f3ce;
+  --labui-focus: #5cebce;
+  /* #ffb4ab on #0c1818 = 10.67:1, computed using WCAG sRGB luminance. */
+  --labui-danger: #ffb4ab;
+  --labui-hud-backing: rgb(5 14 12 / 88%);
+  --labui-body-font: Inter, 'Lab Sans', sans-serif;
+  --labui-display-font: Urbanist, Inter, 'Lab Sans', sans-serif;
+  --labui-type-display: 40px;
+  --labui-type-display-wide: 56px;
+  --labui-type-code: 14px;
+  --labui-mono-font: ui-monospace, monospace;
+  --labui-type-title: 20px;
+  --labui-type-body: 16px;
+  --labui-type-secondary: 14px;
+  --labui-type-label: 13px;
+  --labui-space-1: 4px;
+  --labui-space-2: 8px;
+  --labui-space-3: 12px;
+  --labui-space-4: 16px;
+  --labui-space-6: 24px;
+  --labui-space-8: 32px;
+  --labui-radius-control: 6px;
+  --labui-radius-panel: 12px;
+  --labui-radius-chip: 999px;
+}
+.lab-panel-header,
+.dialog-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  flex: none;
+  padding: 6px 12px;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--labui-line);
+  background: var(--labui-surface);
+  color: var(--labui-ink);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  font: 400 14px/1.4 var(--labui-body-font);
+}
+.lab-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font: 500 var(--labui-type-title)/1.2 var(--labui-display-font);
+  letter-spacing: -0.02em;
+}
+.lab-panel-title svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--labui-accent-ink);
+}
+.lab-panel-title small {
+  font: 400 14px/1.3 var(--labui-body-font);
+  color: var(--labui-muted);
+}
+.lab-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.lab-btn,
+.campus-page .dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--labui-control-line);
+  border-radius: var(--labui-radius-control);
+  background: var(--labui-raised);
+  color: var(--labui-ink);
+  font: 500 14px/1.4 var(--labui-body-font);
+  text-decoration: none;
+  cursor: pointer;
+}
+.lab-btn--primary {
+  background: var(--labui-accent-ink);
+  color: var(--labui-surface);
+  border-color: transparent;
+}
+.lab-btn--quiet,
+.campus-page .dialog-close {
+  border-color: transparent;
+  background: transparent;
+}
+.lab-btn--icon {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  flex: none;
+}
+.lab-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.lab-btn:hover:enabled,
+.campus-page .dialog-close:hover {
+  background: var(--labui-line);
+  color: var(--labui-ink);
+}
+.lab-btn--primary:hover:enabled {
+  background: var(--labui-focus);
+  color: var(--labui-surface);
+}
+.campus-page .lab-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.campus-page :is(.lab-btn, .dialog-close, .lab-panel-header a):focus-visible {
+  outline: 2px solid var(--labui-focus);
+  outline-offset: -3px;
+}
+.campus-page .dialog-close {
+  width: auto;
+  grid-column: 3;
+  justify-self: end;
+}
+.campus-page .dialog-close > [aria-hidden] {
+  font-size: 20px;
+  line-height: 1;
+}
+.lab-status {
+  margin: 0;
+  font: 400 13px/1.5 var(--labui-body-font);
+  color: var(--labui-muted);
+}
+.lab-status[data-tone='error'] {
+  color: var(--labui-danger);
+}
+.lab-meter {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--labui-line);
+  color: var(--labui-accent-ink);
+}
+.lab-meter::-webkit-progress-bar {
+  background: var(--labui-line);
+  border-radius: 999px;
+}
+.lab-meter::-webkit-progress-value {
+  background: var(--labui-accent-ink);
+  border-radius: 999px;
+}
+.lab-meter::-moz-progress-bar {
+  background: var(--labui-accent-ink);
+  border-radius: 999px;
+}
+.lab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--labui-line);
+  border-radius: var(--labui-radius-chip);
+  background: var(--labui-hud-backing);
+  color: var(--labui-ink);
+  font: 500 14px/1.4 var(--labui-body-font);
+}
+.lab-setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--labui-line);
+}
+.lab-setting-row h3 {
+  margin: 0 0 4px;
+  font: 600 14px/1.4 var(--labui-body-font);
+}
+.lab-setting-row p {
+  margin: 0;
+  color: var(--labui-muted);
+  font: 400 13px/1.5 var(--labui-body-font);
+}
+.lab-setting-row > [data-settings-ai-controls] {
+  grid-column: 1 / -1;
+}
+.lab-dialog::backdrop {
+  background: rgb(0 18 12 / 38%);
+  backdrop-filter: none;
+}
+@media (max-width: 599px) {
+  .lab-control-label,
+  .dialog-close .lab-close-label,
+  .dialog-close .panel-close-label {
+    display: none;
+  }
+  .campus-page .dialog-close {
+    width: 44px;
+    padding: 10px;
+  }
+  .lab-panel-title {
+    font-size: 18px;
+  }
+  .lab-panel-title small {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.lab-btn, .lab-panel-header, .lab-chip, .lab-meter) {
+    transition: none;
+    animation: none;
+    scroll-behavior: auto;
+  }
+}
+
+/* Beat the legacy campus button font reset without changing its other controls. */
+.campus-page .lab-btn {
+  font: 500 14px/1.4 var(--labui-body-font);
+}
+
+/* Outer station headers reach the panel edge while their bodies keep their inset. */
+.workbench-dialog > .lab-panel-header {
+  margin-inline: calc(0px - var(--workbench-inset));
+}
+.lab-dialog.contact-dialog {
+  padding-top: 0;
+}
+.contact-dialog > .lab-panel-header {
+  margin: 0 -38px 16px;
+}
+@media (max-width: 700px) {
+  .contact-dialog > .lab-panel-header {
+    margin: 0 -20px 16px;
+  }
+}

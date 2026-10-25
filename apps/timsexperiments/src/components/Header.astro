@@ -6,11 +6,16 @@ import theLabLogoDark from '@/assets/the_lab_logo_dark.svg';
 import { Button } from '@/components/ui/button';
 import { Image } from 'astro:assets';
 import { Moon, Sun } from 'lucide-react';
+import '../styles/campus-fonts.css';
+
+const pathname = Astro.url.pathname.replace(/\/$/, '');
+const showLabReturn = pathname === '/lab' || pathname.startsWith('/lab/')
+  || pathname === '/resume/mcp' || pathname === '/classic';
 ---
 
-<nav class="flex items-center justify-between">
-  <div class="flex items-center justify-between gap-4">
-    <a href="/" class="h-8 no-underline">
+<nav aria-label="Site" class="site-nav flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+  <div class="site-brand flex items-center justify-between gap-4">
+    <a href="/" class="brand-link no-underline">
       <Image
         format="webp"
         class="block dark:hidden"
@@ -30,7 +35,7 @@ import { Moon, Sun } from 'lucide-react';
     <span
       class="h-6 w-2 border-r-2 border-solid border-rhino-950 dark:border-rhino-50">
     </span>
-    <a href="/lab" class="p-0 no-underline">
+    <a href="/lab" class="brand-link p-0 no-underline">
       <Image
         format="webp"
         class="block h-4 w-fit dark:hidden"
@@ -48,10 +53,11 @@ import { Moon, Sun } from 'lucide-react';
       <span class="sr-only">The lab</span>
     </a>
   </div>
-  <div class="flex items-center justify-between gap-2">
+  {showLabReturn && <a class="lab-return" href="/">Back to the lab</a>}
+  <div class="site-actions flex items-center justify-between gap-2">
     <Button
       id="color-swap-btn"
-      className="h-10 w-10 rounded-full p-2 text-rhino-950 dark:text-rhino-50"
+      className="h-11 w-11 rounded-full p-2 text-rhino-950 dark:text-rhino-50"
       variant="ghost">
       <Moon className="block h-5 w-5 dark:hidden" />
       <span class="sr-only block dark:hidden">Dark mode</span>
@@ -62,3 +68,47 @@ import { Moon, Sun } from 'lucide-react';
 </nav>
 
 <script src="../scripts/color_preference.ts"></script>
+
+<style>
+  :global(body) {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  :global(h1), :global(h2), :global(h3),
+  :global(h4), :global(h5), :global(h6) {
+    font-family: Urbanist, Inter, sans-serif;
+  }
+
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .lab-return {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .site-nav a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 639px) {
+    .site-brand { gap: 12px; }
+    .site-brand .brand-link:first-child :global(img) {
+      width: clamp(104px, calc(100vw - 238px), 192px);
+      height: auto;
+    }
+    .lab-return { order: 3; flex-basis: 100%; }
+    .site-actions { margin-left: auto; }
+  }
+</style>

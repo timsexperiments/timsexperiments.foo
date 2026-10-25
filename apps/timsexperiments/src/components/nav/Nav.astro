@@ -4,11 +4,11 @@ import { Home, Compass, FlaskConical, Mail, UserRoundPlus } from 'lucide-react';
 ---
 
 <nav
+  aria-label="Classic sections"
   class="z-10 mx-2 flex w-fit max-w-lg flex-nowrap items-center gap-2 overflow-auto whitespace-nowrap rounded-full bg-rhino-300/90 px-4 py-2 text-rhino-950 dark:bg-rhino-800/90 dark:text-rhino-50 sm:w-fit">
   <Button
     variant="ghost"
-    className="transition-all ease-linear"
-    className="active"
+    className="active transition-colors ease-linear"
     data-nav-id="hero">
     <Home className="h-5 w-5" /><span class="sr-only">Home</span>
   </Button>
@@ -17,28 +17,28 @@ import { Home, Compass, FlaskConical, Mail, UserRoundPlus } from 'lucide-react';
   </div>
   <Button
     variant="ghost"
-    className="transition-all ease-linear"
+    className="transition-colors ease-linear"
     data-nav-id="my-journey">
     <span class="sr-only md:not-sr-only">My Journey</span>
     <Compass className="h-5 w-5 md:hidden" />
   </Button>
   <Button
     variant="ghost"
-    className="transition-all ease-linear"
+    className="transition-colors ease-linear"
     data-nav-id="the-lab">
     <span class="sr-only md:not-sr-only">The Lab</span>
     <FlaskConical className="h-5 w-5 md:hidden" />
   </Button>
   <Button
     variant="ghost"
-    className="transition-all ease-linear"
+    className="transition-colors ease-linear"
     data-nav-id="contact">
     <span class="sr-only md:not-sr-only">Contact</span>
     <Mail className="h-5 w-5 md:hidden" />
   </Button>
   <Button
     variant="ghost"
-    className="transition-all ease-linear"
+    className="transition-colors ease-linear"
     data-nav-id="join">
     <span class="sr-only md:not-sr-only">Join</span>
     <UserRoundPlus className="h-5 w-5 md:hidden" />
@@ -46,6 +46,13 @@ import { Home, Compass, FlaskConical, Mail, UserRoundPlus } from 'lucide-react';
 </nav>
 
 <style>
+  nav { max-width: calc(100vw - 16px); }
+  nav :global(button) { min-height: 44px; min-width: 44px; flex-shrink: 0; }
+
+  @media (max-width: 639px) {
+    nav :global(button) { padding-inline: 12px; }
+  }
+
   .active {
     @apply text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300;
   }

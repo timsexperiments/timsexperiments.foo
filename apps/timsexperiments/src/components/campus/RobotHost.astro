@@ -1,0 +1,65 @@
+---
+import { localModel } from '../../scripts/robot/model';
+import RobotConversation from './RobotConversation.astro';
+---
+
+<RobotConversation>
+  <section
+    slot="consent"
+    data-ai-consent
+    class="robot-start"
+    aria-label="Start local conversation">
+    <p data-restore-notice hidden>
+      Welcome back. Shall I start my module again?
+    </p>
+    <button
+      class="lab-btn lab-btn--primary"
+      type="button"
+      data-enable
+      data-initial-focus>Start chat</button
+    >
+    <small data-model-notice
+      >{localModel.download} download · runs on this device · desktop recommended</small
+    >
+  </section>
+  <p slot="model-summary">
+    {localModel.name} · {localModel.download} · in your browser
+  </p>
+  <details slot="about" class="robot-about">
+    <summary>Details</summary>
+    <p>
+      Chat uses {localModel.name}: {localModel.download} to download and {
+        localModel.memory
+      }. Requires WebGPU with shader-f16. Desktop recommended; mobile chat is
+      untested. The GPU check cannot measure free memory. The model downloads
+      only when you choose Start chat.
+    </p>
+    <p>
+      Replies run in your browser. Model hosts receive downloads, never
+      questions. Files may stay cached after unloading the model.
+    </p>
+    <p>
+      Completed questions and replies are automatically sent to TimsExperiments
+      for Tim to read. No account is needed. Refresh keeps your local chat.
+      Closing or clearing starts a new chat and removes this browser's copy.
+      Tim's archive remains.
+    </p>
+    <p>
+      This chat uses the same experience records as the TimsExperiments MCP. The
+      guide above explains how to use it in your own agents.
+    </p>
+    <p>AI-written answers can be wrong. Confirm important details with Tim.</p>
+    <p>
+      Voice is optional and muted by default. It uses an English voice already
+      on your device, with no extra model download. The voice varies by device;
+      some browsers have no local English voice.
+    </p>
+    <p data-ai-status hidden></p>
+    <button class="lab-btn" type="button" data-model-retry hidden
+      >Try local AI again</button
+    >
+  </details>
+</RobotConversation>
+<script>
+  import '../../scripts/robot/host';
+</script>

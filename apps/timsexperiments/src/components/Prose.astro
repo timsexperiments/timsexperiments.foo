@@ -3,6 +3,32 @@
 ---
 
 <div
-  class="prose m-auto dark:prose-invert lg:prose-xl prose-a:text-primary-600 prose-pre:relative prose-pre:my-0 prose-table:px-12 prose-th:text-left dark:prose-a:text-primary-500">
+  class="article-prose prose m-auto dark:prose-invert lg:prose-xl prose-a:text-primary-600 prose-pre:relative prose-pre:my-0 prose-th:text-left dark:prose-a:text-primary-500">
   <slot />
 </div>
+
+<style>
+  .article-prose {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Wide data stays scrollable within the article, without clipping the page. */
+  .article-prose :global(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: normal;
+  }
+
+  .article-prose :global(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: normal;
+  }
+
+  .article-prose :global([data-code-block]) {
+    min-width: 0;
+    max-width: 100%;
+  }
+</style>

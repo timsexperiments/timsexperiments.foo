@@ -1,0 +1,318 @@
+---
+import {
+  serializationChallenge,
+  starterJson,
+} from '../../lib/playgrounds/registry';
+import { evaluateSerialization } from '../../lib/playgrounds/serialization';
+import './serialization-bench/bench.css';
+interface Props {
+  id?: string;
+}
+const { id = 'challenge' } = Astro.props;
+const baseline = evaluateSerialization(starterJson);
+---
+
+<serialization-bench id={id} data-challenge-id={serializationChallenge.id}>
+  <header
+    class:list={[
+      Astro.slots.has('panel-title') ? 'lab-panel-header' : 'bench-heading',
+    ]}>
+    <slot name="panel-title"
+      ><div>
+        <p class="bench-eyebrow">Software lab / experiment 01</p><h2>
+          Serialization bench
+        </h2>
+      </div></slot
+    >
+    <span class="lab-panel-actions"
+      ><button
+        type="button"
+        data-mode
+        disabled
+        class="lab-btn lab-btn--secondary">Open sandbox</button
+      ></span
+    >
+    <slot name="panel-close" />
+  </header>
+  <div data-lesson>
+    <div class="lesson-heading">
+      <p class="bench-label" data-challenge-number>Challenge 1 / 3</p><button
+        type="button"
+        class="lab-btn lab-btn--quiet quiet"
+        data-restart
+        disabled>Restart</button
+      >
+    </div>
+    <nav class="lesson-steps" aria-label="Lesson steps">
+      <button
+        type="button"
+        data-step="predict"
+        aria-current="step"
+        disabled
+        class="lab-btn"><span>01</span> Predict</button
+      >
+      <button type="button" data-step="change" disabled class="lab-btn"
+        ><span>02</span> Change</button
+      >
+      <button type="button" data-step="measure" disabled class="lab-btn"
+        ><span>03</span> Measure</button
+      >
+      <button type="button" data-step="check" disabled class="lab-btn"
+        ><span>04</span> Check</button
+      >
+    </nav>
+    <section class="lesson-stage" data-stage="predict">
+      <p class="bench-label">Before you send it</p><h3 data-question>
+        Add 🐶. Which gains more bytes?
+      </h3>
+      <div class="baseline">
+        <span>Pixel's starting record</span><span
+          >JSON <b>{baseline.json.byteLength} B</b></span
+        ><span>Protobuf <b>{baseline.protobuf.byteLength} B</b></span>
+      </div>
+      <div class="prediction-options" role="group" aria-label="Your prediction">
+        <button
+          type="button"
+          data-prediction="json"
+          data-initial-focus
+          disabled
+          class="lab-btn lab-btn--primary">JSON</button
+        ><button
+          type="button"
+          data-prediction="protobuf"
+          disabled
+          class="lab-btn lab-btn--primary">Protobuf</button
+        ><button
+          type="button"
+          data-prediction="same"
+          disabled
+          class="lab-btn lab-btn--primary">Same change</button
+        >
+      </div><p class="bench-hint">
+        Make a prediction, or skip ahead and try it.
+      </p>
+    </section>
+    <section class="lesson-stage" data-stage="change" hidden>
+      <p class="bench-label" data-challenge-title>One more emoji</p><h3
+        data-instruction>
+        Add an emoji to the name, then measure the change.
+      </h3>
+      <dl class="person-record">
+        <div><dt>name</dt><dd data-person-name></dd></div><div>
+          <dt>age</dt><dd data-person-age></dd>
+        </div><div><dt>email</dt><dd data-person-email></dd></div><div>
+          <dt>hobbies</dt><dd data-person-hobbies></dd>
+        </div>
+      </dl>
+      <div class="record-tools">
+        <button type="button" data-change="add" disabled class="lab-btn"
+          >Add 🐶</button
+        ><button type="button" data-change="remove" disabled class="lab-btn"
+          >Undo emoji</button
+        ><span class="bench-hint" data-edit-note></span>
+      </div>
+    </section>
+  </div>
+  <section class="sandbox" data-sandbox hidden aria-label="JSON sandbox">
+    <form novalidate>
+      <label class="editor-label"
+        >Person JSON<textarea
+          name="person"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+          rows="8"
+          maxlength="16384">{starterJson}</textarea
+        ></label
+      >
+      <p class="bench-error" data-error hidden></p>
+      <div class="bench-actions">
+        <button type="submit" class="lab-btn lab-btn--primary primary" disabled
+          >Run comparison</button
+        >
+        <span class="bench-hint" data-draft>Ready to run</span>
+      </div>
+      <details class="editor-options">
+        <summary>Editor tools &amp; limits</summary>
+        <div class="record-tools">
+          <button type="button" data-reset disabled class="lab-btn"
+            >Reset record</button
+          >
+          <button type="button" data-clear disabled class="lab-btn"
+            >Clear editor</button
+          >
+        </div>
+        <div class="recipes" role="group" aria-label="Record recipes">
+          <button type="button" data-recipe="emoji" disabled class="lab-btn"
+            >+ One emoji</button
+          >
+          <button type="button" data-recipe="hobbies" disabled class="lab-btn"
+            >+ Eight hobbies</button
+          >
+          <button type="button" data-recipe="defaults" disabled class="lab-btn"
+            >Empty defaults</button
+          >
+        </div>
+        <p class="bench-hint" data-recipe-note>
+          Recipes change your current valid record.
+        </p>
+        <p class="editor-help">
+          All four fields required. Age is signed int32. Up to 32 hobbies and
+          1,024 UTF-8 bytes per string. Editor limit: 16 KiB.
+        </p>
+      </details>
+    </form>
+  </section>
+  <section
+    class="bench-results"
+    data-results
+    hidden
+    aria-label="Serialization result">
+    <div data-measure>
+      <p class="bench-label">Encoded bytes</p><h3>Compare the bytes</h3>
+      <div class="meters">
+        <div class="meter-row">
+          <span>JSON <small>UTF-8</small></span><strong
+            ><span data-json-count>—</span> <small>bytes</small></strong
+          >
+        </div><div class="meter-track">
+          <div class="meter-fill json-fill" data-json-bar></div>
+        </div><p class="byte-delta" data-json-delta></p>
+        <div class="meter-row">
+          <span>Protobuf <small>binary</small></span><strong
+            ><span data-protobuf-count>—</span> <small>bytes</small></strong
+          >
+        </div><div class="meter-track">
+          <div class="meter-fill proto-fill" data-protobuf-bar></div>
+        </div><p class="byte-delta" data-protobuf-delta></p>
+      </div>
+      <p class="comparison" data-comparison>
+        Run to measure the encoded bytes.
+      </p><p class="prediction-feedback" data-feedback></p><p
+        class="bench-hint"
+        data-explanation>
+      </p>
+      <p class="measurement-note">
+        Compact JSON vs. binary Protobuf. No compression, schema-transfer cost
+        or speed benchmark.
+      </p>
+    </div>
+    <div class="verification" data-verification hidden>
+      <p class="bench-label">The return trip</p><h3>
+        Did Pixel's data survive?
+      </h3><p class="check-summary" data-check-summary>
+        Run a comparison to check the decoded values.
+      </p><ul class="checks" data-checks></ul>
+      <dl class="person-record decoded-record" data-decoded-record hidden>
+        <div><dt>name</dt><dd data-decoded-name></dd></div><div>
+          <dt>age</dt><dd data-decoded-age></dd>
+        </div><div><dt>email</dt><dd data-decoded-email></dd></div><div>
+          <dt>hobbies</dt><dd data-decoded-hobbies></dd>
+        </div>
+      </dl>
+      <p class="bench-hint">
+        Values are checked after decoding both formats. Proto3 restores omitted
+        scalar defaults; this does not check explicit field presence.
+      </p>
+    </div>
+    <details class="explore" data-explore hidden>
+      <summary>Explore bytes &amp; schema</summary>
+      <div class="inspectors">
+        <details>
+          <summary>Protobuf wire bytes <span>hex + offset</span></summary><pre
+            data-protobuf-hex
+            tabindex="0"
+            role="region"
+            aria-label="Protobuf wire bytes">
+          </pre><p>
+            0a = name · 10 = age · 1a = email · 22 = a hobby. Strings carry a
+            UTF-8 byte length after the tag.
+          </p>
+        </details>
+        <details>
+          <summary>JSON wire bytes <span>UTF-8 hex + offset</span></summary><pre
+            data-json-hex
+            tabindex="0"
+            role="region"
+            aria-label="JSON wire bytes">
+          </pre>
+        </details>
+        <details>
+          <summary>Compact JSON sent</summary><pre
+            data-json-text
+            tabindex="0"
+            role="region"
+            aria-label="Compact JSON sent">
+          </pre>
+        </details>
+        <details>
+          <summary>Decoded records <span>JSON / Protobuf</span></summary><h4>
+            From JSON
+          </h4><pre
+            data-json-decoded
+            tabindex="0"
+            role="region"
+            aria-label="Decoded JSON record">
+          </pre><h4>From Protobuf</h4><pre
+            data-protobuf-decoded
+            tabindex="0"
+            role="region"
+            aria-label="Decoded Protobuf record">
+          </pre>
+        </details>
+        <details>
+          <summary>The shared Person contract</summary><pre
+            tabindex="0"
+            role="region"
+            aria-label="Person schema"><code>{serializationChallenge.schema}</code></pre><p>
+            JSON carries field names. Protobuf uses field numbers and requires
+            an agreed schema. Negative ages use ten value bytes in this int32
+            codec.
+          </p>
+        </details>
+      </div>
+    </details>
+  </section>
+  <footer class="lesson-footer" data-lesson-footer>
+    <button
+      type="button"
+      class="lab-btn lab-btn--quiet quiet"
+      data-back
+      hidden
+      disabled>Back</button
+    ><button
+      type="button"
+      class="lab-btn lab-btn--quiet quiet"
+      data-next
+      disabled>Skip prediction</button
+    ><button
+      type="button"
+      class="lab-btn lab-btn--quiet quiet"
+      data-skip
+      disabled>Skip lesson</button
+    >
+  </footer>
+  <footer class="bench-footer">
+    <span data-context>Runs locally in your browser</span><a
+      href={serializationChallenge.canonicalUrl}
+      >Read the article <span aria-hidden="true">↗</span></a
+    >
+  </footer>
+  <p
+    class="sr-only"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-status>
+  </p>
+  <noscript
+    ><p class="bench-error">
+      Enable JavaScript to run the lesson. Pixel's starting record encodes to {
+        baseline.json.byteLength
+      } compact JSON bytes and {baseline.protobuf.byteLength} Protobuf bytes.
+    </p></noscript
+  >
+</serialization-bench>
+<script>
+  import '../../scripts/playgrounds/serialization-bench';
+</script>

@@ -25,11 +25,11 @@ export function SubscriptionDialog({ children }: DialogProps) {
         }
       }}>
       <DialogTrigger asChild>
-        <span
-          tabIndex={0}
+        <button
+          type="button"
           className="cursor-pointer text-primary-600 underline dark:text-primary-500">
           {children}
-        </span>
+        </button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px]">
