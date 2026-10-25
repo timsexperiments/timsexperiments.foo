@@ -87,7 +87,6 @@ const baseline = evaluateSerialization(starterJson);
     </section>
   </div>
   <section class="sandbox" data-sandbox hidden aria-label="JSON sandbox">
-    <p class="bench-label">Sandbox</p><h3>Edit the Person record</h3>
     <form novalidate>
       <label class="editor-label"
         >Person JSON<textarea
@@ -99,30 +98,31 @@ const baseline = evaluateSerialization(starterJson);
           maxlength="16384">{starterJson}</textarea
         ></label
       >
-      <p class="editor-help">
-        All four fields required. Age is signed int32. Up to 32 hobbies and
-        1,024 UTF-8 bytes per string. Editor limit: 16 KiB.
-      </p>
       <p class="bench-error" data-error hidden></p>
       <div class="bench-actions">
-        <button type="submit" class="primary" disabled>Run comparison</button
-        ><button type="button" data-reset disabled>Reset record</button><button
-          type="button"
-          data-clear
-          disabled>Clear editor</button
-        ><span class="bench-hint" data-draft>Ready to run</span>
+        <button type="submit" class="primary" disabled>Run comparison</button>
+        <span class="bench-hint" data-draft>Ready to run</span>
       </div>
+      <details class="editor-options">
+        <summary>Editor tools &amp; limits</summary>
+        <div class="record-tools">
+          <button type="button" data-reset disabled>Reset record</button>
+          <button type="button" data-clear disabled>Clear editor</button>
+        </div>
+        <div class="recipes" role="group" aria-label="Record recipes">
+          <button type="button" data-recipe="emoji" disabled>+ One emoji</button>
+          <button type="button" data-recipe="hobbies" disabled>+ Eight hobbies</button>
+          <button type="button" data-recipe="defaults" disabled>Empty defaults</button>
+        </div>
+        <p class="bench-hint" data-recipe-note>
+          Recipes change your current valid record.
+        </p>
+        <p class="editor-help">
+          All four fields required. Age is signed int32. Up to 32 hobbies and
+          1,024 UTF-8 bytes per string. Editor limit: 16 KiB.
+        </p>
+      </details>
     </form>
-    <div class="recipes" role="group" aria-label="Record recipes">
-      <button type="button" data-recipe="emoji" disabled>+ One emoji</button
-      ><button type="button" data-recipe="hobbies" disabled
-        >+ Eight hobbies</button
-      ><button type="button" data-recipe="defaults" disabled
-        >Empty defaults</button>
-    </div>
-    <p class="bench-hint" data-recipe-note>
-      Recipes change your current valid record.
-    </p>
   </section>
   <section
     class="bench-results"

@@ -144,3 +144,53 @@ html:has(>.campus-page),html:has(>body.campus-page){height:100%;overflow:hidden;
   .movement-options{justify-content:space-between;padding-bottom:0}
   .campus-page .robot-firmware{top:calc(48px + env(safe-area-inset-top,0px));font-size:11px}
 }
+
+/* The workbench has one panel and one compact, predictable sticky header. */
+.workbench-dialog {
+  --workbench-inset: 24px;
+  --workbench-gutter: 48px;
+  inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  width: min(1000px, calc(100% - var(--workbench-gutter) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  max-width: none;
+  padding: 0 var(--workbench-inset) 24px;
+  scroll-padding-block: 80px 20px;
+}
+.workbench-dialog .dialog-topbar {
+  top: 0;
+  margin: 0;
+  padding: 12px 0;
+  gap: 12px;
+}
+.workbench-title {
+  min-width: 0;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.workbench-dialog .dialog-close {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.workbench-dialog serialization-bench {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.workbench-dialog .bench-heading {
+  justify-content: flex-end;
+  padding-block: 8px;
+  border: 0;
+}
+.workbench-dialog .bench-heading > div {
+  display: none;
+}
+@media (max-width: 700px) {
+  .workbench-dialog { --workbench-inset: 16px; --workbench-gutter: 20px; }
+}
+@media (max-height: 500px) {
+  .workbench-dialog .dialog-topbar { position: static; }
+  .workbench-dialog { scroll-padding-top: 12px; }
+}

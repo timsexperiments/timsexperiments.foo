@@ -72,8 +72,13 @@ serialization-bench .bench-heading {
   border-bottom: 1px solid var(--bench-line);
   padding-bottom: 16px;
 }
-serialization-bench button {
+serialization-bench button,
+.campus-page serialization-bench button {
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
   padding: 9px 13px;
   border: 1px solid #68756c;
   border-radius: 5px;
@@ -81,7 +86,7 @@ serialization-bench button {
   color: var(--bench-text);
   cursor: pointer;
   font:
-    500 12px/1.4 system-ui,
+    500 14px/1.4 system-ui,
     sans-serif;
 }
 serialization-bench button:hover {
@@ -390,7 +395,8 @@ serialization-bench .inspectors summary {
   padding: 12px;
 }
 serialization-bench pre {
-  max-width: 100%;
+  min-width: 0;
+  max-width: calc(100% - 20px);
   max-height: 280px;
   overflow: auto;
   white-space: pre;
@@ -428,7 +434,8 @@ serialization-bench .editor-label {
   color: var(--bench-muted);
   font-size: 12px;
 }
-serialization-bench textarea {
+serialization-bench textarea,
+.campus-page serialization-bench textarea {
   display: block;
   width: 100%;
   min-height: 190px;
@@ -441,7 +448,7 @@ serialization-bench textarea {
   background: #111411;
   color: #e0eee6;
   font:
-    12px/1.7 ui-monospace,
+    16px/1.6 ui-monospace,
     monospace;
 }
 serialization-bench textarea[aria-invalid='true'] {
@@ -497,12 +504,12 @@ serialization-bench .sr-only {
     align-items: center;
   }
   serialization-bench .bench-heading > button {
-    font-size: 11px;
+    font-size: 13px;
     position: static;
-    flex-shrink: 0;
-    max-width: 82px;
+    flex: 0 1 120px;
+    max-width: 120px;
     padding-inline: 8px;
-    white-space: nowrap;
+    white-space: normal;
   }
   serialization-bench .lesson-steps button {
     font-size: 11px;
@@ -561,5 +568,60 @@ serialization-bench .sr-only {
 @media (prefers-reduced-motion: reduce) {
   serialization-bench .meter-fill {
     transition: none;
+  }
+}
+
+/* Let prose reflow while wire data scrolls only inside its own inspector. */
+serialization-bench :is(header, section, form, footer, details, .bench-heading > div) {
+  min-width: 0;
+}
+serialization-bench :is(h2, h3, p, summary, .checks, .bench-footer) {
+  overflow-wrap: anywhere;
+}
+serialization-bench :is(button, summary, textarea, pre, [tabindex]) {
+  scroll-margin-block: 12px;
+}
+serialization-bench .editor-options {
+  margin-top: 12px;
+  border-top: 1px solid var(--bench-line);
+}
+serialization-bench .editor-options summary {
+  min-height: 44px;
+}
+serialization-bench .editor-options .record-tools {
+  margin-top: 4px;
+}
+serialization-bench .editor-options .editor-help {
+  font-size: 12px;
+  margin-top: 12px;
+}
+serialization-bench .bench-actions > .primary {
+  flex: 0 1 auto;
+}
+@media (max-width: 480px) {
+  serialization-bench .bench-actions > .primary {
+    flex: 1 1 100%;
+  }
+  serialization-bench .bench-actions > .bench-hint {
+    width: 100%;
+  }
+  serialization-bench .editor-options :is(.record-tools, .recipes) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  serialization-bench .sandbox {
+    padding-top: 12px;
+  }
+}
+
+serialization-bench :is(.byte-delta, .prediction-feedback, [data-explanation]):empty {
+  display: none;
+}
+
+@media (max-height: 500px) {
+  serialization-bench textarea,
+  .campus-page serialization-bench textarea {
+    min-height: 140px;
+    height: clamp(140px, 48dvh, 230px);
   }
 }
