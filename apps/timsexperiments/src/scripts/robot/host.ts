@@ -124,7 +124,7 @@ export function setupRobotHost(root: HTMLElement) {
           ? 'Installing firmware. Do have a look around the lab while I finish.'
           : state === 'ready' || state === 'generating'
             ? 'All in order. What would you like to know about Tim?'
-            : "Good evening. I can tell you about Tim's work once my language module is ready.";
+            : "Good evening. Ask me about Tim's work.";
     if (hostLine && hostLine.textContent !== nextHostLine)
       hostLine.textContent = nextHostLine;
     const restoreNotice = root.querySelector<HTMLElement>(

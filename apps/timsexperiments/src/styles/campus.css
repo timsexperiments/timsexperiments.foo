@@ -315,11 +315,15 @@ html:has(> body.campus-page) {
 .scene-status:empty {
   display: none;
 }
-/* One backing per directory action; numbers and descriptions belong to arrival. */
+/* Station actions use rectangles, independently of the shared pill controls. */
 .lab-directory {
   position: relative;
   z-index: 4;
   min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--labui-line);
+  border-radius: var(--labui-radius-panel);
+  background: var(--labui-hud-backing);
   pointer-events: auto;
 }
 .directory-heading {
@@ -343,6 +347,7 @@ html:has(> body.campus-page) {
   min-width: 0;
   min-height: 78px;
   padding: 12px 18px;
+  border-radius: var(--labui-radius-control);
   text-align: left;
   justify-content: flex-start;
 }
@@ -555,16 +560,16 @@ html:has(> body.campus-page) {
 }
 .is-exploring .lab-directory {
   grid-row: 2;
-  width: min(960px, 100%);
+  width: min(800px, 100%);
   justify-self: center;
 }
 .is-exploring .station-dock .station-button {
-  justify-content: center;
-  min-height: 52px;
+  justify-content: flex-start;
+  min-height: 48px;
   padding: 8px 12px;
 }
 .is-exploring .station-name {
-  text-align: center;
+  text-align: left;
 }
 .is-exploring
   :is(
@@ -719,6 +724,7 @@ html:has(> body.campus-page) {
     flex-direction: column;
     justify-content: center;
     gap: 4px;
+    min-height: 76px;
     padding: 8px 4px;
     text-align: center;
   }
@@ -764,11 +770,19 @@ html:has(> body.campus-page) {
   }
   .is-exploring .station-dock .station-button {
     flex-direction: column;
-    min-height: 84px;
+    min-height: 76px;
     padding: 8px 4px;
+  }
+  .station-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    text-align: center;
   }
   .is-exploring .station-name {
     max-width: 100%;
+    text-align: center;
   }
   .is-exploring .station-icon,
   .is-exploring .station-icon svg {
@@ -864,6 +878,7 @@ html:has(> body.campus-page) {
   .is-exploring #controller-hint {
     display: none;
   }
+  .station-dock .station-button,
   .is-exploring .station-dock .station-button {
     min-height: 44px;
     flex-direction: row;
@@ -947,14 +962,14 @@ html:has(> body.campus-page) {
   }
 }
 
-@media (max-width: 359px) {
+@media (max-width: 420px) {
   .station-dock {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .station-dock .station-button,
   .is-exploring .station-dock .station-button {
     flex-direction: row;
-    min-height: 52px;
+    min-height: 48px;
     padding: 6px 8px;
     gap: 6px;
   }
@@ -965,5 +980,11 @@ html:has(> body.campus-page) {
   }
   .station-button-copy {
     flex: 1;
+  }
+  .station-name,
+  .is-exploring .station-name {
+    min-height: 0;
+    justify-content: flex-start;
+    text-align: left;
   }
 }
