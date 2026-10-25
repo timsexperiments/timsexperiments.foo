@@ -13,7 +13,7 @@ const labels = {
   recipes: 'The recipe shelf',
   workbench: 'The workbench',
   robot: 'Your lab host',
-  contact: 'The letter desk',
+  contact: 'Contact',
 } satisfies Record<StationId, string>;
 let controller:
   | Awaited<ReturnType<(typeof import('../campus'))['createCampus']>>

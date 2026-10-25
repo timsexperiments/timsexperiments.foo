@@ -18,7 +18,7 @@ const stations = [
   { id: 'recipes', number: '01', name: 'Recipe shelf', description: 'Read engineering articles.', icon: 'M4 4h5v16H4z M10 4h5v16h-5z M17 5l4-1 3 15-4 1z' },
   { id: 'workbench', number: '02', name: 'Workbench', description: 'Compare JSON and Protobuf.', icon: 'M3 4h18v12H3z M8 20h8 M12 16v4 M8 8l-3 2 3 2 M16 8l3 2-3 2' },
   { id: 'robot', number: '03', name: 'Meet the host', description: "Ask about Tim's work.", icon: 'M5 7h14v12H5z M12 3v4 M9 11v2 M15 11v2 M9 16h6 M2 10v6 M22 10v6' },
-  { id: 'contact', number: '04', name: 'Write a letter', description: 'Contact Tim.', icon: 'M3 5h18v14H3z M3 5l9 8 9-8' },
+  { id: 'contact', number: '04', name: 'Contact', description: 'Contact Tim.', icon: 'M3 5h18v14H3z M3 5l9 8 9-8' },
 ];
 ---
 <!doctype html>
@@ -82,9 +82,9 @@ const stations = [
     <RecipeShelf recipes={recipes} />
     <RobotFirmware />
     <TabletReader />
-    <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><span class="eyebrow">02 / THE WORKBENCH</span><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><h2 id="workbench-title" class="station-heading">JSON and Protobuf</h2><SerializationBench /></dialog>
+    <dialog id="workbench-dialog" class="lab-dialog workbench-dialog" aria-labelledby="workbench-title"><div class="dialog-topbar"><h2 id="workbench-title" class="workbench-title">JSON and Protobuf</h2><button class="dialog-close" aria-label="Close workbench">Close <span aria-hidden="true">×</span></button></div><SerializationBench /></dialog>
     <dialog id="robot-dialog" class="lab-dialog robot-dialog" aria-labelledby="robot-title"><div class="dialog-topbar"><span class="eyebrow">03 / YOUR LAB HOST</span><button class="dialog-close" aria-label="Close robot host">Close <span aria-hidden="true">×</span></button></div><h2 id="robot-title" class="station-heading">Ask about Tim</h2><RobotHost /></dialog>
-    <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-title"><div class="dialog-topbar"><span class="eyebrow">04 / THE LETTER DESK</span><button class="dialog-close" aria-label="Close letter desk">Close <span aria-hidden="true">×</span></button></div><LetterStation /></dialog>
+    <dialog id="contact-dialog" class="lab-dialog contact-dialog" aria-labelledby="contact-station-label"><div class="dialog-topbar"><span id="contact-station-label" class="eyebrow">04 / Contact</span><button class="dialog-close" aria-label="Close contact">Close <span aria-hidden="true">×</span></button></div><LetterStation /></dialog>
     <noscript><div class="no-script-note">The lab's 3D experience needs JavaScript. You can still <a href="/lab">read the recipes</a>, <a href="/resume/mcp">explore Tim's experience</a>, or <a href="mailto:hello@timsexperiments.foo">send Tim an email</a>.</div></noscript>
     <script src="@/scripts/site/campus-home.ts"></script>
   </body>

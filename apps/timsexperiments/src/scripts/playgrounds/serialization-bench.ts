@@ -330,6 +330,10 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
     status.textContent = '';
     publish(null);
   };
+  const focusEditor = () => {
+    editor.focus({ preventScroll: true });
+    editor.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+  };
   const showError = (cause: unknown) => {
     invalidate();
     error.textContent =
@@ -340,7 +344,7 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
     editor.setAttribute('aria-invalid', 'true');
     text('[data-draft]', 'Check your input');
     renderReadout(null);
-    editor.focus();
+    focusEditor();
   };
   const run = () => {
     try {
@@ -497,6 +501,8 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
   const replaceDraft = (value: string, note: string) => {
     invalidate();
     editor.value = value;
+    editor.scrollTop = 0;
+    editor.scrollLeft = 0;
     renderReadout(null);
     text('[data-draft]', note);
     text('[data-recipe-note]', 'Recipes change your current valid record.');
@@ -505,7 +511,7 @@ export function initializeSerializationBench(host: HTMLElement): () => void {
     'click',
     () => {
       replaceDraft('', 'Editor cleared');
-      editor.focus();
+      focusEditor();
     },
     options
   );
