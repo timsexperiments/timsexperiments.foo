@@ -5,8 +5,7 @@ const status = document.querySelector<HTMLElement>('#letter-status');
 const note = document.querySelector<HTMLElement>('#delivery-note');
 const capability = z.object({ available: z.boolean() });
 const receipt = z.object({ accepted: z.literal(true) });
-const failure = z.object({ message: z.string(), fallback: z.literal('email-app').optional() });
-let directDelivery = false;
+const failure = z.object({ message: z.string() });
 let sending = false;
 let requestId = crypto.randomUUID();
 let previousDraft = '';
@@ -14,33 +13,27 @@ function setStatus(text: string) { if (status) status.textContent = text; }
 fetch('/api/contact', { headers: { Accept: 'application/json' } }).then(async response => {
   const raw: unknown = await response.json();
   const result = capability.safeParse(raw);
-  directDelivery = response.ok && result.success && result.data.available;
-}).catch(() => { directDelivery = false; }).finally(() => {
-  if (send) send.textContent = directDelivery ? 'Send letter ↗' : 'Open in email app ↗';
-  if (note) note.textContent = directDelivery ? 'Your letter goes straight to Tim. Your email is used only so he can reply.' : 'Direct delivery is not connected yet. Your letter can open as a draft in your email app.';
-});
+  if (note && response.ok && result.success && !result.data.available) {
+    note.textContent = 'Sending is temporarily unavailable. Your draft stays here so you can try again.';
+  }
+}).catch(() => { /* The submission can still succeed if this check fails. */ });
 function draftText(data: FormData) { return `${String(data.get('message') ?? '')}\n\nFrom: ${String(data.get('name') ?? '')}\nReply to: ${String(data.get('email') ?? '')}`; }
 form?.addEventListener('submit', async event => {
   event.preventDefault();
   if (sending || !form.reportValidity()) return;
   const data = new FormData(form);
   const body = { name: String(data.get('name') ?? ''), email: String(data.get('email') ?? ''), message: String(data.get('message') ?? ''), website: String(data.get('website') ?? ''), requestId };
-  if (!directDelivery) {
-    const href = `mailto:hello@timsexperiments.foo?subject=${encodeURIComponent(`A letter from ${body.name}`)}&body=${encodeURIComponent(draftText(data))}`;
-    window.location.href = href;
-    setStatus('Your email app will open with the draft. It has not been sent yet. Send it there when you are ready.');
-    return;
-  }
   const snapshot = JSON.stringify({ name: body.name, email: body.email, message: body.message });
   if (snapshot !== previousDraft) { requestId = crypto.randomUUID(); body.requestId = requestId; previousDraft = snapshot; }
   sending = true;
-  if (send) send.disabled = true;
+  if (send) { send.disabled = true; send.textContent = 'Sending…'; }
   form.classList.add('sending');
   setStatus('Posting your letter…');
   try {
     const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(16000) });
     const raw: unknown = await response.json();
     if (response.ok && receipt.safeParse(raw).success) {
+      if (note) note.textContent = 'Your letter goes straight to Tim. Your email is used only so he can reply.';
       form.classList.add('accepted');
       setStatus('Your letter was accepted for delivery. Thanks for reaching out.');
       const current = new FormData(form);
@@ -51,15 +44,10 @@ form?.addEventListener('submit', async event => {
       }
     } else {
       const message = failure.safeParse(raw);
-      if (message.success && message.data.fallback === 'email-app') {
-        directDelivery = false;
-        if (send) send.textContent = 'Open in email app ↗';
-        if (note) note.textContent = 'Direct delivery is unavailable. Open your draft in your email app or copy it.';
-      }
-      setStatus(message.success ? message.data.message : 'Delivery could not be confirmed. Your draft is still here.');
+      setStatus(message.success ? message.data.message : 'Delivery could not be confirmed. Your draft is still here. Press Send to retry.');
     }
-  } catch { setStatus('Delivery could not be confirmed. Your draft is still here. Retry without editing within 24 hours to reuse the same delivery request. Switching to your email app may create a duplicate.'); }
-  finally { sending = false; if (send) send.disabled = false; form.classList.remove('sending'); setTimeout(() => form.classList.remove('accepted'), 1000); }
+  } catch { setStatus('Delivery could not be confirmed. Your draft is still here. Press Send to retry. Retrying without edits within 24 hours avoids sending the same letter twice.'); }
+  finally { sending = false; if (send) { send.disabled = false; send.textContent = 'Send ↗'; } form.classList.remove('sending'); setTimeout(() => form.classList.remove('accepted'), 1000); }
 });
 document.querySelector('#letter-copy')?.addEventListener('click', async () => {
   if (!form) return;
