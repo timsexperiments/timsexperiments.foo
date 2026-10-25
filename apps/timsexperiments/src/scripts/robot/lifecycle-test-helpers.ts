@@ -77,6 +77,9 @@ class TestElement extends EventTarget {
   setAttribute(key: string, value: string) {
     this.attributes.set(key, value);
   }
+  removeAttribute(key: string) {
+    this.attributes.delete(key);
+  }
   matches(selector: string) {
     return selector.startsWith('[')
       ? this.attributes.has(selector.slice(1, -1))
@@ -338,6 +341,7 @@ export function robotDom() {
     input: add('textarea'),
     send: add('button', 'data-send'),
     enable: add('button', 'data-enable'),
+    readArticles: add('button', 'data-open-station'),
     explore: add('button', 'data-robot-explore'),
     unload: add('button', 'data-model-off'),
     stop: add('button', 'data-stop'),

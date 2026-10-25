@@ -95,9 +95,9 @@ test('background progress and ready never create a chat, archive, modal, focus c
   canvas.focus();
   worker.reply({ kind: 'progress', progress: 0.37, text: 'download' });
   expect(hud.hidden).toBe(false);
-  expect(hudText.textContent).toBe('Robot updating · 37%');
+  expect(hudText.textContent).toBe('Host firmware · 37%');
   worker.reply({ kind: 'ready' });
-  expect(hudText.textContent).toBe('Robot ready');
+  expect(hudText.textContent).toBe('Host ready · Talk');
   expect(hudDismiss.hidden).toBe(false);
   expect(document.activeElement).toBe(canvas);
   expect(dom.dialog.open).toBe(false);
@@ -307,7 +307,7 @@ test('background ready replaces focused HUD Cancel with visible Return to robot'
 });
 
 for (const failure of ['GPU rejection', 'worker error', 'timeout']) {
-  test(`${failure} returns focused Explore to visible Start`, async () => {
+  test(`${failure} returns focused Explore to visible article recovery`, async () => {
     if (failure === 'GPU rejection') {
       env.install('navigator', {
         gpu: {
@@ -329,7 +329,7 @@ for (const failure of ['GPU rejection', 'worker error', 'timeout']) {
     expect(dom.root.dataset.modelState).toBe('off');
     expect(dom.explore.hidden).toBe(true);
     expect(dom.enable.disabled).toBe(false);
-    expect(document.activeElement).toBe(dom.enable);
+    expect(document.activeElement).toBe(dom.readArticles);
   });
 }
 
@@ -352,14 +352,16 @@ for (const outcome of ['ready', 'worker error', 'timeout']) {
 }
 
 for (const outcome of ['ready', 'worker error', 'timeout']) {
-  test(`${outcome} preserves focus and draft in the robot input`, async () => {
+  test(`${outcome} preserves the draft and focuses the visible action`, async () => {
     const worker = await loading();
     dom.input.value = 'My next question';
     dom.input.focus();
     if (outcome === 'timeout') await env.advance(10 * 60 * 1000);
     else if (outcome === 'ready') worker.reply({ kind: 'ready' });
     else worker.reply({ kind: 'error', stage: 'load', message: 'Device lost' });
-    expect(document.activeElement).toBe(dom.input);
+    expect(document.activeElement).toBe(
+      outcome === 'ready' ? dom.input : dom.readArticles
+    );
     expect(dom.input.value).toBe('My next question');
   });
 }
@@ -376,3 +378,28 @@ for (const outcome of ['worker error', 'timeout']) {
     expect(dom.dialog.open).toBe(false);
   });
 }
+
+test('keyboard Send moves focus into the composer before disabling Send', async () => {
+  const worker = await loading();
+  worker.reply({ kind: 'ready' });
+  dom.send.focus();
+  submit(dom, 'What has Tim built?');
+  expect(dom.send.disabled).toBe(true);
+  expect(document.activeElement).toBe(dom.input);
+  await env.advance(0);
+  worker.reply({ kind: 'answer', text: 'Tim has built platform systems.' });
+  expect(document.activeElement).toBe(dom.input);
+  expect(dom.input.readOnly).toBe(false);
+});
+
+test('ready while Settings is open keeps Settings and focuses Unload in its Local AI row', async () => {
+  const worker = await loading();
+  click(dom.options);
+  dom.stop.focus();
+  worker.reply({ kind: 'ready' });
+  expect(dom.root.dataset.settings).toBe('true');
+  expect(dom.panel.hidden).toBe(false);
+  expect(document.activeElement).toBe(dom.unload);
+  click(dom.options);
+  expect(document.activeElement).toBe(dom.options);
+});

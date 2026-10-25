@@ -51,7 +51,7 @@ export function createSavedChat(
         timeout: ReturnType<typeof setTimeout>;
       }
     | undefined;
-  let message = 'Completed replies are archived for Tim.';
+  let message = 'No replies yet.';
 
   function sync() {
     if (status)
@@ -170,7 +170,7 @@ export function createSavedChat(
       timeout: setTimeout(() => controller.abort(), 12000),
     };
     flight = attempt;
-    message = 'Archiving completed replies for Tim…';
+    message = 'Archiving…';
     sync();
     void (async () => {
       try {
@@ -215,7 +215,7 @@ export function createSavedChat(
         retryAt = 0;
         dirty = JSON.stringify(current.turns) !== JSON.stringify(payload.turns);
         if (!persist()) return;
-        message = 'Completed replies archived for Tim.';
+        message = '✓ Archived';
       } catch {
         if (!isCurrent(token)) return;
         // A lost response may follow a committed write. Retry that exact request
@@ -279,7 +279,7 @@ export function createSavedChat(
     reset();
     invalidated = false;
     removeLocal();
-    message = 'New chat. Previously archived replies remain with Tim.';
+    message = 'Archive kept.';
     sync();
   }
   activeChatChanges.addEventListener('change', ownsLocal, {
@@ -319,8 +319,7 @@ export function createSavedChat(
         sessionId = current.id;
         localId = current.id;
         options.restore(structuredClone(current.turns));
-        message =
-          'This browser kept your active chat. Closing or clearing starts a new chat.';
+        message = 'Restored locally.';
       } else removeLocal();
     }
   } catch {

@@ -826,7 +826,7 @@ export function buildWorld(
       });
     }
   }
-  stationSign('recipes', 'RECIPE LIBRARY', '01', -6, -4.9);
+  stationSign('recipes', 'RECIPE SHELF', '01', -6, -4.9);
   collisions.push({ minX: -8.4, maxX: -3.6, minZ: -6.1, maxZ: -4.15 });
 
   // Main bench with suspended monitors and a small physical compute rack.
@@ -901,7 +901,7 @@ export function buildWorld(
     cast: false,
     receive: true,
   });
-  stationSign('workbench', 'THE WORKBENCH', '02', -0.6, -5.2);
+  stationSign('workbench', 'WORKBENCH', '02', -0.6, -5.2);
   collisions.push({ minX: -3.2, maxX: 2, minZ: -5.5, maxZ: -3 });
 
   // Friendly small host: floating head, mint enamel shell, expressive optical face.
@@ -980,9 +980,7 @@ export function buildWorld(
       receive: true,
     });
   }
-  label('03 / MEET YOUR HOST', 2, 0.26, 3.4, 0.3, 0.22, {
-    background: '#111b18',
-  });
+  stationSign('robot', 'MEET THE HOST', '03', 3.4, -5.8);
   collisions.push({ minX: 2.25, maxX: 4.55, minZ: -1.9, maxZ: 0.35 });
 
   // Correspondence desk, angled letter and a real mail-slot silhouette.
@@ -1050,7 +1048,7 @@ export function buildWorld(
   });
   pen.rotation.z = Math.PI / 2;
   pen.rotation.y = 0.3;
-  stationSign('contact', 'CORRESPONDENCE', '04', 6.5, -5.2);
+  stationSign('contact', 'CONTACT', '04', 6.5, -5.2);
   collisions.push({ minX: 4.6, maxX: 8.4, minZ: -5.3, maxZ: -3.1 });
 
   plant(-9, -3, 1.25);

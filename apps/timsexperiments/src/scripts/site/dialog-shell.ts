@@ -25,10 +25,10 @@ export function createDialogShell(options: {
     } else options.fallbackFocus()?.focus({ preventScroll: true });
   }
 
-  function changed() {
+  function changed(restore = true) {
     document.body.style.overflow = anyOpen() ? 'hidden' : '';
     options.onChange();
-    if (!anyOpen()) restoreFocus();
+    if (restore && !anyOpen()) restoreFocus();
   }
 
   function closeOthers(destination?: HTMLDialogElement) {
@@ -49,11 +49,21 @@ export function createDialogShell(options: {
     if (!dialog.open) dialog.showModal();
     closeOthers(dialog);
     changed();
-    (
-      focus ??
-      dialog.querySelector<HTMLElement>('.dialog-close') ??
-      dialog
-    ).focus({ preventScroll: true });
+    const declared = dialog.dataset.initialFocus
+      ? dialog.querySelector<HTMLElement>(dialog.dataset.initialFocus)
+      : undefined;
+    const initial = [
+      focus,
+      declared,
+      ...dialog.querySelectorAll<HTMLElement>('[data-initial-focus]'),
+      dialog.querySelector<HTMLElement>('.dialog-close'),
+    ].find(
+      (target) =>
+        target?.checkVisibility() &&
+        !target.matches(':disabled') &&
+        !target.closest('[inert], [hidden]')
+    );
+    (initial ?? dialog).focus({ preventScroll: true });
   }
 
   function dismiss(dialog: HTMLDialogElement) {
@@ -96,8 +106,9 @@ export function createDialogShell(options: {
     dismiss,
     anyOpen,
     closeAll: () => {
+      const wasOpen = anyOpen();
       closeOthers();
-      changed();
+      changed(wasOpen);
     },
   };
 }

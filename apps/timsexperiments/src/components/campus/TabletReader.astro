@@ -1,56 +1,104 @@
 <dialog
   id="reader-dialog"
   class="lab-dialog tablet-reader"
-  aria-label="Recipe tablet">
-  <div class="tablet-hardware" aria-hidden="true">
-    <span></span>LAB / READER
-  </div>
+  aria-label="Recipe reader">
+  <div class="tablet-bezel" aria-hidden="true"><span></span></div>
   <div class="tablet-screen">
-    <div class="tablet-toolbar">
-      <button id="reader-back" type="button">← Shelf</button>
-      <span class="tablet-label">RECIPE TABLET</span>
+    <header class="lab-panel-header tablet-toolbar">
+      <div class="reader-toolbar-title">
+        <button id="reader-back" class="lab-btn lab-btn--quiet" type="button"
+          >← Shelf</button
+        >
+        <span id="reader-title" class="reader-title"></span>
+      </div>
+      <details class="reader-menu">
+        <summary class="lab-btn lab-btn--quiet"
+          >Contents <span aria-hidden="true">⌄</span></summary
+        >
+        <div class="reader-navigation">
+          <label for="reader-contents">Jump to section</label>
+          <select id="reader-contents" disabled aria-controls="reader-content">
+            <option>Article start</option>
+          </select>
+          <div class="reader-menu-actions">
+            <button
+              class="lab-btn lab-btn--secondary"
+              type="button"
+              data-copy-lab-link>Copy link</button
+            >
+            <a
+              id="reader-standalone"
+              class="lab-btn lab-btn--quiet"
+              href="/lab"
+              target="_blank"
+              rel="noopener">
+              Open as page ↗<span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </div>
+        </div>
+      </details>
       <button
-        class="dialog-close"
+        class="dialog-close lab-btn lab-btn--icon lab-btn--quiet"
         type="button"
-        aria-label="Return tablet to the room"
-        >Return <span aria-hidden="true">↘</span></button
-      >
-    </div>
-    <div class="reader-navigation">
-      <label for="reader-contents">Jump to</label>
-      <select id="reader-contents" disabled aria-controls="reader-content"
-        ><option>Article start</option></select
-      >
-      <button type="button" data-copy-lab-link>Copy link</button>
-      <a id="reader-standalone" href="/lab" target="_blank" rel="noopener"
-        >Standalone ↗<span class="sr-only"> (opens in a new tab)</span></a
-      >
-    </div>
+        aria-label="Close article reader">
+        <span class="panel-close-label">Close</span><span aria-hidden="true"
+          >×</span
+        >
+      </button>
+    </header>
     <p
       id="reader-status"
-      class="reader-status"
+      class="reader-status lab-status"
       role="status"
-      aria-live="polite">
+      aria-live="polite"
+      aria-atomic="true">
     </p>
     <div
       id="reader-viewport"
       class="reader-viewport"
       tabindex="0"
       aria-label="Article, scroll to read">
-      <div id="reader-error" class="reader-error" hidden>
-        <h2>Couldn't load this recipe.</h2><p>
-          Check your connection and try again, or use the standalone article
-          link above.
-        </p><button id="reader-retry" class="mint-button" type="button"
-          >Try again</button>
+      <div id="reader-error" class="reader-error" role="alert" hidden>
+        <h2>This article didn't load.</h2>
+        <div class="reader-error-actions">
+          <button
+            id="reader-retry"
+            class="lab-btn lab-btn--primary"
+            type="button">Try again</button
+          >
+          <a
+            class="lab-btn lab-btn--secondary"
+            data-reader-error-page
+            href="/lab"
+            target="_blank"
+            rel="noopener">
+            Open as page ↗<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </div>
       </div>
       <div id="reader-content" aria-busy="false"></div>
     </div>
     <div class="reader-footer" aria-label="Article navigation">
-      <button id="reader-previous" type="button" disabled>↑ Previous</button>
+      <button
+        id="reader-previous"
+        class="lab-btn lab-btn--quiet"
+        type="button"
+        disabled>↑ Previous</button
+      >
       <span id="reader-position">Article start</span>
-      <button id="reader-next" type="button" disabled>Next ↓</button>
+      <button
+        id="reader-next"
+        class="lab-btn lab-btn--quiet"
+        type="button"
+        disabled>Next ↓</button
+      >
     </div>
   </div>
   <div class="tablet-grip" aria-hidden="true"></div>
+  <template id="reader-loading">
+    <div class="reader-skeleton" aria-hidden="true">
+      <span class="reader-skeleton-title"></span>
+      <span></span><span></span><span></span>
+    </div>
+  </template>
 </dialog>
