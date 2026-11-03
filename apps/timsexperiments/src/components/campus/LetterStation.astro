@@ -1,0 +1,515 @@
+<section class="letter-station" aria-labelledby="contact-title">
+  <div class="letter-intro">
+    <h2 id="contact-title">Something on<br /> <em>your mind?</em></h2>
+    <p>A project, a software problem, or an idea. Write Tim a note.</p>
+  </div>
+  <form id="letter-form" class="letter-paper" novalidate>
+    <div id="letter-draft">
+      <div class="paper-heading">
+        <span aria-hidden="true"
+          >TIM'S EXPERIMENTS<br />PERSONAL CORRESPONDENCE</span
+        ><span class="paper-stamp" aria-hidden="true"
+          ><img src="/favicon.svg" width="36" height="37" alt="" /></span>
+      </div>
+      <p class="paper-dear">Hey Tim,</p>
+      <label class="letter-message-label" for="letter-message">Message</label>
+      <textarea
+        id="letter-message"
+        name="message"
+        required
+        minlength="10"
+        maxlength="6000"
+        placeholder="I've been thinking about…"
+        rows="4"
+        aria-describedby="letter-message-error"
+        data-initial-focus></textarea>
+      <p class="letter-field-error" id="letter-message-error" hidden></p>
+      <div class="letter-signature">
+        <div>
+          <label for="letter-name">Your name</label><input
+            id="letter-name"
+            name="name"
+            autocomplete="name"
+            required
+            maxlength="100"
+            placeholder="Your name"
+            aria-describedby="letter-name-error"
+          /><p class="letter-field-error" id="letter-name-error" hidden></p>
+        </div>
+        <div>
+          <label for="letter-email">Reply email</label><input
+            id="letter-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="254"
+            placeholder="you@example.com"
+            aria-describedby="letter-email-error"
+          /><p class="letter-field-error" id="letter-email-error" hidden></p>
+        </div>
+      </div>
+      <div class="letter-trap" aria-hidden="true">
+        <label for="letter-website">Leave this empty</label><input
+          id="letter-website"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+      <div class="letter-actions">
+        <button class="lab-btn lab-btn--primary" type="submit" id="letter-send"
+          >Send</button
+        ><button class="lab-btn lab-btn--quiet" type="button" id="letter-copy"
+          >Copy letter</button>
+      </div>
+    </div>
+    <div id="letter-success" class="letter-success" hidden>
+      <span class="success-mark" aria-hidden="true">✓</span><h3>
+        Accepted for delivery
+      </h3><p>
+        Thanks for writing. Your reply email was included with your letter.
+      </p><button
+        class="lab-btn lab-btn--primary"
+        type="button"
+        id="letter-another">Write another</button
+      >
+    </div>
+    <p id="letter-status" class="lab-status" role="status" aria-atomic="true">
+    </p>
+  </form>
+  <div class="letter-details">
+    <div class="letter-address">
+      <span>Goes to Tim Altemus</span><strong>hello@timsexperiments.foo</strong
+      ><button
+        class="lab-btn lab-btn--quiet"
+        type="button"
+        id="letter-copy-address">Copy address</button>
+    </div>
+    <div class="little-mailbox" aria-hidden="true">
+      <span>LETTERS & GOOD IDEAS</span><div class="mailbox-slot"></div><div
+        class="paper-envelope">
+      </div>
+    </div>
+    <p class="delivery-note" id="delivery-note">
+      Your email is used so Tim can reply.
+    </p>
+  </div>
+</section>
+<style>
+  .letter-station {
+    display: grid;
+    grid-template-columns: 0.75fr 1.25fr;
+    gap: clamp(24px, 4vw, 45px);
+    row-gap: 16px;
+    padding-top: 5px;
+    font-family: var(--labui-body-font, Inter, 'Lab Sans', sans-serif);
+  }
+  .letter-intro {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .letter-details {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+  .letter-intro h2 {
+    font-family: var(--labui-display-font, Urbanist, Inter, sans-serif);
+    font-size: clamp(32px, 4vw, 43px);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    font-weight: 400;
+    margin: 0 0 16px;
+  }
+  .letter-intro h2 em {
+    font-style: normal;
+    color: var(--labui-accent-ink, #54d4b7);
+  }
+  .letter-intro > p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--labui-muted, #b5c7bc);
+  }
+  .letter-address {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+    margin: 24px 0;
+  }
+  .letter-address > span {
+    font-size: 13px;
+    color: var(--labui-muted, #b5c7bc);
+  }
+  .letter-address strong {
+    font-size: 14px;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+  .letter-address button {
+    color: var(--labui-accent-ink, #77cfb1);
+    padding-inline: 0;
+  }
+  .letter-paper {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    --labui-accent-ink: #164c3b;
+    --labui-surface: #eee9d8;
+    --labui-ink: #354237;
+    --labui-muted: #52634f;
+    --labui-line: #8d9b80;
+    --labui-focus: #087356;
+    --labui-danger: #963829;
+    --letter-ink: #354237;
+    --letter-muted: #52634f;
+    background: #eee9d8;
+    color: var(--letter-ink);
+    padding: 24px 28px 16px;
+    box-shadow: 3px 5px 0 #c7c6b4;
+    border-radius: 2px;
+    transform: rotate(0.5deg);
+    position: relative;
+    min-width: 0;
+    align-self: start;
+  }
+  .paper-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    color: #596650;
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    line-height: 1.6;
+  }
+  .paper-stamp {
+    border: 2px dotted #71866e;
+    padding: 7px 8px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    color-scheme: light;
+  }
+  .paper-stamp img {
+    display: block;
+    width: 36px;
+    height: auto;
+  }
+  .paper-dear {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 21px;
+    margin: 16px 0 12px;
+  }
+  .letter-paper label {
+    display: block;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--letter-muted);
+    margin-bottom: 4px;
+  }
+  .letter-paper textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 29px,
+      #b7c0a660 29px,
+      #b7c0a660 30px
+    );
+    border: 0;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 30px;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    color: var(--letter-ink);
+    padding: 0;
+    border-radius: 2px;
+  }
+  .letter-paper textarea::placeholder,
+  .letter-signature input::placeholder {
+    color: #596650;
+    opacity: 1;
+  }
+  .letter-signature {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .letter-signature > div {
+    min-width: 0;
+  }
+  .letter-signature input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid #8d9b80;
+    color: var(--letter-ink);
+    border-radius: 0;
+    padding: 8px 0;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .letter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #b7c0a6;
+  }
+  .letter-station .lab-btn {
+    font: inherit;
+    font-size: 14px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .letter-paper .lab-btn--primary {
+    background: var(--labui-accent-ink);
+    border: 1px solid var(--labui-accent-ink);
+    border-radius: var(--labui-radius-control, 6px);
+    padding: 10px 18px;
+    color: var(--labui-surface);
+  }
+  .letter-station .lab-btn--quiet {
+    border: 0;
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .letter-paper .lab-btn--quiet {
+    color: var(--letter-muted);
+    padding: 10px 4px;
+  }
+  .letter-paper [aria-disabled='true'] {
+    cursor: wait;
+    opacity: 0.75;
+  }
+  #letter-status {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 12px 0 0;
+    color: var(--letter-muted);
+  }
+  #letter-status:empty {
+    display: none;
+  }
+  .letter-field-error,
+  #letter-status[data-tone='error'] {
+    color: #963829;
+  }
+  .letter-field-error {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 4px 0 0;
+  }
+  .letter-paper [aria-invalid='true'] {
+    box-shadow: 0 2px 0 #963829;
+  }
+  .letter-paper.accepted {
+    animation: letter-posted 0.8s ease both;
+    transform-origin: 50% 20%;
+  }
+  .letter-success {
+    padding: 24px 0;
+    max-width: 32ch;
+  }
+  .success-mark {
+    font-size: 28px;
+    color: #164c3b;
+  }
+  .letter-success h3 {
+    font-family: Urbanist, Inter, sans-serif;
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 12px 0;
+  }
+  .letter-success p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 20px;
+  }
+  .letter-success:not([hidden]) + #letter-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .letter-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .little-mailbox {
+    margin-top: 24px;
+    background: linear-gradient(135deg, #2a5a43, #193c2d);
+    border: 1px solid #52775c;
+    border-radius: 8px 8px 3px 3px;
+    height: 125px;
+    position: relative;
+    padding: 27px 20px;
+    box-shadow: 0 12px 30px #0004;
+  }
+  .little-mailbox > span {
+    display: block;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #b8cab5;
+  }
+  .mailbox-slot {
+    height: 9px;
+    background: #07140d;
+    margin-top: 18px;
+    border-bottom: 2px solid #65806b;
+    border-radius: 3px;
+    box-shadow: inset 0 3px 3px #000;
+  }
+  .paper-envelope {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    width: 45px;
+    height: 27px;
+    background: #cfceb6;
+    transform: translateX(-50%) rotate(-5deg);
+    clip-path: polygon(0 0, 50% 35%, 100% 0, 100% 100%, 0 100%);
+    opacity: 0.5;
+  }
+  .letter-details > p.delivery-note {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--labui-muted, #b5c7bc);
+    margin-top: 16px;
+  }
+  .letter-station :focus-visible {
+    outline: 2px solid var(--labui-focus, #5cebce);
+    outline-offset: 3px;
+  }
+  .campus-page .letter-station .lab-btn:focus-visible {
+    outline: 2px solid var(--labui-focus, #5cebce);
+    outline-offset: 3px;
+  }
+  .letter-station [hidden] {
+    display: none;
+  }
+  @keyframes letter-posted {
+    0% {
+      transform: rotate(0.5deg);
+      opacity: 1;
+    }
+    50% {
+      transform: perspective(700px) rotateX(-55deg) scale(0.85);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-45px) scale(0.3, 0.12);
+      opacity: 0;
+    }
+  }
+  @media (max-width: 700px) {
+    .letter-station {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .letter-intro,
+    .letter-paper,
+    .letter-details {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    .letter-intro h2 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .letter-intro h2 br {
+      display: none;
+    }
+    .letter-intro > p {
+      margin: 0;
+    }
+    .letter-address {
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      column-gap: 12px;
+      margin: 12px 0 0;
+    }
+    .letter-address > span,
+    .little-mailbox {
+      display: none;
+    }
+    .letter-address strong {
+      font-size: 13px;
+    }
+    .letter-paper {
+      padding: 16px 18px 14px;
+      transform: none;
+    }
+    .paper-heading {
+      font-size: 9px;
+    }
+    .paper-stamp {
+      padding: 4px 5px;
+    }
+    .paper-stamp img {
+      width: 28px;
+    }
+    .paper-dear {
+      margin: 8px 0;
+    }
+    .letter-paper textarea {
+      font-size: 16px;
+      min-height: 90px;
+      line-height: 30px;
+    }
+    .letter-signature {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .letter-details > p.delivery-note {
+      margin-top: 4px;
+    }
+    .letter-success {
+      padding: 16px 0;
+    }
+  }
+  @media (max-height: 500px) and (min-width: 701px) {
+    .little-mailbox {
+      display: none;
+    }
+    .letter-intro h2 {
+      font-size: 32px;
+    }
+    .letter-paper {
+      padding: 16px 22px;
+    }
+    .letter-paper textarea {
+      min-height: 90px;
+    }
+    .paper-dear {
+      margin: 8px 0;
+    }
+    .letter-address {
+      margin: 16px 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .letter-paper.accepted {
+      animation: none;
+    }
+  }
+</style>
+<script src="@/scripts/site/letter-station.ts"></script>

@@ -1,0 +1,158 @@
+{
+  "parentThreadId": "4404c79e-f084-4b46-a56b-0bfda7e611f4",
+  "note": "Native first drafts completed. Follow-up status is last observed, not live. All future delegation must use T3-owned tasks.",
+  "tasks": [
+    {
+      "area": "experience",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-experience-t3-continuation-20261021-1",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-experience-t3-continuation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "playgrounds",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Aarticle-playgrounds-t3-continuation-20261021-1",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Aarticle-playgrounds-t3-continuation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "build",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-build-t3-continuation-20261021-1",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-build-t3-continuation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "resume-assistant",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Aresume-robot-feasibility-20261021-1",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Aresume-robot-feasibility-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "logo-asset",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-logo-extrusion-20261021-1",
+      "childThreadId": "thread:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-logo-extrusion-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "scene",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-scene-implementation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "workbench",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-workbench-implementation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "robot",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-robot-implementation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "contact-validation",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-contact-validation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "failed-provider-capacity-partial-work-preserved"
+    },
+    {
+      "area": "logo-integration",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-logo-integration-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "cancel-requested-replaced-by-night-pass"
+    },
+    {
+      "area": "robot-browser",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-robot-browser-validation-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "night-lab",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-night-lab-gemini4argon-20261021-1",
+      "provider": "antigravity",
+      "model": "gemini-4-argon-medium",
+      "status": "completed"
+    },
+    {
+      "area": "shell-polish",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-shell-polish-composer25-20261021-1",
+      "provider": "cursor",
+      "model": "composer-2.5",
+      "status": "completed"
+    },
+    {
+      "area": "campus-readable-game-shell-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-readable-game-shell-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "campus-ux-audit-stamp-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-ux-audit-stamp-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "campus-robot-ux-redesign-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-robot-ux-redesign-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "campus-scene-return-focus-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-scene-return-focus-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "campus-touch-keyboard-controls-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-touch-keyboard-controls-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "completed"
+    },
+    {
+      "area": "campus-webllm-reliability-gpt61",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-webllm-reliability-gpt61-20261021-1",
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "status": "failed-provider-capacity-partial-work-preserved"
+    },
+    {
+      "area": "campus-worker-build-copilot-auto",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-worker-build-copilot-auto-20261021-1",
+      "provider": "acpRegistry_copilot_timsexperiments",
+      "model": "auto",
+      "status": "completed"
+    },
+    {
+      "area": "campus-webllm-reliability-gpt56-recovery",
+      "taskId": "node:delegated-task:command%3Amcp%3Aeaaed379-a23e-4b70-831d-47e3b7989f9e%3Adelegate-task%3Acampus-webllm-reliability-gpt56-recovery-20261021-1",
+      "provider": "codex",
+      "model": "gpt-5.6-sol",
+      "status": "running"
+    }
+  ]
+}

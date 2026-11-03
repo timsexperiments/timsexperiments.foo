@@ -11,7 +11,7 @@ import { default as targetBlankPlugin } from './src/plugins/rehype/target-blank'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://timsexperiments.foo',
   markdown: {
     rehypePlugins: [
       copyCodePlugin,
@@ -26,7 +26,13 @@ export default defineConfig({
   },
   integrations: [
     mdx(),
-    sitemap(),
+    sitemap({
+      filter: (page) => {
+        const pathname = new URL(page).pathname.replace(/\/$/, '') || '/';
+        if (pathname.startsWith('/article-fragments')) return false;
+        return !['/campus', '/classic', '/unsubscribe', '/parser'].includes(pathname);
+      },
+    }),
     react(),
     // @ts-ignore
     tailwind({
@@ -37,7 +43,16 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
+  vite: {
+    worker: {
+      format: 'es',
+    },
+  },
   redirects: {
     '/parser': 'https://parser.timsexperiments.foo',
+    '/campus': {
+      status: 301,
+      destination: '/',
+    },
   },
 });

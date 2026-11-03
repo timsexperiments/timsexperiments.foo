@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "jsdom": "26.1.0",
+    "pngjs": "7.0.0",
+    "polygon-clipping": "0.15.7",
+    "three": "0.165.0"
+  }
+}

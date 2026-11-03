@@ -1,0 +1,122 @@
+---
+import type { CollectionEntry } from 'astro:content';
+type Props = { recipes: CollectionEntry<'blog'>[] };
+const { recipes } = Astro.props;
+---
+
+<dialog
+  id="recipes-dialog"
+  class="lab-dialog recipe-dialog"
+  aria-labelledby="recipes-title">
+  <header class="lab-panel-header recipe-panel-header">
+    <h2 id="recipes-title" class="lab-panel-title">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5">
+        <path d="M3 4h5v16H3zM8 4h5v16H8zM15 4l5-1 3 16-5 1zM5 8h1m4 0h1"
+        ></path>
+      </svg> Recipe shelf
+    </h2>
+    <div class="lab-panel-actions"></div>
+    <button
+      class="dialog-close lab-btn lab-btn--icon lab-btn--quiet"
+      type="button"
+      aria-label="Close recipe shelf">
+      <span class="panel-close-label">Close</span><span aria-hidden="true"
+        >×</span
+      >
+    </button>
+  </header>
+  <div class="recipe-intro">
+    <p>Read an article or open its experiment at the workbench.</p>
+  </div>
+  <div
+    class="recipe-search"
+    role="search"
+    aria-label="Search engineering articles">
+    <div class="recipe-search-label">
+      <label for="recipe-search">Find an article</label>
+      <span
+        data-search-count
+        role="status"
+        aria-live="polite"
+        aria-atomic="true">{recipes.length} articles</span
+      >
+    </div>
+    <div class="recipe-search-controls">
+      <input
+        id="recipe-search"
+        data-initial-focus
+        type="search"
+        placeholder="Search titles or topics…"
+        maxlength="120"
+        aria-controls="recipe-catalog"
+        autocomplete="off"
+      />
+      <button
+        class="lab-btn lab-btn--secondary"
+        type="button"
+        data-search-clear
+        hidden>Clear</button
+      >
+    </div>
+  </div>
+  <div class="recipe-search-empty" data-search-empty hidden>
+    <p data-search-empty-message>No articles match.</p>
+    <button class="lab-btn lab-btn--secondary" type="button" data-search-reset
+      >Clear search</button
+    >
+  </div>
+  <div class="recipe-catalog" id="recipe-catalog">
+    {
+      recipes.map((recipe, i) => (
+        <a
+          class="recipe-card"
+          href={`/lab/${recipe.slug}/`}
+          data-recipe={recipe.slug}
+          data-search-text={[
+            recipe.data.title,
+            recipe.data.subtitle,
+            recipe.data.tldr,
+            recipe.slug.replaceAll('-', ' '),
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          aria-label={`Open recipe: ${recipe.data.title}`}>
+          <div class:list={['recipe-cover', `recipe-cover-${i % 3}`]}>
+            <span class="recipe-swatch" aria-hidden="true">
+              {i === 0 ? '{ }' : '[ _ ]'}
+            </span>
+            <>
+              <span class="cover-series">
+                TIM'S EXPERIMENTS
+                <br />
+                ENGINEERING RECIPES
+              </span>
+              <span class="cover-diagram" aria-hidden="true">
+                {i === 0 ? '{ }' : '[ _ ]'}
+              </span>
+              <h3 class="cover-title">{recipe.data.title}</h3>
+              <span class="cover-bottom" aria-hidden="true">
+                RECIPE {String(i + 1).padStart(2, '0')} <span>↗</span>
+              </span>
+            </>
+          </div>
+          <p class="recipe-card-subtitle">{recipe.data.subtitle}</p>
+          <span class="recipe-card-meta">
+            <span>{recipe.data.estimate} min read</span>
+            {recipe.slug === 'json-vs-protobuf' && (
+              <span class="recipe-experiment">Experiment</span>
+            )}
+          </span>
+        </a>
+      ))
+    }
+  </div>
+  <div class="shelf-bottom">
+    <span>Browse published articles.</span><a href="/lab">All articles ↗</a>
+  </div>
+</dialog>
