@@ -539,6 +539,10 @@ html:has(> body.campus-page) {
   font-size: 14px;
   line-height: 1.5;
 }
+/* Only a touch drag sets this. Keeping the box stops the mode toggle shifting. */
+.scene-movement[data-looked='true'] .touch-hint {
+  visibility: hidden;
+}
 .scene-movement button:focus:not(:focus-visible),
 #toggle-scene:focus:not(:focus-visible) {
   outline: none;

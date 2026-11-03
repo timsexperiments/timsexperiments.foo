@@ -28,12 +28,15 @@ const fields = [
     error: 'Enter a valid reply email, up to 254 characters.',
   },
 ];
+const invalidFieldsStatus =
+  'Check the highlighted fields. Your draft is still here.';
 const unknownOutcome =
   'Delivery could not be confirmed. Your draft is still here. Press Send to retry. Retrying without edits within 24 hours avoids sending the same letter twice.';
 let sending = false;
 let requestId = crypto.randomUUID();
 let previousDraft = '';
 let requestedAt = 0;
+const invalidFields = new Set<string>();
 
 function setStatus(text: string, tone = 'info') {
   if (status) {
@@ -52,24 +55,32 @@ function draftText(data: FormData) {
   const value = readDraft(data);
   return `${value.message}\n\nFrom: ${value.name}\nReply to: ${value.email}`;
 }
+function fieldInput(field: (typeof fields)[number]) {
+  return document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+    `#letter-${field.name}`
+  );
+}
+function markField(field: (typeof fields)[number], data: FormData) {
+  const error = document.querySelector<HTMLElement>(
+    `#letter-${field.name}-error`
+  );
+  const valid = field.schema.safeParse(
+    String(data.get(field.name) ?? '')
+  ).success;
+  fieldInput(field)?.setAttribute('aria-invalid', String(!valid));
+  if (error) {
+    error.textContent = valid ? '' : field.error;
+    error.hidden = valid;
+  }
+  if (valid) invalidFields.delete(field.name);
+  else invalidFields.add(field.name);
+  return valid;
+}
 function validate(data: FormData) {
   let firstInvalid: HTMLInputElement | HTMLTextAreaElement | null = null;
   for (const field of fields) {
-    const input = document.querySelector<
-      HTMLInputElement | HTMLTextAreaElement
-    >(`#letter-${field.name}`);
-    const error = document.querySelector<HTMLElement>(
-      `#letter-${field.name}-error`
-    );
-    const valid = field.schema.safeParse(
-      String(data.get(field.name) ?? '')
-    ).success;
-    input?.setAttribute('aria-invalid', String(!valid));
-    if (error) {
-      error.textContent = valid ? '' : field.error;
-      error.hidden = valid;
-    }
-    if (!valid && input && !firstInvalid) firstInvalid = input;
+    const valid = markField(field, data);
+    if (!valid && !firstInvalid) firstInvalid = fieldInput(field);
   }
   firstInvalid?.focus();
   return !firstInvalid;
@@ -87,15 +98,22 @@ fetch('/api/contact', { headers: { Accept: 'application/json' } })
     /* An advisory check must not prevent a direct retry. */
   });
 
+// Typing stays quiet until a submit marks a field. Then the mark clears on the fix.
+for (const field of fields) {
+  fieldInput(field)?.addEventListener('input', () => {
+    if (!form || !invalidFields.has(field.name)) return;
+    markField(field, new FormData(form));
+    if (!invalidFields.size && status?.textContent === invalidFieldsStatus)
+      setStatus('');
+  });
+}
+
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (sending || (success && !success.hidden)) return;
   const data = new FormData(form);
   if (!validate(data)) {
-    setStatus(
-      'Check the highlighted fields. Your draft is still here.',
-      'error'
-    );
+    setStatus(invalidFieldsStatus, 'error');
     return;
   }
   const value = readDraft(data);
@@ -140,12 +158,18 @@ form?.addEventListener('submit', async (event) => {
       previousDraft = '';
       requestId = crypto.randomUUID();
       if (unchanged()) {
+        // The shorter card keeps the sheet's height so the centred panel holds still.
+        form.style.minHeight = `${form.offsetHeight}px`;
         form.reset();
         if (draft) draft.hidden = true;
         if (success) success.hidden = false;
         setStatus('Accepted for delivery.');
         // Only move focus if it is about to be hidden with the submitted draft.
-        if (draft?.contains(document.activeElement)) another?.focus();
+        if (draft?.contains(document.activeElement)) {
+          // A visitor who scrolled down to Send still needs to see the result.
+          success?.scrollIntoView({ block: 'nearest' });
+          another?.focus();
+        }
       } else {
         setStatus(
           'Your submitted letter was accepted for delivery. Your newer edits are still here.'
@@ -168,6 +192,7 @@ form?.addEventListener('submit', async (event) => {
   }
 });
 another?.addEventListener('click', () => {
+  if (form) form.style.minHeight = '';
   if (success) success.hidden = true;
   if (draft) draft.hidden = false;
   setStatus('');
