@@ -667,8 +667,15 @@ export async function createCampus(
     (event) => {
       if (!running()) return;
       if (drag && event.pointerId === drag.id) {
-        if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 5)
+        if (
+          !drag.moved &&
+          Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 5
+        ) {
           drag.moved = true;
+          // A touch visitor has found the gesture, so its hint can leave the room.
+          if (event.pointerType === 'touch' && movement)
+            movement.dataset.looked = 'true';
+        }
         if (drag.moved) {
           transition = null;
           euler.setFromQuaternion(camera.quaternion);

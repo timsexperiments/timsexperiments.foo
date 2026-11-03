@@ -45,6 +45,10 @@ function setup({
       focus() {
         document.activeElement = this;
       },
+      scrolledIntoView: 0,
+      scrollIntoView() {
+        this.scrolledIntoView += 1;
+      },
       addEventListener: (
         event: string,
         handler: (event: { preventDefault: () => void }) => Promise<void> | void
@@ -74,6 +78,8 @@ function setup({
   };
   const form = {
     ...element('letter-form'),
+    offsetHeight: 480,
+    style: { minHeight: '' },
     classList: {
       add: (name: string) => classes.add(name),
       remove: (name: string) => classes.delete(name),
@@ -143,6 +149,7 @@ function setup({
   };
   return {
     values,
+    form,
     button,
     status,
     note,
@@ -167,6 +174,8 @@ function setup({
     copy: () => trigger('letter-copy'),
     copyAddress: () => trigger('letter-copy-address'),
     writeAnother: () => trigger('letter-another'),
+    type: (name: 'message' | 'name' | 'email') =>
+      trigger(`letter-${name}`, 'input'),
   };
 }
 function body(ui: ReturnType<typeof setup>, index: number) {
@@ -376,6 +385,108 @@ test('validation follows field order and clears old errors after correction', as
   ui.values.email = 'ada@example.com';
   await ui.submit();
   expect(ui.calls).toHaveLength(1);
+});
+
+test('a marked field clears as soon as it is corrected, without moving focus', async () => {
+  const ui = setup();
+  ui.values.name = ' ';
+  ui.values.email = 'bad';
+  await ui.submit();
+  expect(ui.document.activeElement).toBe(ui.inputs.name);
+
+  ui.values.name = 'Ada';
+  await ui.type('name');
+  expect(ui.errors.name.hidden).toBe(true);
+  expect(ui.errors.name.textContent).toBe('');
+  expect(ui.inputs.name.attributes.get('aria-invalid')).toBe('false');
+  // The other field is still wrong, so the summary still applies.
+  expect(ui.errors.email.hidden).toBe(false);
+  expect(ui.status.dataset.tone).toBe('error');
+  expect(ui.status.textContent).toContain('highlighted fields');
+
+  ui.values.email = 'ada@example';
+  await ui.type('email');
+  expect(ui.errors.email.hidden).toBe(false);
+  expect(ui.status.textContent).toContain('highlighted fields');
+
+  ui.values.email = 'ada@example.com';
+  await ui.type('email');
+  expect(ui.errors.email.hidden).toBe(true);
+  expect(ui.status.textContent).toBe('');
+  expect(ui.status.dataset.tone).toBe('info');
+  expect(ui.document.activeElement).toBe(ui.inputs.name);
+  expect(ui.calls).toHaveLength(0);
+});
+
+test('a corrected field stays quiet while typing until the next submit marks it again', async () => {
+  const ui = setup();
+  ui.values.name = ' ';
+  await ui.submit();
+  ui.values.name = 'Ada';
+  await ui.type('name');
+  ui.values.name = ' ';
+  await ui.type('name');
+  // Unmarked fields stay quiet while typing, whatever they hold.
+  expect(ui.errors.name.hidden).toBe(true);
+  await ui.submit();
+  expect(ui.errors.name.hidden).toBe(false);
+});
+
+test('typing before the first submit shows no errors', async () => {
+  const ui = setup();
+  ui.values.email = 'not yet an address';
+  await ui.type('email');
+  expect(ui.errors.email.hidden).toBe(true);
+  expect(ui.inputs.email.attributes.get('aria-invalid')).toBeUndefined();
+  expect(ui.status.textContent).toBe('');
+});
+
+test('typing keeps a delivery failure visible until the next send', async () => {
+  const ui = setup();
+  ui.respond(async () =>
+    Response.json({ message: 'Sending is paused.' }, { status: 503 })
+  );
+  await ui.submit();
+  await settle();
+  ui.values.message = 'Hello from an edited test.';
+  await ui.type('message');
+  expect(ui.status.textContent).toBe('Sending is paused.');
+  expect(ui.status.dataset.tone).toBe('error');
+});
+
+test('success holds the sheet height and brings a scrolled visitor to the result', async () => {
+  const ui = setup();
+  ui.document.activeElement = ui.button;
+  await ui.submit();
+  await settle();
+  expect(ui.success.hidden).toBe(false);
+  expect(ui.form.style.minHeight).toBe('480px');
+  expect(ui.success.scrolledIntoView).toBe(1);
+  expect(ui.document.activeElement).toBe(ui.another);
+  await ui.writeAnother();
+  expect(ui.form.style.minHeight).toBe('');
+});
+
+test('success leaves scroll alone when focus is outside the draft', async () => {
+  const ui = setup();
+  const outside = {};
+  ui.document.activeElement = outside;
+  await ui.submit();
+  await settle();
+  expect(ui.success.hidden).toBe(false);
+  expect(ui.success.scrolledIntoView).toBe(0);
+  expect(ui.document.activeElement).toBe(outside);
+});
+
+test('rejected and unconfirmed sends never hold the sheet height', async () => {
+  const ui = setup();
+  ui.respond(async () =>
+    Response.json({ message: 'Sending is paused.' }, { status: 503 })
+  );
+  await ui.submit();
+  await settle();
+  expect(ui.form.style.minHeight).toBe('');
+  expect(ui.draft.hidden).toBe(false);
 });
 
 test('validation preserves server limits, schema and honeypot', async () => {
